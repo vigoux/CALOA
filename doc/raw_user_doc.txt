@@ -98,6 +98,7 @@ After GUI appears, a window like below should appear.
 
 Interface can be split in 3 parts :
 
-    1 - BNC channel setter
+        1 - BNC channel setter
 
-This part of 
+This part of the interface is the lefter one.
+Here we can divide interface in 8 similar parts, wich are named boxes.
