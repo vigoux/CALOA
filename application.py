@@ -47,6 +47,7 @@ main_lock = RLock()
 
 # %% Scope_Display Object, useful to manage scope display
 
+
 class Scope_Display(tk.Frame, Queue):
 
     SCOPE_UPDATE_SEQUENCE = "<<SCOPEUPDATE>>"
@@ -201,7 +202,7 @@ class Application(tk.Frame):
                 self.stopLambda.set(tp_config_list[6])
                 self.nrPoints.set(tp_config_list[7])
             except Exception as e:
-                logger.critical("Error while loading file :",exc_info=e)
+                logger.critical("Error while loading file :", exc_info=e)
             finally:
                 self.updateScreen()
 
@@ -558,15 +559,17 @@ class Application(tk.Frame):
 
             # Saving Raw datas
             for spectra in self.totalSpectras:
-                to_save.append(spectra[i].values) # Gathering Raw datas
+                to_save.append(spectra[i].values)  # Gathering Raw datas
 
-            format_data(raw_path + os.sep + "raw{}_chan{}.txt".format(timeStamp,i+1), to_save)
+            format_data(raw_path + os.sep
+                        + "raw{}_chan{}.txt".format(timeStamp, i+1), to_save)
 
             # Saving Interpolated datas
 
             interpolated = [interp_lam_range]
             for spectra in self.totalSpectras:
-                interpolated.append(spectra[i].getInterpolated(startingLamb=interp_lam_range[0],
+                interpolated.append(spectra[i].getInterpolated(
+                                    startingLamb=interp_lam_range[0],
                                     endingLamb=interp_lam_range[-1],
                                     nrPoints=len(interp_lam_range)).values)
             format_data(interp_path + os.sep + "interp{}_chan{}.txt".format(timeStamp, i+1), interpolated)
@@ -575,11 +578,13 @@ class Application(tk.Frame):
 
             cosmetic = [interp_lam_range]
             for spectrum in self.totalSpectras:
-                cosmetic.append(spectra[i].getInterpolated(startingLamb=interp_lam_range[0],
+                cosmetic.append(spectra[i].getInterpolated(
+                                startingLamb=interp_lam_range[0],
                                 endingLamb=interp_lam_range[-1],
                                 nrPoints=len(interp_lam_range),
                                 smoothing=True).values)
-            format_data(cosmetic_path + os.sep + "cosm{}_chan{}.txt".format(timeStamp, i+1), cosmetic)
+            format_data(cosmetic_path + os.sep
+                        + "cosm{}_chan{}.txt".format(timeStamp, i+1), cosmetic)
 
         config_list = self.get_saving_list()
         with open(save_dir + os.sep + "config.txt", "w") as file:
@@ -601,6 +606,7 @@ def report_callback_exception(self, *args):
     err = traceback.format_exception(*args)
     tMsg.showerror("Error", err)
     logger.critical("Error :", exc_info=err)
+
 
 tk.Tk.report_callback_exception = report_callback_exception
 
