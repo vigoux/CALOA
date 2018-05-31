@@ -44,7 +44,8 @@ to easily uninstall Python 3.
 Python 2 does not need to be uninstalled.
 Installation can be split in 4 parts.
 
-    0 - Connect the spectrometer and the BNC via USB-to-Serial to the computer to be used for installation and operating.
+    0 - Connect the spectrometer and the BNC via USB-to-Serial to the computer
+        to be used for installation and operating.
 
     1 - Installing Anaconda Python
 
@@ -97,4 +98,6 @@ After GUI appears, a window like below should appear.
 
 Interface can be split in 3 parts :
 
-    1 - 
+    1 - BNC channel setter
+
+This part of 
