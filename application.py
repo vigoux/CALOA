@@ -16,7 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-from threading import Thread, RLock, Event, Timer
+from threading import RLock, Event
 
 import traceback
 
@@ -63,18 +63,19 @@ class Scope_Display(tk.Frame, Queue):
 
         tk.Frame.__init__(self, master=master)
 
-        self.globalPwnd = ttk.Notebook(master=self) # The global NoteBook wich contains all scopes
-
+        self.globalPwnd = ttk.Notebook(master=self)  # The global NoteBook wich contains all scopes
 
         self.panelsList = []
-        for name in nameList:
-            figure = Figure(figsize=(6,5.5), dpi=100)  # The scope figure
 
-            plot = figure.add_subplot(111) # Set-up axis and get plotting area
+        for name in nameList:
+            figure = Figure(figsize=(6, 5.5), dpi=100)  # The scope figure
+
+            plot = figure.add_subplot(111)  # Set-up axis and get plotting area
 
             frame = tk.Frame(self.globalPwnd)
 
-            canvas = FigureCanvasTkAgg(figure, master=frame)  # Get the tkinter canvas
+            canvas = FigureCanvasTkAgg(figure,
+                                       master=frame)  # Get the tkinter canvas
 
             self.globalPwnd.add(frame, text=name)  # Add the canvas to global NoteBook
 
