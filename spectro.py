@@ -60,29 +60,36 @@ class c_AVA_Exceptions(Exception):
             -4: ("ERR_INVALID_DEVICE_ID",
                  "AvsHandle is unknown in the DLL."),
             -5: ("ERR_OPERATION_PENDING",
-                 "Function is called while result of previous call to AVS_Measure is not received yet."),
+                 "Function is called while result of previous call to"
+                 " AVS_Measure is not received yet."),
             -6: ("ERR_TIMEOUT",
                  "No anwer received from device."),
-            -7: ("Reserved",""),
+            -7: ("Reserved", ""),
             -8: ("ERR_INVALID_MEAS_DATA",
-                 "Not measure data is received at the point AVS_GetScopeData is called."),
+                 "Not measure data is received at the point AVS_GetScopeData"
+                 " is called."),
             -9: ("ERR_INVALID_SIZE",
                  "Allocated buffer size is too small."),
             -10: ("ERR_INVALID_PIXEL_RANGE",
-                  "Measurement preparation failed because pixel range is invalid."),
+                  "Measurement preparation failed because pixel range"
+                  " is invalid."),
             -11: ("ERR_INVALID_INT_TIME",
-                  "Measurement preparation failed because integration time is invalid."),
+                  "Measurement preparation failed because integration time"
+                  " is invalid."),
             -12: ("ERR_INVALID_COMBINATION",
-                  "Measurement preparation failed because of an invalid combination of parameters."),
+                  "Measurement preparation failed because of an invalid"
+                  " combination of parameters."),
             -13: ("Reserved", ""),
             -14: ("ERR_NO_MEAS_BUFFER_AVAIL",
-                  "Measurement preparation failed because no measurement buffers available."),
+                  "Measurement preparation failed because no measurement"
+                  " buffers available."),
             -15: ("ERR_UNKNOWN",
                   "Unknown error reason received from spectrometer."),
             -16: ("ERR_COMMUNICATION",
                   "Error in communication occurred."),
             -17: ("ERR_NO_SPECTRA_IN_RAM",
-                  "No more spectra available in RAM, all read or measurement not started yet."),
+                  "No more spectra available in RAM, all read or measurement"
+                  " not started yet."),
             -18: ("ERR_INVALID_DLL_VERSION",
                   "DLL version information could mot be retrieved."),
             -19: ("ERR_NO_MEMORY",
@@ -100,27 +107,37 @@ class c_AVA_Exceptions(Exception):
             -102: ("ERR_INVALID_PARAMETER_ADC_OFFSET",
                    "OffSet Setting Out of Range."),
             -110: ("ERR_INVALID_MEASPARAM_AVG_SAT2",
-                   "Use of saturation detection level 2 is not compatible with the averaging function."),
+                   "Use of saturation detection level 2 is not compatible"
+                   " with the averaging function."),
             -111: ("ERR_INVALID_MEASPARAM_AVD_RAM",
-                   "Use of Averaging is not compatible with StoreToRAM function."),
+                   "Use of Averaging is not compatible with StoreToRAM"
+                   " function."),
             -112: ("ERR_INVALID_MEASPARAM_SYNC_RAM",
-                   "Use of Synchronize setting is not compatible with StoreToRAM function"),
+                   "Use of Synchronize setting is not compatible with"
+                   " StoreToRAM function"),
             -113: ("ERR_INVALID_MEASPARAM_LEVEL_RAM",
-                   "Use of Level Triggering is not compatible with StoreToRAM function."),
+                   "Use of Level Triggering is not compatible with"
+                   " StoreToRAM function."),
             -114: ("ERR_INVALID_MASPARAM_SAT2_RAM",
-                   "Use of Saturation Detection Level 2 is not compatible with the StoreToRAM function."),
+                   "Use of Saturation Detection Level 2 is not compatible"
+                   " with the StoreToRAM function."),
             -115: ("ERR_INVALID_MEASPARAM_FWVER_RAM",
-                   "The StoreToRAM function is only supported with firmware version 0.20.0.0 or later."),
+                   "The StoreToRAM function is only supported with firmware"
+                   " version 0.20.0.0 or later."),
             -116: ("ERR_INVALID_MEASPARAM_DYNDARK",
                    "Dynamic Dark Correction not supported."),
             -120: ("ERR_NOT_SUPPORTED_BY_SENSOR_TYPE",
-                   "Use of AVS_SetSensitivityMode not supported by detector type."),
+                   "Use of AVS_SetSensitivityMode not supported by"
+                   " detector type."),
             -121: ("ERR_NOT_SUPPORTED_BY_FW_VER",
-                   "Use of AVS_SetSensitivityMode not supported by firmware version."),
+                   "Use of AVS_SetSensitivityMode not supported by"
+                   " firmware version."),
             -122: ("ERR_NOT_SUPPORTED_BY_FPGA_VER",
-                   "use of AVS_SetSensitivityMode not supported by FPGA version."),
+                   "use of AVS_SetSensitivityMode not supported by"
+                   " FPGA version."),
             -140: ("ERR_SL_CALIBRATION_NOT_IN_RANGE",
-                   "Spectrometer was not calibrated for stray light correction."),
+                   "Spectrometer was not calibrated for stray light"
+                   " correction."),
             -141: ("ERR_SL_STARTPIXEL_NOT_IN_RANGE",
                    "Incorrect start pixel found in EEProm."),
             -142: ("ERR_SL_ENDPIXEL_OUT_OF_RANGE",

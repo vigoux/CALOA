@@ -217,9 +217,10 @@ class Application(tk.Frame):
                 self.nrPoints.get()]
 
     def saveConfig(self):
-        saveFileName = tkFileDialog.asksaveasfilename(defaultextension=".cbc",
-                                                      filetypes=[("CALOA Config file",
-                                                                  "*.cbc")])
+        saveFileName = tkFileDialog.asksaveasfilename(
+            defaultextension=".cbc",
+            filetypes=[("CALOA Config file",
+                        "*.cbc")])
         with open(saveFileName, "wb") as saveFile:
             pick = Pickler(saveFile)
             total_list = self.get_saving_list()
@@ -332,8 +333,8 @@ class Application(tk.Frame):
         tk.Entry(button_fen, textvariable=self.nrPoints).grid(row=80, column=1)
 
         tk.Label(button_fen,
-                 text="Reference channel").grid(row=90, column=0,
-                                                rowspan=self.avh._nr_spec_connected)
+                 text="Reference channel").\
+            grid(row=90, column=0, rowspan=self.avh._nr_spec_connected)
 
         self.referenceChannel = tk.StringVar()
         for i, avsHandle in enumerate(self.avh.devList):
@@ -489,7 +490,7 @@ class Application(tk.Frame):
                 for pulse in self._bnc:
                     pulse[BNC.DELAY] = \
                         float(pulse.experimentTuple[BNC.DELAY].get()) + n_d * \
-                            float(pulse.experimentTuple[BNC.dPHASE].get())
+                        float(pulse.experimentTuple[BNC.dPHASE].get())
                 tp_scopes = self.avh.getScopes()
                 self.totalSpectras.append(tp_scopes)
                 self.liveDisplay.putSpectrasAndUpdate(0, tp_scopes)
@@ -512,8 +513,8 @@ class Application(tk.Frame):
     def treatSpectras(self):
 
         def format_data(filepath, datas):
-            begin=" "
-            for i,spect_tup in enumerate(datas):
+            begin = " "
+            for i, spect_tup in enumerate(datas):
                 if i == 0:
                     begin_format_str = "LAMBDA"
                 elif i == 1:
@@ -523,18 +524,22 @@ class Application(tk.Frame):
                 else:
                     begin_format_str = "SP{}"
                 begin += "{: ^16s}".format(begin_format_str.format(i-2))
-            format_str = "    " + "    ".join(["{:=+012.5F}" for spect in datas])
+            format_str = "    "\
+                + "    ".join(["{:=+012.5F}" for spect in datas])
             with open(filepath, "w") as file:
                 file.write(begin+"\n")
                 for tup in zip(*datas):
                     file.write(format_str.format(*tup)+"\n")
                 file.close()
-        timeStamp = "{time.tm_hour}_{time.tm_min}_{time.tm_sec}".format(time=time.localtime())
+        timeStamp = "{time.tm_hour}_{time.tm_min}_{time.tm_sec}".\
+            format(time=time.localtime())
 
-        dir_path = tkFileDialog.askdirectory(title="Where do you want to save spectra ?")
+        dir_path = tkFileDialog.\
+            askdirectory(title="Where do you want to save spectra ?")
 
         if dir_path is None:
-            experiment_logger.critical("No Dir Path gave, impossible to save spectra.")
+            experiment_logger.\
+                critical("No Dir Path gave, impossible to save spectra.")
             return None
 
         save_dir = dir_path + os.sep + "saves{}".format(timeStamp)
@@ -552,7 +557,8 @@ class Application(tk.Frame):
         nr_chans = app.avh._nr_spec_connected
 
         for i in range(nr_chans):
-            to_save = [self.totalSpectras[0][0].lambdas] # This item is all the lambdas
+            # This item is all the lambdas
+            to_save = [self.totalSpectras[0][0].lambdas]
             interp_lam_range = list(linspace(float(self.startLambda.get()),
                                              float(self.stopLambda.get()),
                                              int(self.nrPoints.get())))
@@ -572,7 +578,9 @@ class Application(tk.Frame):
                                     startingLamb=interp_lam_range[0],
                                     endingLamb=interp_lam_range[-1],
                                     nrPoints=len(interp_lam_range)).values)
-            format_data(interp_path + os.sep + "interp{}_chan{}.txt".format(timeStamp, i+1), interpolated)
+            format_data(interp_path + os.sep
+                        + "interp{}_chan{}.txt".format(timeStamp, i+1),
+                        interpolated)
 
             # Saving Cosmetic datas
 
