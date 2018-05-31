@@ -253,11 +253,15 @@ class Pulse():
 
         self._bnc_handler = P_bnc_handler
         self.number = P_number
-        self._dispUpdate = P_dispUpdate # If we want to update display after sending a command
-        self._state = dict([]) # State of the pulse, represented by a dict
+        # If we want to update display after sending a command
+        self._dispUpdate = P_dispUpdate
+        self._state = dict([])  # State of the pulse, represented by a dict
         self._refresh_state()
-        self.experimentTuple = {LABEL:None, STATE:None, WIDTH:None, DELAY:None,
-                                dPHASE:None}
+        self.experimentTuple = {LABEL: None,
+                                STATE: None,
+                                WIDTH: None,
+                                DELAY: None,
+                                dPHASE: None}
 
         logger_pulse.info("P{} initialized.".format(P_number))
 
@@ -287,7 +291,7 @@ class Pulse():
         """
         assert(P_id in COMMAND_DICT)  # assert that the parameter is supported
 
-        possible = False # Useful after
+        possible = False  # Useful afterwards
 
         if P_id != SYNC:
 
@@ -306,13 +310,13 @@ class Pulse():
             else:
                 try:
                     P_newval = "{:012.8f}".format(float(P_newval))
-                except Exception as e:
-                    pass # If P_newval isn't a float
+                except Exception:
+                    pass  # If P_newval isn't a float
                 else:
                     possible = True
 
-            assert(possible) # If nothing works, exit.
-        else: # Sync case is quit diffcult to handle.
+            assert(possible)  # If nothing works, exit.
+        else:  # Sync case is quit diffcult to handle.
             if isinstance(P_newval, Pulse):
                 P_newval = "T{}".format(P_newval.number)
             elif str(P_newval) == "0":
@@ -320,14 +324,14 @@ class Pulse():
             elif P_newval == "T0":
                 pass
             else:
-                raise RuntimeError("Sync parameter has to be a pulse object " +
-                                   "or T0.")
+                raise RuntimeError("Sync parameter has to be a pulse object "
+                                   + "or T0.")
 
         # If command is approuved by BNC, we change state parameter in python
         # elsem, we raise a error.
-        if self._bnc_handler.send_command(":PULS{}".format(self.number) +
-                                          COMMAND_DICT[P_id] +
-                                          " {}".format(P_newval)):
+        if self._bnc_handler.send_command(":PULS{}".format(self.number)
+                                          + COMMAND_DICT[P_id]
+                                          + " {}".format(P_newval)):
             self._state[P_id] = str(P_newval)
         else:
             logger_pulse.error("An unknown error happened.")
@@ -343,8 +347,8 @@ class Pulse():
 
         for key in COMMAND_DICT:
             tp_dict_state[key] = self._bnc_handler.send_command(
-                    ":PULS{}".format(self.number) +
-                    COMMAND_DICT[key] + "?")
+                    ":PULS{}".format(self.number)
+                    + COMMAND_DICT[key] + "?")
             logger_pulse.debug("{} done".format(key))
         self._state = tp_dict_state
 
@@ -447,7 +451,6 @@ class Pulse():
                                                                  column=1,
                                                                  sticky=tk.W)
 
-
         return master_frame
 
     # Loading and saving
@@ -500,8 +503,8 @@ class BNC():
     def __getitem__(self, P_nbr):
         """Useful method to access to one of BNC's Pulse."""
         if P_nbr <= 0:
-            raise IndexError("Invalid index, to set BNC period or global " +
-                             "parameters, use methods instead.")
+            raise IndexError("Invalid index, to set BNC period or global "
+                             + "parameters, use methods instead.")
         return self._pulse_list[P_nbr-1]
 
     def __iter__(self):
@@ -545,17 +548,17 @@ class BNC():
         return float(self._bnc_handler.send_command(":PULS0:PER?"))
 
     period = property(_get_period, _set_period,
-                      doc="Period of BNC's T0.\n" +
-                      "Warning : period is never stocked in a proper \n" +
-                      "attribute but is only a property (ie a couple of \n" +
-                      "methods).")
+                      doc="Period of BNC's T0.\n"
+                      + "Warning : period is never stocked in a proper \n"
+                      + "attribute but is only a property (ie a couple of \n"
+                      + "methods).")
 
     def setmode(self, newMode):
         return self._bnc_handler.send_command(":PULS0:MOD {}".format(newMode))
 
     def settrig(self, newMode):
-        return \
-    self._bnc_handler.send_command(":PULS0:EXT:MOD {}".format(newMode))
+        return self._bnc_handler.\
+            send_command(":PULS0:EXT:MOD {}".format(newMode))
 
     def sendtrig(self):
         return self._bnc_handler.send_command("*TRG")
@@ -597,7 +600,7 @@ class BNC():
     def _push_parameters(self):
         """Method used to push all parameters gathered by the interface."""
         logger_main.debug("Pushing new parameters.")
-        for i in range(1,len(self._pulse_list)+1):
+        for i in range(1, len(self._pulse_list)+1):
             tp_dict = dict([])
             for paramid in COMMAND_DICT:
                 tp_dict[paramid] = self._stringListeners[i][paramid].get()

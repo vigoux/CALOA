@@ -63,7 +63,8 @@ class Scope_Display(tk.Frame, Queue):
 
         tk.Frame.__init__(self, master=master)
 
-        self.globalPwnd = ttk.Notebook(master=self)  # The global NoteBook wich contains all scopes
+        # The global NoteBook wich contains all scopes
+        self.globalPwnd = ttk.Notebook(master=self)
 
         self.panelsList = []
 
@@ -77,30 +78,15 @@ class Scope_Display(tk.Frame, Queue):
             canvas = FigureCanvasTkAgg(figure,
                                        master=frame)  # Get the tkinter canvas
 
-            self.globalPwnd.add(frame, text=name)  # Add the canvas to global NoteBook
+            # Add the canvas to global NoteBook
+            self.globalPwnd.add(frame, text=name)
 
             canvas.get_tk_widget().pack(fill=tk.BOTH)  # Pack the canvas
 
             self.panelsList.append([plot, canvas])
         self.bind(self.SCOPE_UPDATE_SEQUENCE, self.reactUpdate)
 
-
-        """
-        absFigure = Figure(figsize=(6,5.5), dpi=100) # Create the absorption Figure
-
-        self.absScopes = absFigure.add_subplot(111)  # Set-up axis and get plotting area
-
-        absFrame = tk.Frame(self.globalPwnd)
-
-        self.absCanvas = FigureCanvasTkAgg(absFigure, master=absFrame)  # Get the corresponding tkinter canvas
-
-        self.globalPwnd.add(absFrame, text="Absorption")  # Add it to the global NoteBook
-
-        self.absCanvas.get_tk_widget().pack(fill=tk.BOTH)  # Pack the canvas
-        """
-
-
-        self.globalPwnd.pack(fill=tk.BOTH) # Pack the Global Notebook
+        self.globalPwnd.pack(fill=tk.BOTH)  # Pack the Global Notebook
 
     def putSpectrasAndUpdate(self, frame_id, spectras):
         self.put((frame_id, spectras))
@@ -109,7 +95,7 @@ class Scope_Display(tk.Frame, Queue):
     def reactUpdate(self, event):
         try:
             tp_instruction = self.get()
-        except Exception as e:
+        except Exception:
             pass
         else:
             with main_lock:
@@ -123,11 +109,10 @@ class Scope_Display(tk.Frame, Queue):
 
 # %% Application Object, true application is happening here
 
+
 class Application(tk.Frame):
 
     def __init__(self, master=None, P_bnc=None):
-
-
 
         super().__init__(master)
         if P_bnc is None:
@@ -156,7 +141,8 @@ class Application(tk.Frame):
 
         filemenu = tk.Menu(menubar, tearoff=0)
         filemenu.add_command(label="Open config", command=self.loadConfig)
-        filemenu.add_command(label="Save current config", command=self.saveConfig)
+        filemenu.add_command(label="Save current config",
+                             command=self.saveConfig)
         filemenu.add_separator()
         filemenu.add_command(label="Quit", command=self.quit)
         menubar.add_cascade(label="File", menu=filemenu)
@@ -176,14 +162,22 @@ class Application(tk.Frame):
             self.avh.acquire()
             self.avh.prepareAll(intTime=10)
             scopes = self.avh.startAllAndGetScopes()
-            self.liveDisplay.putSpectrasAndUpdate(0, scopes.copy()) # Copy is realy important because of the further modification of the list
+
+            # list.copy() is realy important because of the
+            # further modification of the list.
+            self.liveDisplay.putSpectrasAndUpdate(0, scopes.copy())
+
             if self.referenceChannel.get() != "":
                 key_list = list(self.avh.devList.keys())
                 chosen = key_list.index(int(self.referenceChannel.get()))
-                ref_spectrum = scopes.pop(chosen) # Modification that justifies above copy
-                to_plot_list = [spectro.Spectrum.absorbanceSpectrum(ref_spectrum, spec)
-                for spec in scopes]
+
+                # Modification that justifies above copy
+                ref_spectrum = scopes.pop(chosen)
+                to_plot_list = \
+                    [spectro.Spectrum.absorbanceSpectrum(ref_spectrum, spec)
+                     for spec in scopes]
                 self.liveDisplay.putSpectrasAndUpdate(1, to_plot_list)
+
             self.avh.release()
             self.after(250, self.routine_data_sender)
         else:
@@ -259,64 +253,87 @@ class Application(tk.Frame):
 
         button_fen = tk.LabelFrame(fen, text="Experiment parameters")
         tk.Button(button_fen, text="Launch experiment",
-                  command=self.experimentV2).grid(row=0,column=0)
+                  command=self.experiment).grid(row=0, column=0)
         tk.Button(button_fen, text="Stop Experiment",
-                  command=self.stop_experiment).grid(row=0,column=1)
+                  command=self.stop_experiment).grid(row=0, column=1)
 
-        tk.Label(button_fen, text="Total experiment time (in s)").grid(row=10, column=0, sticky=tk.W)
+        tk.Label(button_fen,
+                 text="Total experiment time (in s)").grid(row=10, column=0,
+                                                           sticky=tk.W)
         try:
             self.T_tot
-        except AttributeError as e:
+        except AttributeError:
             self.T_tot = tk.StringVar()
-        tk.Entry(button_fen, textvariable=self.T_tot).grid(row=10,column=1)
+        tk.Entry(button_fen, textvariable=self.T_tot).grid(row=10, column=1)
 
-        tk.Label(button_fen, text="Integration time (in s)").grid(row=20,column=0, sticky=tk.W)
+        tk.Label(button_fen,
+                 text="Integration time (in s)").grid(row=20, column=0,
+                                                      sticky=tk.W)
         try:
             self.T
-        except AttributeError as e:
+        except AttributeError:
             self.T = tk.StringVar()
-        tk.Entry(button_fen, textvariable=self.T).grid(row=20,column=1)
+        tk.Entry(button_fen, textvariable=self.T).grid(row=20, column=1)
 
-        tk.Label(button_fen, text="Averaging Number (integer)").grid(row=30, column=0, sticky=tk.W)
+        tk.Label(button_fen,
+                 text="Averaging Number (integer)").grid(row=30, column=0,
+                                                         sticky=tk.W)
         try:
             self.N_c
-        except AttributeError as e:
+        except AttributeError:
             self.N_c = tk.StringVar()
         tk.Entry(button_fen, textvariable=self.N_c).grid(row=30, column=1)
 
-        tk.Label(button_fen, text="Delay Number (integer)").grid(row=40, column=0, sticky=tk.W)
+        tk.Label(button_fen,
+                 text="Delay Number (integer)").grid(row=40, column=0,
+                                                     sticky=tk.W)
         try:
             self.N_d
-        except AttributeError as e:
+        except AttributeError:
             self.N_d = tk.StringVar()
         tk.Entry(button_fen, textvariable=self.N_d).grid(row=40, column=1)
 
-        ttk.Separator(button_fen, orien=tk.HORIZONTAL).grid(row=50, columnspan=2, sticky=tk.E+tk.W, pady=5)
+        ttk.Separator(button_fen,
+                      orient=tk.HORIZONTAL).grid(row=50,
+                                                 columnspan=2,
+                                                 sticky=tk.E+tk.W,
+                                                 pady=5)
 
-        tk.Label(button_fen, text="Starting wavelenght (in nm)").grid(row=60, column=0, sticky=tk.W)
+        tk.Label(button_fen,
+                 text="Starting wavelenght (in nm)").grid(row=60,
+                                                          column=0,
+                                                          sticky=tk.W)
         try:
             self.startLambda
-        except AttributeError as e:
+        except AttributeError:
             self.startLambda = tk.StringVar()
-        tk.Entry(button_fen, textvariable=self.startLambda).grid(row=60, column=1)
+        tk.Entry(button_fen, textvariable=self.startLambda).grid(row=60,
+                                                                 column=1)
 
-        tk.Label(button_fen, text="Ending wavelenght (in nm)").grid(row=70, column=0, sticky=tk.W)
+        tk.Label(button_fen,
+                 text="Ending wavelenght (in nm)").grid(row=70,
+                                                        column=0,
+                                                        sticky=tk.W)
         try:
             self.stopLambda
-        except AttributeError as e:
+        except AttributeError:
             self.stopLambda = tk.StringVar()
-        tk.Entry(button_fen, textvariable=self.stopLambda).grid(row=70, column=1)
+        tk.Entry(button_fen, textvariable=self.stopLambda).grid(row=70,
+                                                                column=1)
 
-        tk.Label(button_fen, text="Points # (integer)").grid(row=80, column=0, sticky=tk.W)
+        tk.Label(button_fen, text="Points # (integer)").grid(row=80, column=0,
+                                                             sticky=tk.W)
         try:
             self.nrPoints
-        except AttributeError as e:
+        except AttributeError:
             self.nrPoints = tk.StringVar()
 
         tk.Entry(button_fen, textvariable=self.nrPoints).grid(row=80, column=1)
 
-        tk.Label(button_fen, text="Reference channel").grid(row=90, column=0,
-                rowspan=self.avh._nr_spec_connected)
+        tk.Label(button_fen,
+                 text="Reference channel").grid(row=90, column=0,
+                                                rowspan=self.avh._nr_spec_connected)
+
         self.referenceChannel = tk.StringVar()
         for i, avsHandle in enumerate(self.avh.devList):
             tk.Radiobutton(button_fen,
@@ -331,11 +348,12 @@ class Application(tk.Frame):
 
         self.pause_live_display = Event()
         self.stop_live_display = Event()
-        self.liveDisplay = Scope_Display(scope_fen,["Scopes", "Absorbance"], self.stop_live_display)
+        self.liveDisplay = Scope_Display(scope_fen,
+                                         ["Scopes", "Absorbance"],
+                                         self.stop_live_display)
         self.liveDisplay.pack(fill=tk.BOTH)
         self.after(0, self.routine_data_sender)
         scope_fen.pack(side=tk.RIGHT, padx=10, pady=10, fill=tk.BOTH)
-
 
         return fen
 
@@ -343,6 +361,8 @@ class Application(tk.Frame):
 
         self.experiment_on = False
 
+    # TODO: there is some work here to make more event programming
+    """
     def set_black(self):
         experiment_logger.info("Setting black.")
         self._bnc.run()
@@ -362,9 +382,9 @@ class Application(tk.Frame):
         self._bnc.stop()
         self.totalSpectras.append(self.avh.getScopes())
         experiment_logger.info("Black set.")
+    """
 
-
-    def experimentV2(self):
+    def experiment(self):
         experiment_logger.info("Starting experiment")
         self.experiment_on = True
         self.pause_live_display.set()
@@ -385,12 +405,14 @@ class Application(tk.Frame):
             pulse[BNC.DELAY] = pulse.experimentTuple[BNC.DELAY].get()
             pulse[BNC.WIDTH] = pulse.experimentTuple[BNC.WIDTH].get()
             pulse[BNC.STATE] = pulse.experimentTuple[BNC.STATE].get()
-            assert(p_N_d*float(pulse.experimentTuple[BNC.dPHASE].get())<p_T)
+            assert(p_N_d*float(pulse.experimentTuple[BNC.dPHASE].get()) < p_T)
 
         self.avh.prepareAll(p_T*(10**3), True, p_N_c)
         self.totalSpectras = []
 
-        if not abort and tMsg.askokcancel("Black","Ready to set black ? (Cancel to exit)"):
+        if not abort and tMsg.\
+                askokcancel("Black", "Ready to set black ? (Cancel to exit)"):
+
             experiment_logger.info("Setting black.")
             self._bnc.run()
             self.avh.startAll(p_N_c)
@@ -400,7 +422,6 @@ class Application(tk.Frame):
                 self._bnc.sendtrig()
                 self.after(int(p_T_tot*1E3))
                 self.update()
-
 
                 n_black += 1
                 experiment_logger.debug("Done black {}/{}".format(n_black,
@@ -414,7 +435,8 @@ class Application(tk.Frame):
             abort = True
             self.experiment_on = False
 
-        if not abort and tMsg.askokcancel("White", "Ready to set white ? (Cancel to exit)"):
+        if not abort and tMsg.\
+                askokcancel("White", "Ready to set white ? (Cancel to exit)"):
             experiment_logger.info("Setting white.")
             self._bnc.run()
             self.avh.startAll(p_N_c)
@@ -424,7 +446,6 @@ class Application(tk.Frame):
                 self._bnc.sendtrig()
                 self.after(int(p_T_tot*1E3))
                 self.update()
-
 
                 n_white += 1
                 experiment_logger.debug("Done black {}/{}".format(n_white,
@@ -439,7 +460,9 @@ class Application(tk.Frame):
             abort = True
 
         experiment_logger.info("Starting observation.")
-        if not abort and tMsg.askokcancel("Ready", "Ready to start experiment ?"):
+        if not abort and tMsg.\
+                askokcancel("Ready", "Ready to start experiment ?"):
+
             while n_d < p_N_d and self.experiment_on:
                 n_c = 0
                 self._bnc.run()
@@ -451,19 +474,21 @@ class Application(tk.Frame):
                     self.after(int(p_T_tot*1E3))
                     self.update()
 
-
                     n_c += 1
-                    experiment_logger.debug("Done experiment {}/{}, {}/{}".format(n_c,
-                                                                                  p_N_c,
-                                                                                  n_d,
-                                                                                  p_N_d))
+
+                    experiment_logger.\
+                        debug("Done experiment {}/{}, {}/{}".format(n_c,
+                                                                    p_N_c,
+                                                                    n_d,
+                                                                    p_N_d))
                 self.avh.waitAll()
                 self._bnc.stop()
-                n_d +=1
+                n_d += 1
 
                 for pulse in self._bnc:
-                    pulse[BNC.DELAY] = float(pulse.experimentTuple[BNC.DELAY].get()) +\
-                                       n_d*float(pulse.experimentTuple[BNC.dPHASE].get())
+                    pulse[BNC.DELAY] = \
+                        float(pulse.experimentTuple[BNC.DELAY].get()) + n_d * \
+                            float(pulse.experimentTuple[BNC.dPHASE].get())
                 tp_scopes = self.avh.getScopes()
                 self.totalSpectras.append(tp_scopes)
                 self.liveDisplay.putSpectrasAndUpdate(0, tp_scopes)
