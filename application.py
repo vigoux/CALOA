@@ -185,10 +185,7 @@ class Application(tk.Frame):
             self.after(1000, self.routine_data_sender)
 
     # Save and load
-    # FIXME: Need to give proper names to parameters, for a better save/load id:11
-    # Mambu38
-    # 39092278+Mambu38@users.noreply.github.com
-    # https://github.com/Mambu38/CALOA/issues/15
+    # FIXME: Need to give proper names to parameters, for a better save/load
     def loadConfig(self):
         with tkFileDialog.askopenfile(mode="rb",
                                       filetypes=[("CALOA Config file",
@@ -230,10 +227,7 @@ class Application(tk.Frame):
             pick.dump(total_list)
 
 
-    # TODO: Enhance advanced frame aspect. id:10
-    # Mambu38
-    # 39092278+Mambu38@users.noreply.github.com
-    # https://github.com/Mambu38/CALOA/issues/14
+    # TODO: Enhance advanced frame aspect
 
     def createWidgetsAdvanced(self, master):
 
@@ -372,10 +366,7 @@ class Application(tk.Frame):
 
         self.experiment_on = False
 
-    # TODO: there is some work here to make more event programming id:14
-    # Mambu38
-    # 39092278+Mambu38@users.noreply.github.com
-    # https://github.com/Mambu38/CALOA/issues/18
+    # TODO: there is some work here to make more event programming
     """
     def set_black(self):
         experiment_logger.info("Setting black.")
@@ -641,10 +632,7 @@ app = Application(master=root)
 app.mainloop()
 
 
-# TODO: Enhance closing procedure id:15
-# Mambu38
-# 39092278+Mambu38@users.noreply.github.com
-# https://github.com/Mambu38/CALOA/issues/19
+# TODO: Enhance closing procedure
 app.experiment_on = True
 app.avh._done()
 app._bnc._bnc_handler._con.close()
