@@ -350,10 +350,10 @@ class Callback_Measurment(Event):
 
     def __init__(self):
         Event.__init__(self)
+        self.c_callback = \
+            ctypes.WINFUNCTYPE(ctypes.c_void_p, ctypes.POINTER(ctypes.c_int),
+                               ctypes.POINTER(ctypes.c_int))(self.Callbackfunc)
 
-    @ctypes.WINFUNCTYPE(ctypes.c_void_p,
-                        ctypes.POINTER(ctypes.c_int),
-                        ctypes.POINTER(ctypes.c_int))
     def Callbackfunc(self, Avh_Pointer, int_pointer):
         int_val = int_pointer.contents.value
         Avh_val = Avh_Pointer.contents.value
@@ -465,7 +465,7 @@ class AvaSpec_Handler:
         logger_ASH.debug("Sarting measurment on {}.".format(device))
         calback_event = self.devList[device][1]
         calback_event.clear()
-        AVS_DLL.AVS_MeasureCallback(device, calback_event.Callbackfunc, nmsr)
+        AVS_DLL.AVS_MeasureCallback(device, calback_event.c_callback, nmsr)
 
     def waitMeasurmentReady(self, device):
         while not self.devList[device][1].wait(0.1):
