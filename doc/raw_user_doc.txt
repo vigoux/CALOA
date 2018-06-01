@@ -141,5 +141,5 @@ In this part you can set you interpolation parameters.
 
             3 - Scope Display
 
-Here you can select wich scope you want to see, note that absorbance scope will
+Here you can select which scope you want to see, note that absorbance scope will
 not be displayed before you've selected a reference channel.
