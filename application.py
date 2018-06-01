@@ -185,36 +185,41 @@ class Application(tk.Frame):
             self.after(1000, self.routine_data_sender)
 
     # Save and load
-    # FIXME: Need to give proper names to parameters, for a better save/load
+
+    # Useful constants
+
+    BNC_ID, T_TOT_ID, T_ID, N_C_ID, N_D_ID, STARTLAM_ID, ENDLAM_ID, NRPTS_ID = \
+        "BNC", "T_TOT", "T", "N_C", "N_D", "STARTLAM", "ENDLAM", "NRPTS"
+
     def loadConfig(self):
         with tkFileDialog.askopenfile(mode="rb",
                                       filetypes=[("CALOA Config file",
                                                   "*.cbc")]) as saveFile:
             unpick = Unpickler(saveFile)
-            tp_config_list = unpick.load()
+            tp_config_dict = unpick.load()
             try:
-                self._bnc.load_from_pick(tp_config_list[0])
-                self.T_tot.set(tp_config_list[1])
-                self.T.set(tp_config_list[2])
-                self.N_c.set(tp_config_list[3])
-                self.N_d.set(tp_config_list[4])
-                self.startLambda.set(tp_config_list[5])
-                self.stopLambda.set(tp_config_list[6])
-                self.nrPoints.set(tp_config_list[7])
+                self._bnc.load_from_pick(tp_config_dict[self.BNC_ID])
+                self.T_tot.set(tp_config_dict[self.T_TOT_ID])
+                self.T.set(tp_config_dict[self.T_ID])
+                self.N_c.set(tp_config_dict[self.N_C_ID])
+                self.N_d.set(tp_config_dict[self.N_D_ID])
+                self.startLambda.set(tp_config_dict[self.STARTLAM_ID])
+                self.stopLambda.set(tp_config_dict[self.ENDLAM_ID])
+                self.nrPoints.set(tp_config_dict[self.NRPTS_ID])
             except Exception as e:
                 logger.critical("Error while loading file :", exc_info=e)
             finally:
                 self.updateScreen()
 
-    def get_saving_list(self):
-        return [self._bnc.save_to_pickle(),
-                self.T_tot.get(),
-                self.T.get(),
-                self.N_c.get(),
-                self.N_d.get(),
-                self.startLambda.get(),
-                self.stopLambda.get(),
-                self.nrPoints.get()]
+    def get_saving_dict(self):
+        return {self.BNC_ID: self._bnc.save_to_pickle(),
+                self.T_TOT_ID: self.T_tot.get(),
+                self.T_ID: self.T.get(),
+                self.N_C_ID: self.N_c.get(),
+                self.N_D_ID: self.N_d.get(),
+                self.STARTLAM_ID: self.startLambda.get(),
+                self.STOPLAM_ID: self.stopLambda.get(),
+                self.NRPTS_ID: self.nrPoints.get()}
 
     def saveConfig(self):
         saveFileName = tkFileDialog.asksaveasfilename(
@@ -223,7 +228,7 @@ class Application(tk.Frame):
                         "*.cbc")])
         with open(saveFileName, "wb") as saveFile:
             pick = Pickler(saveFile)
-            total_list = self.get_saving_list()
+            total_list = self.get_saving_dict()
             pick.dump(total_list)
 
     # TODO: Enhance advanced frame aspect
@@ -599,7 +604,7 @@ class Application(tk.Frame):
             format_data(cosmetic_path + os.sep
                         + "cosm{}_chan{}.txt".format(timeStamp, i+1), cosmetic)
 
-        config_list = self.get_saving_list()
+        config_list = self.get_saving_dict()
         with open(save_dir + os.sep + "config.txt", "w") as file:
             file.write("BNC parameters :\n")
             for i, pulse_dict in enumerate(config_list[0]):
