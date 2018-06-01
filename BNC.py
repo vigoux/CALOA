@@ -114,9 +114,10 @@ class BNC_Handler():
                 if a.startswith("*IDN?"):  # We got an answer !
 
                     self._con = tp_con  # Keep this connection
-                    logger_handler.debug("Connected with "
-                                         + "{} id {}".format(port,
-                                                             a.split("\r\n")[1]))  # Log it
+                    logger_handler.debug(
+                        "Connected with "
+                        + "{} id {}".format(port,
+                                            a.split("\r\n")[1]))  # Log it
                     break
 
                 else:
@@ -348,7 +349,7 @@ class Pulse():
         for key in COMMAND_DICT:
             tp_dict_state[key] = self._bnc_handler.send_command(
                     ":PULS{}".format(self.number)
-                    + COMMAND_DICT[key] + "?")
+                    + COMMAND_DICT[key][0] + "?")
             logger_pulse.debug("{} done".format(key))
         self._state = tp_dict_state
 
