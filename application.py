@@ -372,18 +372,10 @@ class Application(tk.Frame):
 
         self.experiment_on = False
 
-<<<<<<< HEAD
-    # TODO: there is some work here to make more event programming id:16
-    # Mambu38
-    # 39092278+Mambu38@users.noreply.github.com
-    # https://github.com/Mambu38/CALOA/issues/21
-=======
-
     # TODO: there is some work here to make more event programming id:14
     # Mambu38
     # 39092278+Mambu38@users.noreply.github.com
     # https://github.com/Mambu38/CALOA/issues/18
->>>>>>> 26714c7f251e52b58336a57b80b7546046f76026
     """
     def set_black(self):
         experiment_logger.info("Setting black.")
