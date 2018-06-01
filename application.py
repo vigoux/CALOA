@@ -366,7 +366,6 @@ class Application(tk.Frame):
 
         self.experiment_on = False
 
-
     # TODO: there is some work here to make more event programming
     """
     def set_black(self):
