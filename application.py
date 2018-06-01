@@ -185,7 +185,10 @@ class Application(tk.Frame):
             self.after(1000, self.routine_data_sender)
 
     # Save and load
-    # FIXME: Need to give proper names to parameters, for a better save/load
+    # FIXME: Need to give proper names to parameters, for a better save/load id:25
+    # Mambu38
+    # 39092278+Mambu38@users.noreply.github.com
+    # https://github.com/Mambu38/CALOA/issues/33
     def loadConfig(self):
         with tkFileDialog.askopenfile(mode="rb",
                                       filetypes=[("CALOA Config file",
@@ -226,7 +229,10 @@ class Application(tk.Frame):
             total_list = self.get_saving_list()
             pick.dump(total_list)
 
-    # TODO: Enhance advanced frame aspect
+    # TODO: Enhance advanced frame aspect id:26
+    # Mambu38
+    # 39092278+Mambu38@users.noreply.github.com
+    # https://github.com/Mambu38/CALOA/issues/34
 
     def createWidgetsAdvanced(self, master):
 
@@ -365,9 +371,18 @@ class Application(tk.Frame):
 
         self.experiment_on = False
 
-    # TODO: there is some work here to make more event programming
-    # IDEA: N/B introduce possibility to im/export ascii from/to disk
-    # IDEA: In the end, write N/B as default, to be red at next start.
+    # TODO: there is some work here to make more event programming id:28
+    # Mambu38
+    # 39092278+Mambu38@users.noreply.github.com
+    # https://github.com/Mambu38/CALOA/issues/36
+    # IDEA: N/B introduce possibility to im/export ascii from/to disk id:29
+    # Mambu38
+    # 39092278+Mambu38@users.noreply.github.com
+    # https://github.com/Mambu38/CALOA/issues/37
+    # IDEA: In the end, write N/B as default, to be red at next start. id:27
+    # Mambu38
+    # 39092278+Mambu38@users.noreply.github.com
+    # https://github.com/Mambu38/CALOA/issues/35
     """
     def set_black(self):
         experiment_logger.info("Setting black.")
