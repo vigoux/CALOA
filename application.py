@@ -407,7 +407,7 @@ class Application(tk.Frame):
         p_N_c = int(self.N_c.get())
         p_N_d = int(self.N_d.get())
 
-        n_d = 0
+        n_d = 1
 
         self._bnc.setmode("SINGLE")
         self._bnc.settrig("TRIG")
@@ -474,13 +474,22 @@ class Application(tk.Frame):
         if not abort and tMsg.\
                 askokcancel("Ready", "Ready to start experiment ?"):
 
-            while n_d < p_N_d and self.experiment_on:
-                n_c = 0
+            pop_up = tk.TopLevel()
+            pop_up.title("Processing...")
+            pop_up["height"] = 100
+            pop_up["width"] = 100
+
+            message = tk.Message(pop_up)
+
+            while n_d <= p_N_d and self.experiment_on:
+                n_c = 1
                 self._bnc.run()
                 self.avh.startAll(p_N_c)
 
-                while n_c < p_N_c and self.experiment_on:
-
+                while n_c <= p_N_c and self.experiment_on:
+                    message["text"] = \
+                        "Processing \n\tAvg : {}/{}".format(n_c, p_N_c)\
+                         + "\n\tDelay : {}/{}".format(n_d, p_N_d)
                     self._bnc.sendtrig()
                     self.after(int(p_T_tot*1E3))
                     self.update()
@@ -503,6 +512,8 @@ class Application(tk.Frame):
                 tp_scopes = self.avh.getScopes()
                 self.totalSpectras.append(tp_scopes)
                 self.liveDisplay.putSpectrasAndUpdate(0, tp_scopes)
+
+            pop_up.destroy()
 
             if not self.experiment_on:
                 experiment_logger.info("Experiment stopped.")
