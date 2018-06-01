@@ -367,6 +367,8 @@ class Application(tk.Frame):
         self.experiment_on = False
 
     # TODO: there is some work here to make more event programming
+    # IDEA: N/B introduce possibility to im/export ascii from/to disk
+    # IDEA: In the end, write N/B as default, to be red at next start.
     """
     def set_black(self):
         experiment_logger.info("Setting black.")

@@ -626,4 +626,4 @@ class Spectrum:
 
         return Spectrum(l_lambdas, l_values)
 
-# IDEA: Scope object to contain all spectra ?
+# IDEA: Scope object to contain all spectra
