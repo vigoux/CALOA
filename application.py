@@ -185,7 +185,14 @@ class Application(tk.Frame):
             self.after(1000, self.routine_data_sender)
 
     # Save and load
+<<<<<<< HEAD
     # FIXME:0 Need to give proper names to parameters, for a better save/load
+=======
+    # FIXME: Need to give proper neames to parameters, for a better save/load id:3
+    # Mambu38
+    # 39092278+Mambu38@users.noreply.github.com
+    # https://github.com/Mambu38/CALOA/issues/5
+>>>>>>> ad6910f8986ce02c1f453209f70465da4a11cce1
     def loadConfig(self):
         with tkFileDialog.askopenfile(mode="rb",
                                       filetypes=[("CALOA Config file",
@@ -226,7 +233,14 @@ class Application(tk.Frame):
             total_list = self.get_saving_list()
             pick.dump(total_list)
 
+<<<<<<< HEAD
     # TODO:10 Enhance advanced frame aspect.
+=======
+    # TODO: Enhance advanced frame aspect. id:0
+    # Mambu38
+    # 39092278+Mambu38@users.noreply.github.com
+    # https://github.com/Mambu38/CALOA/issues/2
+>>>>>>> ad6910f8986ce02c1f453209f70465da4a11cce1
     def createWidgetsAdvanced(self, master):
 
         wind = tk.PanedWindow(master, orient=tk.HORIZONTAL)
@@ -364,7 +378,14 @@ class Application(tk.Frame):
 
         self.experiment_on = False
 
+<<<<<<< HEAD
     # TODO:0 there is some work here to make more event programming
+=======
+    # TODO: there is some work here to make more event programming id:1
+    # Mambu38
+    # 39092278+Mambu38@users.noreply.github.com
+    # https://github.com/Mambu38/CALOA/issues/3
+>>>>>>> ad6910f8986ce02c1f453209f70465da4a11cce1
     """
     def set_black(self):
         experiment_logger.info("Setting black.")
@@ -629,7 +650,14 @@ root.title("CALOA")
 app = Application(master=root)
 app.mainloop()
 
+<<<<<<< HEAD
 # TODO:20 Enhance closing procedure
+=======
+# TODO: Enhance closing procedure id:2
+# Mambu38
+# 39092278+Mambu38@users.noreply.github.com
+# https://github.com/Mambu38/CALOA/issues/4
+>>>>>>> ad6910f8986ce02c1f453209f70465da4a11cce1
 app.experiment_on = True
 app.avh._done()
 app._bnc._bnc_handler._con.close()
