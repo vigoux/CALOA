@@ -47,5 +47,12 @@
     "id": "5b1107610ed2fd031b00bc54",
     "name": "Mambu38/CALOA",
     "useImdoneioForPriority": true
+  },
+  "meta": {
+    "gh": {
+      "urlTemplate": "https://github.com/Mambu38/CALOA/issues/%s",
+      "titleTemplate": "View github issue %s",
+      "icon": "icon-octoface"
+    }
   }
 }
