@@ -3,11 +3,7 @@
     "^(node_modules|bower_components|\\.imdone|target|build|dist|logs|flow-typed|imdone-export.json)[\\/\\\\]?|\\.(git|svn|hg|npmignore)|\\~$|\\.(jpg|png|gif|swp|ttf|otf)$"
   ],
   "watcher": true,
-<<<<<<< HEAD
-  "keepEmptyPriority": false,
-=======
   "keepEmptyPriority": true,
->>>>>>> ad6910f8986ce02c1f453209f70465da4a11cce1
   "code": {
     "include_lists": [
       "TODO",
@@ -21,12 +17,8 @@
       "XXX",
       "IDEA",
       "NOTE",
-<<<<<<< HEAD
-      "REVIEW"
-=======
       "REVIEW",
       "MARK"
->>>>>>> ad6910f8986ce02c1f453209f70465da4a11cce1
     ]
   },
   "lists": [
@@ -37,13 +29,10 @@
     {
       "name": "TODO",
       "hidden": false
-<<<<<<< HEAD
     },
     {
       "name": "IDEA",
       "hidden": false
-=======
->>>>>>> ad6910f8986ce02c1f453209f70465da4a11cce1
     }
   ],
   "marked": {
@@ -53,13 +42,10 @@
     "pedantic": false,
     "smartLists": true,
     "langPrefix": "language-"
-<<<<<<< HEAD
-=======
   },
   "sync": {
     "id": "5b1107610ed2fd031b00bc54",
     "name": "Mambu38/CALOA",
     "useImdoneioForPriority": true
->>>>>>> ad6910f8986ce02c1f453209f70465da4a11cce1
   }
 }
