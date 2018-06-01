@@ -77,8 +77,8 @@ installer.
 
     4 - Installing CALOA
 
-This is the program that pilots communication with both BNC generator and Avantes
-fiber spectrometers.
+This is the program that pilots communication with both BNC generator and
+Avantes fiber spectrometers.
 Installation will be done automatically.
 
 If all went right, you can choose to start the application
@@ -92,13 +92,54 @@ Then a console will run, don't close this console manually, this will cause
 CALOA to crash.
 In this console, some information will be written, please DO NOT interact
 with the console while it is starting, wait for GUI to appear.
-After GUI appears, a window like below should appear.
 
     2 - Interface overview
 
-Interface can be split in 3 parts :
+On the top of the frame, below menu bar, you can choose your "mode" between
+"Normal" and "Advanced".
 
-        1 - BNC channel setter
+        1 - Normal mode
+
+Normal mode interface can be split in 3 parts :
+
+            1 - BNC channel setter
 
 This part of the interface is the lefter one.
-Here we can divide interface in 8 similar parts, wich are named boxes.
+Here we can divide interface in 8 similar labeled boxes. Each one of this boxes
+corresponds to one of the BNC Channels (often named Pulse). A box contains many
+informations :
+    * Pulse Label (text) : the name you want to give to the Pulse.
+    * Pulse state (check box) : whether you want the pulse to be active or not.
+    * Pulse width (floating point number) : width of the real TTL pulse in sec
+    * Pulse phase (floating point number) : delay between trigger and TTL pulse in sec
+    * Pulse phase variation (floating point number) : delay variation in sec
+
+            2 - Observation management frame
+
+Here again, interface can be split in two parts :
+
+                1 - Experiment management
+
+In this part, you can fix your experiment parameters :
+
+    * Total time : total time your observation will take (i.e. the time
+        between two triggers).
+    * Observation time : integration time of the spectrometers.
+    * Averaging number : Averaging number of the spectrometers.
+    * Delay number : number of delays you want to do.
+
+                2 - Interpolation management
+
+In this part you can set you interpolation parameters.
+
+    * Starting wavelength : the wavelength you want the spectra to start with
+    * Ending wavelength : the wavelength you want the spectra to end with
+    * Points number : number of points you want between starting and ending
+        wavelengths.
+    * Reference channel selector : Here is the useful part to manage absorbance
+        reference spectrum, select here the AvaSpec channel used as reference.
+
+            3 - Scope Display
+
+Here you can select wich scope you want to see, note that absorbance scope will
+not be displayed before you've selected a reference channel.
