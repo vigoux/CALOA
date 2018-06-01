@@ -231,7 +231,10 @@ class Application(tk.Frame):
             total_list = self.get_saving_dict()
             pick.dump(total_list)
 
-    # TODO: Enhance advanced frame aspect
+    # TODO: Enhance advanced frame aspect id:32
+    # Mambu38
+    # 39092278+Mambu38@users.noreply.github.com
+    # https://github.com/Mambu38/CALOA/issues/43
 
     def createWidgetsAdvanced(self, master):
 
@@ -370,9 +373,18 @@ class Application(tk.Frame):
 
         self.experiment_on = False
 
-    # TODO: there is some work here to make more event programming
-    # IDEA: N/B introduce possibility to im/export ascii from/to disk
-    # IDEA: In the end, write N/B as default, to be red at next start.
+    # TODO: there is some work here to make more event programming id:33
+    # Mambu38
+    # 39092278+Mambu38@users.noreply.github.com
+    # https://github.com/Mambu38/CALOA/issues/44
+    # IDEA: N/B introduce possibility to im/export ascii from/to disk id:35
+    # Mambu38
+    # 39092278+Mambu38@users.noreply.github.com
+    # https://github.com/Mambu38/CALOA/issues/46
+    # IDEA: In the end, write N/B as default, to be red at next start. id:34
+    # Mambu38
+    # 39092278+Mambu38@users.noreply.github.com
+    # https://github.com/Mambu38/CALOA/issues/45
     """
     def set_black(self):
         experiment_logger.info("Setting black.")
