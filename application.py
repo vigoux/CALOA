@@ -226,7 +226,6 @@ class Application(tk.Frame):
             total_list = self.get_saving_list()
             pick.dump(total_list)
 
-
     # TODO: Enhance advanced frame aspect
 
     def createWidgetsAdvanced(self, master):
@@ -615,6 +614,13 @@ class Application(tk.Frame):
             file.write("nrPoints : {}\n".format(config_list[6]))
             file.close()
 
+    def goodbye_app(self):
+        self._bnc._bnc_handler._con.close()
+        self.pause_live_display.is_set()
+        self.experiment_on = True
+        self.avh._done()
+        self.destroy()
+
 
 def report_callback_exception(self, *args):
     err = traceback.format_exception(*args)
@@ -628,15 +634,20 @@ print("CALOA Copyright (C) 2018 Thomas Vigouroux")
 print("This program comes with ABSOLUTELY NO WARRANTY.")
 print("This is a free software, and you are welcome to redistribute it")
 print("under certain conditions.")
+
+
+def root_goodbye():
+    global root
+    global app
+    app.goodbye_app()
+    root.destroy()
+
+
 root = tk.Tk()
 root.title("CALOA")
 app = Application(master=root)
+root.protocol("WM_DELETE_WINDOW", root_goodbye)
 app.mainloop()
 
-
-# TODO: Enhance closing procedure
-app.experiment_on = True
-app.avh._done()
-app._bnc._bnc_handler._con.close()
 logger_init.filehandler.doRollover()
 logging.shutdown()
