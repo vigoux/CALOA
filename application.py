@@ -185,7 +185,7 @@ class Application(tk.Frame):
             self.after(1000, self.routine_data_sender)
 
     # Save and load
-    # FIXME: Need to give proper neames to parameters, for a better save/load
+    # FIXME:0 Need to give proper names to parameters, for a better save/load
     def loadConfig(self):
         with tkFileDialog.askopenfile(mode="rb",
                                       filetypes=[("CALOA Config file",
@@ -226,7 +226,7 @@ class Application(tk.Frame):
             total_list = self.get_saving_list()
             pick.dump(total_list)
 
-    # TODO: Enhance advanced frame aspect.
+    # TODO:10 Enhance advanced frame aspect.
     def createWidgetsAdvanced(self, master):
 
         wind = tk.PanedWindow(master, orient=tk.HORIZONTAL)
@@ -364,7 +364,7 @@ class Application(tk.Frame):
 
         self.experiment_on = False
 
-    # TODO: there is some work here to make more event programming
+    # TODO:0 there is some work here to make more event programming
     """
     def set_black(self):
         experiment_logger.info("Setting black.")
@@ -629,7 +629,7 @@ root.title("CALOA")
 app = Application(master=root)
 app.mainloop()
 
-# TODO: Enhance closing procedure
+# TODO:20 Enhance closing procedure
 app.experiment_on = True
 app.avh._done()
 app._bnc._bnc_handler._con.close()
