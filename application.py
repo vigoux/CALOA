@@ -373,7 +373,10 @@ class Application(tk.Frame):
         self.experiment_on = False
 
 <<<<<<< HEAD
-    # TODO: there is some work here to make more event programming
+    # TODO: there is some work here to make more event programming id:16
+    # Mambu38
+    # 39092278+Mambu38@users.noreply.github.com
+    # https://github.com/Mambu38/CALOA/issues/21
 =======
 
     # TODO: there is some work here to make more event programming id:14
