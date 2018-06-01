@@ -465,7 +465,7 @@ class AvaSpec_Handler:
         logger_ASH.debug("Sarting measurment on {}.".format(device))
         calback_event = self.devList[device][1]
         calback_event.clear()
-        AVS_DLL.AVS_MeasureCallback(device, calback_event.c_callback, nmsr)
+        AVS_DLL.AVS_MeasureCallback(device, calback_event.Callbackfunc, nmsr)
 
     def waitMeasurmentReady(self, device):
         while not self.devList[device][1].wait(0.1):
