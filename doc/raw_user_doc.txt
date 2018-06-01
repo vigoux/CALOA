@@ -143,3 +143,10 @@ In this part you can set you interpolation parameters.
 
 Here you can select which scope you want to see, note that absorbance scope will
 not be displayed before you've selected a reference channel.
+
+        2 - Advanced mode
+
+This is really not useful to interact with BNC using this mode.
+But if you want some fine tunes of BNC, you should use this interface.
+More informations about how to use and program BNC are given in his own documentation,
+given along this file.
