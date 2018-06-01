@@ -583,6 +583,7 @@ class Spectrum:
     def isSaturated(self):
         return max(self.values) >= AVS_SATURATION_VALUE - 1
 
+    # FIXME:10 Lambdas values may not match during calculations, interpolation ?
     def __add__(self, spectrum):
         l_lambdas = []
         l_values = []
@@ -624,3 +625,5 @@ class Spectrum:
                     for val in opacity_spectrum.values]
 
         return Spectrum(l_lambdas, l_values)
+
+# IDEA: Scope object to contain all spectra ?
