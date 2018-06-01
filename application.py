@@ -185,7 +185,7 @@ class Application(tk.Frame):
             self.after(1000, self.routine_data_sender)
 
     # Save and load
-
+    # FIXME: Need to give proper neames to parameters, for a better save/load
     def loadConfig(self):
         with tkFileDialog.askopenfile(mode="rb",
                                       filetypes=[("CALOA Config file",
@@ -226,6 +226,7 @@ class Application(tk.Frame):
             total_list = self.get_saving_list()
             pick.dump(total_list)
 
+    # TODO: Enhance advanced frame aspect.
     def createWidgetsAdvanced(self, master):
 
         wind = tk.PanedWindow(master, orient=tk.HORIZONTAL)
@@ -244,16 +245,16 @@ class Application(tk.Frame):
         return wind
 
     def createWidgetsSimple(self, master):
-        fen = tk.Frame(master)
+        frame = tk.Frame(master)
 
         #  Drawing BNC Frame
 
-        bnc_fen = self._bnc.drawSimple(fen)
+        bnc_fen = self._bnc.drawSimple(frame)
         bnc_fen.pack(side=tk.LEFT)
 
         #  Drawing Button Frame
 
-        button_fen = tk.LabelFrame(fen, text="Experiment parameters")
+        button_fen = tk.LabelFrame(frame, text="Experiment parameters")
         tk.Button(button_fen, text="Launch experiment",
                   command=self.experiment).grid(row=0, column=0)
         tk.Button(button_fen, text="Stop Experiment",
@@ -346,7 +347,7 @@ class Application(tk.Frame):
 
         # Drawing Scope Frame
 
-        scope_fen = tk.Frame(fen)
+        scope_fen = tk.Frame(frame)
 
         self.pause_live_display = Event()
         self.stop_live_display = Event()
@@ -357,7 +358,7 @@ class Application(tk.Frame):
         self.after(0, self.routine_data_sender)
         scope_fen.pack(side=tk.RIGHT, padx=10, pady=10, fill=tk.BOTH)
 
-        return fen
+        return frame
 
     def stop_experiment(self):
 
@@ -531,7 +532,8 @@ class Application(tk.Frame):
                 for tup in zip(*datas):
                     file.write(format_str.format(*tup)+"\n")
                 file.close()
-        timeStamp = "{time.tm_hour}_{time.tm_min}_{time.tm_sec}".\
+        timeStamp = \
+            "{time.tm_day}_{time.tm_month}_{time.tm_hour}_{time.tm_min}".\
             format(time=time.localtime())
 
         dir_path = tkFileDialog.\
@@ -626,6 +628,8 @@ root = tk.Tk()
 root.title("CALOA")
 app = Application(master=root)
 app.mainloop()
+
+# TODO: Enhance closing procedure
 app.experiment_on = True
 app.avh._done()
 app._bnc._bnc_handler._con.close()
