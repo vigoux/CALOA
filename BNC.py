@@ -213,18 +213,18 @@ logger_pulse = logger_init.logging.getLogger(__name__+".pulse")
 
 # COMMAND_DICT is used to match parameter name and corresponding command.
 
-COMMAND_DICT = {"STATE": ":STAT",
-                "WIDTH": ":WIDT",
-                "DELAY": ":DEL",
-                "SYNC": ":SYNC",
-                "POL": ":POL",
-                "AMP": ":OUTP:AMPL",
-                "MODE": ":CMOD",
-                "BC": ":BCO",
-                "PC": ":PCO",
-                "OC": ":OCO",
-                "WC": ":WCO",
-                "GATE": ":CGAT"}
+COMMAND_DICT = {"STATE": (":STAT", "bool"),
+                "WIDTH": (":WIDT", float),
+                "DELAY": (":DEL", float),
+                "SYNC": (":SYNC", "pulse"),
+                "POL": (":POL", ["Normal", "Single", "Inverted"]),
+                "AMP": (":OUTP:AMPL", float),
+                "MODE": (":CMOD", ["Normal", "Single", "Burst", "DCycle"]),
+                "BC": (":BCO", int),
+                "PC": (":PCO", int),
+                "OC": (":OCO", int),
+                "WC": (":WCO", int),
+                "GATE": (":CGAT", ["Disable", "Low", "High"])}
 
 # This the list off all parameters for an easier handling.
 
@@ -330,7 +330,7 @@ class Pulse():
         # If command is approuved by BNC, we change state parameter in python
         # elsem, we raise a error.
         if self._bnc_handler.send_command(":PULS{}".format(self.number)
-                                          + COMMAND_DICT[P_id]
+                                          + COMMAND_DICT[P_id][0]
                                           + " {}".format(P_newval)):
             self._state[P_id] = str(P_newval)
         else:
