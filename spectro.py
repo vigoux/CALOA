@@ -583,7 +583,7 @@ class Spectrum:
     def isSaturated(self):
         return max(self.values) >= AVS_SATURATION_VALUE - 1
 
-    # FIXME: Lambdas values may not match during calculations, interpolation ? id:30
+    # FIXME: Lambdas values may not match, interpolation ? id:30
     # Mambu38
     # 39092278+Mambu38@users.noreply.github.com
     # https://github.com/Mambu38/CALOA/issues/40
