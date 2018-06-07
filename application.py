@@ -218,7 +218,7 @@ class Application(tk.Frame):
                 self.N_C_ID: self.N_c.get(),
                 self.N_D_ID: self.N_d.get(),
                 self.STARTLAM_ID: self.startLambda.get(),
-                self.STOPLAM_ID: self.stopLambda.get(),
+                self.ENDLAM_ID: self.stopLambda.get(),
                 self.NRPTS_ID: self.nrPoints.get()}
 
     def saveConfig(self):
@@ -486,12 +486,13 @@ class Application(tk.Frame):
         if not abort and tMsg.\
                 askokcancel("Ready", "Ready to start experiment ?"):
 
-            pop_up = tk.TopLevel()
+            pop_up = tk.Toplevel()
             pop_up.title("Processing...")
-            pop_up["height"] = 100
-            pop_up["width"] = 100
 
             message = tk.Message(pop_up)
+            message.pack()
+            pop_up["height"] = 150
+            pop_up["width"] = 150
 
             while n_d <= p_N_d and self.experiment_on:
                 n_c = 1
@@ -500,8 +501,8 @@ class Application(tk.Frame):
 
                 while n_c <= p_N_c and self.experiment_on:
                     message["text"] = \
-                        "Processing \n\tAvg : {}/{}".format(n_c, p_N_c)\
-                         + "\n\tDelay : {}/{}".format(n_d, p_N_d)
+                        "Processing\n\tAvg : {}/{}".format(n_c, p_N_c)\
+                        + "\n\tDel : {}/{}".format(n_d, p_N_d)
                     self._bnc.sendtrig()
                     self.after(int(p_T_tot*1E3))
                     self.update()
@@ -564,7 +565,7 @@ class Application(tk.Frame):
                     file.write(format_str.format(*tup)+"\n")
                 file.close()
         timeStamp = \
-            "{time.tm_day}_{time.tm_month}_{time.tm_hour}_{time.tm_min}".\
+            "{time.tm_mday}_{time.tm_mon}_{time.tm_hour}_{time.tm_min}".\
             format(time=time.localtime())
 
         dir_path = tkFileDialog.\
@@ -627,19 +628,20 @@ class Application(tk.Frame):
             format_data(cosmetic_path + os.sep
                         + "cosm{}_chan{}.txt".format(timeStamp, i+1), cosmetic)
 
-        config_list = self.get_saving_dict()
+        config_dict = self.get_saving_dict()
         with open(save_dir + os.sep + "config.txt", "w") as file:
             file.write("BNC parameters :\n")
-            for i, pulse_dict in enumerate(config_list[0]):
+            for i, pulse_dict in enumerate(config_dict[self.BNC_ID]):  # bnc
                 file.write("\tPulse {} :\n".format(i+1))
                 for key, value in pulse_dict.items():
                     file.write("\t\t{} : {}\n".format(key, value))
-            file.write("T : {}\n".format(config_list[1]))
-            file.write("N_c : {}\n".format(config_list[2]))
-            file.write("N_d : {}\n".format(config_list[3]))
-            file.write("startLambda : {}\n".format(config_list[4]))
-            file.write("stopLambda : {}\n".format(config_list[5]))
-            file.write("nrPoints : {}\n".format(config_list[6]))
+            file.write("T_tot : {}\n".format(config_dict[self.T_TOT_ID]))
+            file.write("T : {}\n".format(config_dict[self.T_ID]))
+            file.write("N_c : {}\n".format(config_dict[self.N_C_ID]))
+            file.write("N_d : {}\n".format(config_dict[self.N_D_ID]))
+            file.write("startLam : {}\n".format(config_dict[self.STARTLAM_ID]))
+            file.write("endLam : {}\n".format(config_dict[self.ENDLAM_ID]))
+            file.write("nrPoints : {}\n".format(config_dict[self.NRPTS_ID]))
             file.close()
 
     def goodbye_app(self):
@@ -652,7 +654,7 @@ class Application(tk.Frame):
 
 def report_callback_exception(self, *args):
     err = traceback.format_exception(*args)
-    tMsg.showerror("Error", err)
+    tMsg.showerror("Error", args[0])  # This is exception message
     logger.critical("Error :", exc_info=err)
 
 
