@@ -501,13 +501,8 @@ class Application(tk.Frame):
 
                 while n_c <= p_N_c and self.experiment_on:
                     message["text"] = \
-<<<<<<< HEAD
-                        "Processing \n\tAvg : {}/{}".format(n_c, p_N_c)\
-                        + "\n\tDelay : {}/{}".format(n_d, p_N_d)
-=======
                         "Processing\n\tAvg : {}/{}".format(n_c, p_N_c)\
                         + "\n\tDel : {}/{}".format(n_d, p_N_d)
->>>>>>> 95011f34dece1bb24293ce529461d6f8d2e5777b
                     self._bnc.sendtrig()
                     self.after(int(p_T_tot*1E3))
                     self.update()
