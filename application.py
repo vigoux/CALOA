@@ -188,7 +188,7 @@ class Application(tk.Frame):
 
     # Useful constants
 
-    BNC_ID, T_TOT_ID, T_ID, N_C_ID, N_D_ID, STARTLAM_ID, ENDLAM_ID, NRPTS_ID = \
+    BNC_ID, T_TOT_ID, T_ID, N_C_ID, N_D_ID, STARTLAM_ID, ENDLAM_ID, NRPTS_ID =\
         "BNC", "T_TOT", "T", "N_C", "N_D", "STARTLAM", "ENDLAM", "NRPTS"
 
     def loadConfig(self):
@@ -501,7 +501,7 @@ class Application(tk.Frame):
                 while n_c <= p_N_c and self.experiment_on:
                     message["text"] = \
                         "Processing \n\tAvg : {}/{}".format(n_c, p_N_c)\
-                         + "\n\tDelay : {}/{}".format(n_d, p_N_d)
+                        + "\n\tDelay : {}/{}".format(n_d, p_N_d)
                     self._bnc.sendtrig()
                     self.after(int(p_T_tot*1E3))
                     self.update()
