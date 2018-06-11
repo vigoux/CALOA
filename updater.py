@@ -30,6 +30,8 @@ from re import search
 
 update_logger = logger_init.logging.getLogger(__name__)
 
+dont_take_unuseful = "(logs|__pycache__|\.gitignore|\.github|\.imdone)"
+
 # Opening and getting current version number.
 try:
     vers_file = open("VERSION_INFO", "r")
@@ -40,6 +42,8 @@ except FileNotFoundError as err_file:
 except IndexError as ind_err:
     update_logger.warning("VERSION_INFO is empty.", exc_info=ind_err)
     vers_id = ""
+
+update_logger.debug("Current version : {}".format(vers_id))
 
 # Getting latest release informations
 try:
@@ -56,7 +60,13 @@ dict_latest_release = \
 
 updated_version_nbr = dict_latest_release["tag_name"]
 
-# TODO: Finish updater, left while getting zipped update.
+# Downloading and install
 
 if updated_version_nbr > vers_id:
-    zipped = requests.get(dict_latest_release["zipball_url"])
+    zipped = requests.get(dict_latest_release["zipball_url"])  # download zip
+    update_logger.debug("ZipFile downloaded.")
+    unzipped = ZipFile(BytesIO(zipped))  # Unzip dowloaded file
+    for file_name in unzipped.namelist():
+        if not search(dont_take_unuseful, file_name):
+            with unzipped.open(file_name, "r"):
+                pass
