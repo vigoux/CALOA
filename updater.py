@@ -72,7 +72,7 @@ if updated_version_nbr > vers_id:
     update_logger.info("Software version is outdated, updating...")
 
     zipped = requests.get(dict_latest_release["zipball_url"])  # download zip
-    update_logger.infp("ZipFile downloaded.")
+    update_logger.info("ZipFile downloaded.")
 
     unzipped = ZipFile(BytesIO(zipped.content))  # Unzip dowloaded file
     update_logger.info("ZipFile unzipped.")
