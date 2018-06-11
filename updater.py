@@ -30,7 +30,7 @@ from re import search
 
 update_logger = logger_init.logging.getLogger(__name__)
 
-dont_take_unuseful = "(logs|__pycache__|\.gitignore|\.github|\.imdone)"
+dont_take_unuseful = r"(logs|__pycache__|\.\w+)"
 
 # Opening and getting current version number.
 try:
@@ -43,6 +43,7 @@ except IndexError as ind_err:
     update_logger.warning("VERSION_INFO is empty.", exc_info=ind_err)
     vers_id = ""
 
+vers_file.close()
 update_logger.debug("Current version : {}".format(vers_id))
 
 # Getting latest release informations
@@ -63,10 +64,33 @@ updated_version_nbr = dict_latest_release["tag_name"]
 # Downloading and install
 
 if updated_version_nbr > vers_id:
+
+    update_logger.info("Software version is outdated, updating...")
+
     zipped = requests.get(dict_latest_release["zipball_url"])  # download zip
     update_logger.debug("ZipFile downloaded.")
+
     unzipped = ZipFile(BytesIO(zipped))  # Unzip dowloaded file
+    update_logger.debug("ZipFile unzipped.")
+
     for file_name in unzipped.namelist():
-        if not search(dont_take_unuseful, file_name):
-            with unzipped.open(file_name, "r"):
-                pass
+
+        if not search(dont_take_unuseful, file_name):  # Exclude unused files
+            update_logger.debug("Updating file {}".format(file_name))
+
+            # Open new and old files
+
+            with unzipped.open(file_name, "rb") as upd_file,\
+                    open(file_name.split(os.path.sep)[-1], "wb") as old_file:
+
+                for line in upd_file.readlines():
+                    old_file.write(line)  # Write each new line  in old file
+            update_logger.debug("{} updated.".format(file_name))
+
+    with open("VERSION_INFO", "w") as vers_file:
+
+        vers_file.write(updated_version_nbr)  # Update version number
+
+    update_logger.info("Software updated.")
+else:
+    update_logger.info("Your software is up-to-date.")
