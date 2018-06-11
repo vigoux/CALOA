@@ -22,7 +22,6 @@ along with CALOA.  If not, see <http://www.gnu.org/licenses/>.
 import logger_init
 
 import requests
-import os
 from io import BytesIO
 from zipfile import ZipFile
 from ast import literal_eval

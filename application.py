@@ -40,6 +40,7 @@ from numpy import linspace
 from pickle import Pickler, Unpickler
 
 import os
+
 logger = logging.getLogger(__name__)
 experiment_logger = logging.getLogger(__name__+".experiment")
 
@@ -113,11 +114,19 @@ class Scope_Display(tk.Frame, Queue):
 
 class Application(tk.Frame):
 
+    BACKUP_CONFIG_FILE_NAME = "temporary_cfg.ctcf"
+
     def __init__(self, master=None, P_bnc=None):
 
         super().__init__(master)
         if P_bnc is None:
             P_bnc = BNC.BNC(P_dispUpdate=False)
+
+        try:
+            with open(self.BACKUP_CONFIG_FILE_NAME, "rb") as file:
+                self._rawLoadConfig(file)
+        except Exception as e:
+            logger.info("Impossible to open config file.", exc_info=e)
         self.experiment_on = False
         self._bnc = P_bnc
         self.avh = spectro.AvaSpec_Handler()
@@ -157,6 +166,8 @@ class Application(tk.Frame):
             self.stop_live_display.set()
             del self.liveDisplay
             self.display_routine.join()
+        with open(self.BACKUP_CONFIG_FILE_NAME, "wb") as saveFile:
+            self._rawSaveConfig(saveFile)
 
     def routine_data_sender(self):
         if not self.pause_live_display.wait(0):
@@ -191,25 +202,28 @@ class Application(tk.Frame):
     BNC_ID, T_TOT_ID, T_ID, N_C_ID, N_D_ID, STARTLAM_ID, ENDLAM_ID, NRPTS_ID =\
         "BNC", "T_TOT", "T", "N_C", "N_D", "STARTLAM", "ENDLAM", "NRPTS"
 
-    def loadConfig(self):
+    def loadConfig(self, file):
         with tkFileDialog.askopenfile(mode="rb",
                                       filetypes=[("CALOA Config file",
                                                   "*.cbc")]) as saveFile:
-            unpick = Unpickler(saveFile)
-            tp_config_dict = unpick.load()
-            try:
-                self._bnc.load_from_pick(tp_config_dict[self.BNC_ID])
-                self.T_tot.set(tp_config_dict[self.T_TOT_ID])
-                self.T.set(tp_config_dict[self.T_ID])
-                self.N_c.set(tp_config_dict[self.N_C_ID])
-                self.N_d.set(tp_config_dict[self.N_D_ID])
-                self.startLambda.set(tp_config_dict[self.STARTLAM_ID])
-                self.stopLambda.set(tp_config_dict[self.ENDLAM_ID])
-                self.nrPoints.set(tp_config_dict[self.NRPTS_ID])
-            except Exception as e:
-                logger.critical("Error while loading file :", exc_info=e)
-            finally:
-                self.updateScreen()
+            self._rawLoadConfig(saveFile)
+
+    def _rawLoadConfig(self, file):
+        unpick = Unpickler(file)
+        tp_config_dict = unpick.load()
+        try:
+            self._bnc.load_from_pick(tp_config_dict[self.BNC_ID])
+            self.T_tot.set(tp_config_dict[self.T_TOT_ID])
+            self.T.set(tp_config_dict[self.T_ID])
+            self.N_c.set(tp_config_dict[self.N_C_ID])
+            self.N_d.set(tp_config_dict[self.N_D_ID])
+            self.startLambda.set(tp_config_dict[self.STARTLAM_ID])
+            self.stopLambda.set(tp_config_dict[self.ENDLAM_ID])
+            self.nrPoints.set(tp_config_dict[self.NRPTS_ID])
+        except Exception as e:
+            logger.critical("Error while loading file :", exc_info=e)
+        finally:
+            self.updateScreen()
 
     def get_saving_dict(self):
         return {self.BNC_ID: self._bnc.save_to_pickle(),
@@ -221,15 +235,18 @@ class Application(tk.Frame):
                 self.ENDLAM_ID: self.stopLambda.get(),
                 self.NRPTS_ID: self.nrPoints.get()}
 
+    def _rawSaveConfig(self, file):
+        pick = Pickler(file)
+        total_list = self.get_saving_dict()
+        pick.dump(total_list)
+
     def saveConfig(self):
         saveFileName = tkFileDialog.asksaveasfilename(
             defaultextension=".cbc",
             filetypes=[("CALOA Config file",
                         "*.cbc")])
         with open(saveFileName, "wb") as saveFile:
-            pick = Pickler(saveFile)
-            total_list = self.get_saving_dict()
-            pick.dump(total_list)
+            self._rawSaveConfig(saveFile)
 
     # TODO: Enhance advanced frame aspect id:32
     # Mambu38
