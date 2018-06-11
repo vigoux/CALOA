@@ -72,10 +72,10 @@ if updated_version_nbr > vers_id:
     update_logger.info("Software version is outdated, updating...")
 
     zipped = requests.get(dict_latest_release["zipball_url"])  # download zip
-    update_logger.debug("ZipFile downloaded.")
+    update_logger.infp("ZipFile downloaded.")
 
     unzipped = ZipFile(BytesIO(zipped.content))  # Unzip dowloaded file
-    update_logger.debug("ZipFile unzipped.")
+    update_logger.info("ZipFile unzipped.")
 
     for file_name in unzipped.namelist():
         splitted_file_name = file_name.split("/")
@@ -96,6 +96,6 @@ if updated_version_nbr > vers_id:
 
         vers_file.write(updated_version_nbr)  # Update version number
 
-    update_logger.info("Software updated.")
+    update_logger.info("Software updated to {}.".format(updated_version_nbr))
 else:
-    update_logger.info("Your software is up-to-date.")
+    update_logger.info("Your software is up-to-date : {}.".format(vers_id))
