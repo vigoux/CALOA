@@ -42,8 +42,10 @@ except FileNotFoundError as err_file:
 except IndexError as ind_err:
     update_logger.warning("VERSION_INFO is empty.", exc_info=ind_err)
     vers_id = ""
+    vers_file.close()
+else:
+    vers_file.close()
 
-vers_file.close()
 update_logger.debug("Current version : {}".format(vers_id))
 
 # Getting latest release informations
@@ -51,7 +53,7 @@ try:
     latest_release_str = \
         requests.\
         get("https://api.github.com/repos/Mambu38/CALOA/releases/latest").\
-        decode()
+        content.decode()
 except Exception:
     raise RuntimeError("Unable to find a connection. Aborting update.")
 
@@ -70,18 +72,19 @@ if updated_version_nbr > vers_id:
     zipped = requests.get(dict_latest_release["zipball_url"])  # download zip
     update_logger.debug("ZipFile downloaded.")
 
-    unzipped = ZipFile(BytesIO(zipped))  # Unzip dowloaded file
+    unzipped = ZipFile(BytesIO(zipped.content))  # Unzip dowloaded file
     update_logger.debug("ZipFile unzipped.")
 
     for file_name in unzipped.namelist():
-
-        if not search(dont_take_unuseful, file_name):  # Exclude unused files
+        splitted_file_name = file_name.split("/")
+        if not (search(dont_take_unuseful, file_name)
+                or splitted_file_name[-1] == ""):  # Exclude unused files
             update_logger.debug("Updating file {}".format(file_name))
 
             # Open new and old files
 
-            with unzipped.open(file_name, "rb") as upd_file,\
-                    open(file_name.split(os.path.sep)[-1], "wb") as old_file:
+            with unzipped.open(file_name, "r") as upd_file,\
+                    open(splitted_file_name[-1], "wb") as old_file:
 
                 for line in upd_file.readlines():
                     old_file.write(line)  # Write each new line  in old file
