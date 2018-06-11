@@ -59,7 +59,9 @@ except Exception:
 
 dict_latest_release = \
     literal_eval(latest_release_str.
-                 replace("true", "True").replace("false", "False"))
+                 replace("true", "True").
+                 replace("false", "False").
+                 replace("null", "None"))
 
 updated_version_nbr = dict_latest_release["tag_name"]
 
