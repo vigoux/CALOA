@@ -116,20 +116,39 @@ class Application(tk.Frame):
 
     # Useful constants
 
-    BNC_ID = "BNC"
-    T_TOT_ID = "T_TOT"
-    T_ID = "T"
-    N_C_ID = "N_C"
-    N_D_ID = "N_D"
-    STARTLAM_ID = "STARTLAM"
-    ENDLAM_ID = "ENDLAM"
-    NRPTS_ID = "NRPTS"
+    SEPARATOR_ID = "[SEPARATOR]"
+
+    CONFIG_KEYS = (
+        "T_TOT",
+        "T",
+        "N_C",
+        "N_D",
+        SEPARATOR_ID,
+        "STARTLAM",
+        "ENDLAM",
+        "NRPTS",
+        SEPARATOR_ID
+        )
+
+    (T_TOT_ID, T_ID, N_C_ID, N_D_ID, _1,
+        STARTLAM_ID, ENDLAM_ID, NRPTS_ID, _2) = CONFIG_KEYS
+
+    DISPLAY_TEXTS = {
+        T_TOT_ID: "Total experiment time (in s)",
+        T_ID: "Integration time (in s)",
+        N_C_ID: "Averaging number (integer)",
+        N_D_ID: "Delay Number (integer)",
+        STARTLAM_ID: "Starting lambda (in nm)",
+        ENDLAM_ID: "Ending lambda (in nm)",
+        NRPTS_ID: "Points number (integer)"
+        }
 
     BACKUP_CONFIG_FILE_NAME = "temporary_cfg.ctcf"
 
     def __init__(self, master=None, P_bnc=None):
 
         super().__init__(master)
+        self.config_dict = dict([])
         if P_bnc is None:
             P_bnc = BNC.BNC(P_dispUpdate=False)
 
@@ -140,6 +159,7 @@ class Application(tk.Frame):
         self.pack()
         self.createScreen()
         self.initMenu()
+
         try:  # to open preceding config file
             with open(self.BACKUP_CONFIG_FILE_NAME, "rb") as file:
                 self._rawLoadConfig(file)
@@ -226,30 +246,22 @@ class Application(tk.Frame):
 
     def _rawLoadConfig(self, file):
         unpick = Unpickler(file)
-        tp_config_dict = unpick.load()
+        tp_config_tup = unpick.load()
         try:
-            self._bnc.load_from_pick(tp_config_dict[self.BNC_ID])
-            self.T_tot.set(tp_config_dict[self.T_TOT_ID])
-            self.T.set(tp_config_dict[self.T_ID])
-            self.N_c.set(tp_config_dict[self.N_C_ID])
-            self.N_d.set(tp_config_dict[self.N_D_ID])
-            self.startLambda.set(tp_config_dict[self.STARTLAM_ID])
-            self.stopLambda.set(tp_config_dict[self.ENDLAM_ID])
-            self.nrPoints.set(tp_config_dict[self.NRPTS_ID])
+            self._bnc.load_from_pick(tp_config_tup[0])
+            for key in tp_config_tup[1].keys():
+                self.config_dict[key].set(tp_config_tup[1][key])
         except Exception as e:
             logger.critical("Error while loading file :", exc_info=e)
         finally:
             self.updateScreen()
 
     def get_saving_dict(self):
-        return {self.BNC_ID: self._bnc.save_to_pickle(),
-                self.T_TOT_ID: self.T_tot.get(),
-                self.T_ID: self.T.get(),
-                self.N_C_ID: self.N_c.get(),
-                self.N_D_ID: self.N_d.get(),
-                self.STARTLAM_ID: self.startLambda.get(),
-                self.ENDLAM_ID: self.stopLambda.get(),
-                self.NRPTS_ID: self.nrPoints.get()}
+        tp_config_dict = dict([])
+        for key in self.config_dict.keys():
+            tp_config_dict[key] = self.config_dict[key].get()
+
+        return self._bnc.save_to_pickle(), tp_config_dict
 
     def _rawSaveConfig(self, file):
         pick = Pickler(file)
@@ -310,90 +322,26 @@ class Application(tk.Frame):
                   command=self.experiment).grid(row=2, columnspan=2,
                                                 sticky=tk.E+tk.W)
 
-        ttk.Separator(button_fen,
-                      orient=tk.HORIZONTAL).grid(row=3,
-                                                 columnspan=2,
-                                                 sticky=tk.E+tk.W,
-                                                 pady=5)
-        tk.Label(button_fen,
-                 text="Total experiment time (in s)").grid(row=10, column=0,
-                                                           sticky=tk.W)
-
-        try:
-            self.T_tot
-        except AttributeError:
-            self.T_tot = tk.StringVar()
-        tk.Entry(button_fen, textvariable=self.T_tot).grid(row=10, column=1)
-
-        tk.Label(button_fen,
-                 text="Integration time (in s)").grid(row=20, column=0,
-                                                      sticky=tk.W)
-        try:
-            self.T
-        except AttributeError:
-            self.T = tk.StringVar()
-        tk.Entry(button_fen, textvariable=self.T).grid(row=20, column=1)
-
-        tk.Label(button_fen,
-                 text="Averaging Number (integer)").grid(row=30, column=0,
-                                                         sticky=tk.W)
-        try:
-            self.N_c
-        except AttributeError:
-            self.N_c = tk.StringVar()
-        tk.Entry(button_fen, textvariable=self.N_c).grid(row=30, column=1)
-
-        tk.Label(button_fen,
-                 text="Delay Number (integer)").grid(row=40, column=0,
-                                                     sticky=tk.W)
-        try:
-            self.N_d
-        except AttributeError:
-            self.N_d = tk.StringVar()
-        tk.Entry(button_fen, textvariable=self.N_d).grid(row=40, column=1)
-
-        ttk.Separator(button_fen,
-                      orient=tk.HORIZONTAL).grid(row=50,
-                                                 columnspan=2,
-                                                 sticky=tk.E+tk.W,
-                                                 pady=5)
-
-        tk.Label(button_fen,
-                 text="Starting wavelenght (in nm)").grid(row=60,
-                                                          column=0,
-                                                          sticky=tk.W)
-        try:
-            self.startLambda
-        except AttributeError:
-            self.startLambda = tk.StringVar()
-        tk.Entry(button_fen, textvariable=self.startLambda).grid(row=60,
-                                                                 column=1)
-
-        tk.Label(button_fen,
-                 text="Ending wavelenght (in nm)").grid(row=70,
-                                                        column=0,
-                                                        sticky=tk.W)
-        try:
-            self.stopLambda
-        except AttributeError:
-            self.stopLambda = tk.StringVar()
-        tk.Entry(button_fen, textvariable=self.stopLambda).grid(row=70,
-                                                                column=1)
-
-        tk.Label(button_fen, text="Points # (integer)").grid(row=80, column=0,
-                                                             sticky=tk.W)
-        try:
-            self.nrPoints
-        except AttributeError:
-            self.nrPoints = tk.StringVar()
-
-        tk.Entry(button_fen, textvariable=self.nrPoints).grid(row=80, column=1)
-
-        ttk.Separator(button_fen,
-                      orient=tk.HORIZONTAL).grid(row=89,
-                                                 columnspan=2,
-                                                 sticky=tk.E+tk.W,
-                                                 pady=5)
+        # Here we make all interactible for exeperiment configuration.
+        sub_fen = tk.Frame(button_fen)
+        sub_fen.grid(row=3, rowspan=len(self.CONFIG_KEYS), columnspan=2)
+        for i, key in enumerate(self.CONFIG_KEYS):
+            if key == self.SEPARATOR_ID:
+                ttk.Separator(sub_fen,
+                              orient=tk.HORIZONTAL).grid(row=i,
+                                                         columnspan=2,
+                                                         sticky=tk.E+tk.W,
+                                                         pady=5)
+            elif key in self.DISPLAY_TEXTS:
+                tk.Label(sub_fen,
+                         text=self.DISPLAY_TEXTS[key]).grid(row=i, column=0,
+                                                            sticky=tk.W)
+                self.config_dict[key] = tk.StringVar()
+                tk.Entry(sub_fen,
+                         textvariable=self.config_dict[key]).\
+                    grid(row=i, column=1)
+            else:
+                pass
 
         tk.Label(button_fen,
                  text="Reference channel").\
@@ -439,9 +387,9 @@ class Application(tk.Frame):
         self.pause_live_display.set()
         self.avh.acquire()
         experiment_logger.info("Starting to set black")
-        p_T_tot = float(self.T_tot.get())
-        p_T = float(self.T.get())
-        p_N_c = int(self.N_c.get())
+        p_T_tot = float(self.config_dict[self.T_TOT_ID].get())
+        p_T = float(self.config_dict[self.T].get())
+        p_N_c = int(self.config_dict[self.N_c].get())
 
         self._bnc.setmode("SINGLE")
         self._bnc.settrig("TRIG")
@@ -477,9 +425,9 @@ class Application(tk.Frame):
         self.avh.acquire()
         self.pause_live_display.set()
         experiment_logger.info("Starting to set white")
-        p_T_tot = float(self.T_tot.get())
-        p_T = float(self.T.get())
-        p_N_c = int(self.N_c.get())
+        p_T_tot = float(self.config_dict[self.T_TOT_ID].get())
+        p_T = float(self.config_dict[self.T].get())
+        p_N_c = int(self.config_dict[self.N_c].get())
 
         self._bnc.setmode("SINGLE")
         self._bnc.settrig("TRIG")
@@ -519,10 +467,10 @@ class Application(tk.Frame):
         self.avh.acquire()
         abort = False
 
-        p_T_tot = float(self.T_tot.get())
-        p_T = float(self.T.get())
-        p_N_c = int(self.N_c.get())
-        p_N_d = int(self.N_d.get())
+        p_T_tot = float(self.config_dict[self.T_TOT_ID].get())
+        p_T = float(self.config_dict[self.T].get())
+        p_N_c = int(self.config_dict[self.N_c].get())
+        p_N_d = int(self.config_dict[self.N_d].get())
 
         n_d = 1
 
@@ -708,17 +656,14 @@ class Application(tk.Frame):
 
         with open(save_dir + os.sep + "config.txt", "w") as file:
             file.write("BNC parameters :\n")
-            for i, pulse_dict in enumerate(config_dict[self.BNC_ID]):  # bnc
+            for i, pulse_dict in enumerate(config_dict[0]):  # bnc
                 file.write("\tPulse {} :\n".format(i+1))
                 for key, value in pulse_dict.items():
                     file.write("\t\t{} : {}\n".format(key, value))
-            file.write("T_tot : {}\n".format(config_dict[self.T_TOT_ID]))
-            file.write("T : {}\n".format(config_dict[self.T_ID]))
-            file.write("N_c : {}\n".format(config_dict[self.N_C_ID]))
-            file.write("N_d : {}\n".format(config_dict[self.N_D_ID]))
-            file.write("startLam : {}\n".format(config_dict[self.STARTLAM_ID]))
-            file.write("endLam : {}\n".format(config_dict[self.ENDLAM_ID]))
-            file.write("nrPoints : {}\n".format(config_dict[self.NRPTS_ID]))
+            for key in self.CONFIG_KEYS:
+                if key != self.SEPARATOR_ID:
+                    file.write("{} : {}".format(key,
+                                                self.config_dict[key].get()))
             file.close()
 
     def goodbye_app(self):
