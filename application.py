@@ -427,10 +427,6 @@ class Application(tk.Frame):
 
         self.experiment_on = False
 
-    # TODO: there is some work here to make more event programming id:33
-    # Mambu38
-    # 39092278+Mambu38@users.noreply.github.com
-    # https://github.com/Mambu38/CALOA/issues/44
     # IDEA: N/B introduce possibility to im/export ascii from/to disk id:35
     # Mambu38
     # 39092278+Mambu38@users.noreply.github.com
