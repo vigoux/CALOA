@@ -140,17 +140,22 @@ class Application(tk.Frame):
         self.pack()
         self.createScreen()
         self.initMenu()
-        try:
+        try:  # to open preceding config file
             with open(self.BACKUP_CONFIG_FILE_NAME, "rb") as file:
                 self._rawLoadConfig(file)
-        except Exception as e:
+        except Exception as e:  # File not found
             logger.info("Impossible to open config file.", exc_info=e)
 
     def createScreen(self, menu=True):
-        self.mainOpt = ttk.Notebook(self)
+        """Creates and draw main app screen."""
+        self.mainOpt = ttk.Notebook(self)  # Main display
+
+        # Normal mode
 
         wind2 = self.createWidgetsSimple(self.mainOpt)
         self.mainOpt.add(wind2, text="Normal")
+
+        # Advanced mode
 
         wind = self.createWidgetsAdvanced(self.mainOpt)
         self.mainOpt.add(wind, text="Advanced")
@@ -158,25 +163,29 @@ class Application(tk.Frame):
         self.mainOpt.pack()
 
     def initMenu(self):
+        """Inits and draw menubar."""
         menubar = tk.Menu(self.master)
 
-        filemenu = tk.Menu(menubar, tearoff=0)
+        filemenu = tk.Menu(menubar, tearoff=0)  # Create the file menu scroll
         filemenu.add_command(label="Open config", command=self.loadConfig)
         filemenu.add_command(label="Save current config",
                              command=self.saveConfig)
         filemenu.add_separator()
         filemenu.add_command(label="Quit", command=self.quit)
-        menubar.add_cascade(label="File", menu=filemenu)
+        menubar.add_cascade(label="File", menu=filemenu)  # Add it to menubar
+
+        menubar.add_command(label="Preferences...",
+                            command=self.display_preference_menu)
         self.master.config(menu=menubar)
 
-    def updateScreen(self):
-        self.mainOpt.update()
+    def display_preference_menu(self):
+        """Display the preference pane, for better parameter handling."""
+        config_pane = tk.Toplevel()
+        config_pane.title("Preferences")
 
-    def byeLiveUpdate(self):
-        with main_lock:
-            self.stop_live_display.set()
-            del self.liveDisplay
-            self.display_routine.join()
+    def updateScreen(self):
+        """Easier way to update the screen."""
+        self.mainOpt.update()
 
     def routine_data_sender(self):
         if not self.pause_live_display.wait(0):
@@ -186,6 +195,7 @@ class Application(tk.Frame):
 
             # list.copy() is realy important because of the
             # further modification of the list.
+            # Send raw spectras.
             self.liveDisplay.putSpectrasAndUpdate(0, scopes.copy())
 
             if self.referenceChannel.get() != "":
@@ -201,8 +211,10 @@ class Application(tk.Frame):
 
             self.avh.release()
             self.after(250, self.routine_data_sender)
-        else:
+        elif not self.stop_live_display.wait(0):
             self.after(1000, self.routine_data_sender)
+        else:
+            pass
 
     # Save and load
 
@@ -717,7 +729,8 @@ class Application(tk.Frame):
         with open(self.BACKUP_CONFIG_FILE_NAME, "wb") as saveFile:
             self._rawSaveConfig(saveFile)
         self._bnc._bnc_handler._con.close()
-        self.pause_live_display.is_set()
+        self.pause_live_display.set()
+        self.stop_live_display.set()
         self.experiment_on = True
         self.avh._done()
         self.destroy()
@@ -746,9 +759,8 @@ print("under certain conditions.")
 root = tk.Tk()
 root.title("CALOA")
 app = Application(master=root)
-root.protocol("WM_DELETE_WINDOW", root_goodbye)
+root.protocol("WM_DELETE_WINDOW", root_goodbye)  # If window is closed
 app.mainloop()
-
 
 logger_init.filehandler.doRollover()
 logging.shutdown()
