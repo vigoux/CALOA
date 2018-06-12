@@ -322,7 +322,7 @@ class Application(tk.Frame):
                   command=self.experiment).grid(row=2, columnspan=2,
                                                 sticky=tk.E+tk.W)
 
-        # Here we make all interactible for exeperiment configuration.
+        # Here we make all interactible for experiment configuration.
         sub_fen = tk.Frame(button_fen)
         sub_fen.grid(row=3, rowspan=len(self.CONFIG_KEYS), columnspan=2)
         for i, key in enumerate(self.CONFIG_KEYS):
