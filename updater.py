@@ -29,7 +29,8 @@ from re import search
 
 update_logger = logger_init.logging.getLogger(__name__)
 
-dont_take_unuseful = r"(logs|__pycache__|\.\w+)"
+dont_take_unuseful = r"(logs|__pycache__|"\
+                     + "\.gitignore|\.github|\.gitattibutes|\.imdone)"
 
 # Opening and getting current version number.
 try:

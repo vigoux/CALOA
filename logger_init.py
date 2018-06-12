@@ -29,7 +29,7 @@ FORMAT_CONSOLE = "{message}"
 fmter_file = logging.Formatter(FORMAT_FILE, style="{")
 fmter_console = logging.Formatter(FORMAT_CONSOLE, style="{")
 filehandler = RotatingFileHandler(join(abspath("logs"), "app_log.txt"),
-                                  mode="w",
+                                  mode="a",
                                   maxBytes=1E32,
                                   backupCount=1000)
 filehandler.setFormatter(fmter_file)
