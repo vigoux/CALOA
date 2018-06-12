@@ -620,6 +620,21 @@ class Spectrum:
                 l_values.append(tup1[1]/tup2[1])
         return Spectrum(l_lambdas, l_values, P_smoothed=smoothed)
 
+    def __mul__(self, spectrum):
+        l_lambdas = []
+        l_values = []
+        smoothed = self._smoothed or spectrum._smoothed
+        for tup1, tup2 in zip(self, spectrum):
+            l_lambdas.append(tup1[0])
+            if tup2[1] <= 0:
+                l_values.append(0)
+            else:
+                l_values.append(tup1[1]*tup2[1])
+        return Spectrum(l_lambdas, l_values, P_smoothed=smoothed)
+
+    def __imul__(self, spectrum):
+        return self * spectrum
+
     def absorbanceSpectrum(reference, spectrum):
         opacity_spectrum = reference/spectrum
 
@@ -628,8 +643,3 @@ class Spectrum:
                     for val in opacity_spectrum.values]
 
         return Spectrum(l_lambdas, l_values)
-
-# IDEA: Scope object to contain all spectra id:31
-# Mambu38
-# 39092278+Mambu38@users.noreply.github.com
-# https://github.com/Mambu38/CALOA/issues/41
