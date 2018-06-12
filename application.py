@@ -114,19 +114,44 @@ class Scope_Display(tk.Frame, Queue):
 
 class Application(tk.Frame):
 
+    # Useful constants
+
+    SEPARATOR_ID = "[SEPARATOR]"
+
+    CONFIG_KEYS = (
+        "T_TOT",
+        "T",
+        "N_C",
+        "N_D",
+        SEPARATOR_ID,
+        "STARTLAM",
+        "ENDLAM",
+        "NRPTS",
+        SEPARATOR_ID
+        )
+
+    (T_TOT_ID, T_ID, N_C_ID, N_D_ID, _1,
+        STARTLAM_ID, ENDLAM_ID, NRPTS_ID, _2) = CONFIG_KEYS
+
+    DISPLAY_TEXTS = {
+        T_TOT_ID: "Total experiment time (in s)",
+        T_ID: "Integration time (in s)",
+        N_C_ID: "Averaging number (integer)",
+        N_D_ID: "Delay Number (integer)",
+        STARTLAM_ID: "Starting lambda (in nm)",
+        ENDLAM_ID: "Ending lambda (in nm)",
+        NRPTS_ID: "Points number (integer)"
+        }
+
     BACKUP_CONFIG_FILE_NAME = "temporary_cfg.ctcf"
 
     def __init__(self, master=None, P_bnc=None):
 
         super().__init__(master)
+        self.config_dict = dict([])
         if P_bnc is None:
             P_bnc = BNC.BNC(P_dispUpdate=False)
 
-        try:
-            with open(self.BACKUP_CONFIG_FILE_NAME, "rb") as file:
-                self._rawLoadConfig(file)
-        except Exception as e:
-            logger.info("Impossible to open config file.", exc_info=e)
         self.experiment_on = False
         self._bnc = P_bnc
         self.avh = spectro.AvaSpec_Handler()
@@ -135,11 +160,22 @@ class Application(tk.Frame):
         self.createScreen()
         self.initMenu()
 
+        try:  # to open preceding config file
+            with open(self.BACKUP_CONFIG_FILE_NAME, "rb") as file:
+                self._rawLoadConfig(file)
+        except Exception as e:  # File not found
+            logger.info("Impossible to open config file.", exc_info=e)
+
     def createScreen(self, menu=True):
-        self.mainOpt = ttk.Notebook(self)
+        """Creates and draw main app screen."""
+        self.mainOpt = ttk.Notebook(self)  # Main display
+
+        # Normal mode
 
         wind2 = self.createWidgetsSimple(self.mainOpt)
         self.mainOpt.add(wind2, text="Normal")
+
+        # Advanced mode
 
         wind = self.createWidgetsAdvanced(self.mainOpt)
         self.mainOpt.add(wind, text="Advanced")
@@ -147,27 +183,29 @@ class Application(tk.Frame):
         self.mainOpt.pack()
 
     def initMenu(self):
+        """Inits and draw menubar."""
         menubar = tk.Menu(self.master)
 
-        filemenu = tk.Menu(menubar, tearoff=0)
+        filemenu = tk.Menu(menubar, tearoff=0)  # Create the file menu scroll
         filemenu.add_command(label="Open config", command=self.loadConfig)
         filemenu.add_command(label="Save current config",
                              command=self.saveConfig)
         filemenu.add_separator()
         filemenu.add_command(label="Quit", command=self.quit)
-        menubar.add_cascade(label="File", menu=filemenu)
+        menubar.add_cascade(label="File", menu=filemenu)  # Add it to menubar
+
+        menubar.add_command(label="Preferences...",
+                            command=self.display_preference_menu)
         self.master.config(menu=menubar)
 
-    def updateScreen(self):
-        self.mainOpt.update()
+    def display_preference_menu(self):
+        """Display the preference pane, for better parameter handling."""
+        config_pane = tk.Toplevel()
+        config_pane.title("Preferences")
 
-    def byeLiveUpdate(self):
-        with main_lock:
-            self.stop_live_display.set()
-            del self.liveDisplay
-            self.display_routine.join()
-        with open(self.BACKUP_CONFIG_FILE_NAME, "wb") as saveFile:
-            self._rawSaveConfig(saveFile)
+    def updateScreen(self):
+        """Easier way to update the screen."""
+        self.mainOpt.update()
 
     def routine_data_sender(self):
         if not self.pause_live_display.wait(0):
@@ -177,6 +215,7 @@ class Application(tk.Frame):
 
             # list.copy() is realy important because of the
             # further modification of the list.
+            # Send raw spectras.
             self.liveDisplay.putSpectrasAndUpdate(0, scopes.copy())
 
             if self.referenceChannel.get() != "":
@@ -192,17 +231,14 @@ class Application(tk.Frame):
 
             self.avh.release()
             self.after(250, self.routine_data_sender)
-        else:
+        elif not self.stop_live_display.wait(0):
             self.after(1000, self.routine_data_sender)
+        else:
+            pass
 
     # Save and load
 
-    # Useful constants
-
-    BNC_ID, T_TOT_ID, T_ID, N_C_ID, N_D_ID, STARTLAM_ID, ENDLAM_ID, NRPTS_ID =\
-        "BNC", "T_TOT", "T", "N_C", "N_D", "STARTLAM", "ENDLAM", "NRPTS"
-
-    def loadConfig(self, file):
+    def loadConfig(self):
         with tkFileDialog.askopenfile(mode="rb",
                                       filetypes=[("CALOA Config file",
                                                   "*.cbc")]) as saveFile:
@@ -210,30 +246,22 @@ class Application(tk.Frame):
 
     def _rawLoadConfig(self, file):
         unpick = Unpickler(file)
-        tp_config_dict = unpick.load()
+        tp_config_tup = unpick.load()
         try:
-            self._bnc.load_from_pick(tp_config_dict[self.BNC_ID])
-            self.T_tot.set(tp_config_dict[self.T_TOT_ID])
-            self.T.set(tp_config_dict[self.T_ID])
-            self.N_c.set(tp_config_dict[self.N_C_ID])
-            self.N_d.set(tp_config_dict[self.N_D_ID])
-            self.startLambda.set(tp_config_dict[self.STARTLAM_ID])
-            self.stopLambda.set(tp_config_dict[self.ENDLAM_ID])
-            self.nrPoints.set(tp_config_dict[self.NRPTS_ID])
+            self._bnc.load_from_pick(tp_config_tup[0])
+            for key in tp_config_tup[1].keys():
+                self.config_dict[key].set(tp_config_tup[1][key])
         except Exception as e:
             logger.critical("Error while loading file :", exc_info=e)
         finally:
             self.updateScreen()
 
     def get_saving_dict(self):
-        return {self.BNC_ID: self._bnc.save_to_pickle(),
-                self.T_TOT_ID: self.T_tot.get(),
-                self.T_ID: self.T.get(),
-                self.N_C_ID: self.N_c.get(),
-                self.N_D_ID: self.N_d.get(),
-                self.STARTLAM_ID: self.startLambda.get(),
-                self.ENDLAM_ID: self.stopLambda.get(),
-                self.NRPTS_ID: self.nrPoints.get()}
+        tp_config_dict = dict([])
+        for key in self.config_dict.keys():
+            tp_config_dict[key] = self.config_dict[key].get()
+
+        return self._bnc.save_to_pickle(), tp_config_dict
 
     def _rawSaveConfig(self, file):
         pick = Pickler(file)
@@ -281,83 +309,39 @@ class Application(tk.Frame):
         #  Drawing Button Frame
 
         button_fen = tk.LabelFrame(frame, text="Experiment parameters")
+
+        tk.Button(button_fen, text="Set Black",
+                  command=self.set_black).grid(row=0, columnspan=2,
+                                               sticky=tk.E+tk.W)
+
+        tk.Button(button_fen, text="Set White",
+                  command=self.set_white).grid(row=1, columnspan=2,
+                                               sticky=tk.E+tk.W)
+
         tk.Button(button_fen, text="Launch experiment",
-                  command=self.experiment).grid(row=0, column=0)
-        tk.Button(button_fen, text="Stop Experiment",
-                  command=self.stop_experiment).grid(row=0, column=1)
+                  command=self.experiment).grid(row=2, columnspan=2,
+                                                sticky=tk.E+tk.W)
 
-        tk.Label(button_fen,
-                 text="Total experiment time (in s)").grid(row=10, column=0,
-                                                           sticky=tk.W)
-        try:
-            self.T_tot
-        except AttributeError:
-            self.T_tot = tk.StringVar()
-        tk.Entry(button_fen, textvariable=self.T_tot).grid(row=10, column=1)
-
-        tk.Label(button_fen,
-                 text="Integration time (in s)").grid(row=20, column=0,
-                                                      sticky=tk.W)
-        try:
-            self.T
-        except AttributeError:
-            self.T = tk.StringVar()
-        tk.Entry(button_fen, textvariable=self.T).grid(row=20, column=1)
-
-        tk.Label(button_fen,
-                 text="Averaging Number (integer)").grid(row=30, column=0,
-                                                         sticky=tk.W)
-        try:
-            self.N_c
-        except AttributeError:
-            self.N_c = tk.StringVar()
-        tk.Entry(button_fen, textvariable=self.N_c).grid(row=30, column=1)
-
-        tk.Label(button_fen,
-                 text="Delay Number (integer)").grid(row=40, column=0,
-                                                     sticky=tk.W)
-        try:
-            self.N_d
-        except AttributeError:
-            self.N_d = tk.StringVar()
-        tk.Entry(button_fen, textvariable=self.N_d).grid(row=40, column=1)
-
-        ttk.Separator(button_fen,
-                      orient=tk.HORIZONTAL).grid(row=50,
-                                                 columnspan=2,
-                                                 sticky=tk.E+tk.W,
-                                                 pady=5)
-
-        tk.Label(button_fen,
-                 text="Starting wavelenght (in nm)").grid(row=60,
-                                                          column=0,
-                                                          sticky=tk.W)
-        try:
-            self.startLambda
-        except AttributeError:
-            self.startLambda = tk.StringVar()
-        tk.Entry(button_fen, textvariable=self.startLambda).grid(row=60,
-                                                                 column=1)
-
-        tk.Label(button_fen,
-                 text="Ending wavelenght (in nm)").grid(row=70,
-                                                        column=0,
-                                                        sticky=tk.W)
-        try:
-            self.stopLambda
-        except AttributeError:
-            self.stopLambda = tk.StringVar()
-        tk.Entry(button_fen, textvariable=self.stopLambda).grid(row=70,
-                                                                column=1)
-
-        tk.Label(button_fen, text="Points # (integer)").grid(row=80, column=0,
-                                                             sticky=tk.W)
-        try:
-            self.nrPoints
-        except AttributeError:
-            self.nrPoints = tk.StringVar()
-
-        tk.Entry(button_fen, textvariable=self.nrPoints).grid(row=80, column=1)
+        # Here we make all interactible for exeperiment configuration.
+        sub_fen = tk.Frame(button_fen)
+        sub_fen.grid(row=3, rowspan=len(self.CONFIG_KEYS), columnspan=2)
+        for i, key in enumerate(self.CONFIG_KEYS):
+            if key == self.SEPARATOR_ID:
+                ttk.Separator(sub_fen,
+                              orient=tk.HORIZONTAL).grid(row=i,
+                                                         columnspan=2,
+                                                         sticky=tk.E+tk.W,
+                                                         pady=5)
+            elif key in self.DISPLAY_TEXTS:
+                tk.Label(sub_fen,
+                         text=self.DISPLAY_TEXTS[key]).grid(row=i, column=0,
+                                                            sticky=tk.W)
+                self.config_dict[key] = tk.StringVar()
+                tk.Entry(sub_fen,
+                         textvariable=self.config_dict[key]).\
+                    grid(row=i, column=1)
+            else:
+                pass
 
         tk.Label(button_fen,
                  text="Reference channel").\
@@ -378,7 +362,8 @@ class Application(tk.Frame):
         self.pause_live_display = Event()
         self.stop_live_display = Event()
         self.liveDisplay = Scope_Display(scope_fen,
-                                         ["Scopes", "Absorbance"],
+                                         ["Scopes", "Absorbance",
+                                          "Black", "White"],
                                          self.stop_live_display)
         self.liveDisplay.pack(fill=tk.BOTH)
         self.after(0, self.routine_data_sender)
@@ -390,10 +375,6 @@ class Application(tk.Frame):
 
         self.experiment_on = False
 
-    # TODO: there is some work here to make more event programming id:33
-    # Mambu38
-    # 39092278+Mambu38@users.noreply.github.com
-    # https://github.com/Mambu38/CALOA/issues/44
     # IDEA: N/B introduce possibility to im/export ascii from/to disk id:35
     # Mambu38
     # 39092278+Mambu38@users.noreply.github.com
@@ -402,27 +383,82 @@ class Application(tk.Frame):
     # Mambu38
     # 39092278+Mambu38@users.noreply.github.com
     # https://github.com/Mambu38/CALOA/issues/45
-    """
     def set_black(self):
-        experiment_logger.info("Setting black.")
+        self.pause_live_display.set()
+        self.avh.acquire()
+        experiment_logger.info("Starting to set black")
+        p_T_tot = float(self.config_dict[self.T_TOT_ID].get())
+        p_T = float(self.config_dict[self.T].get())
+        p_N_c = int(self.config_dict[self.N_c].get())
+
+        self._bnc.setmode("SINGLE")
+        self._bnc.settrig("TRIG")
+
+        self.avh.prepareAll(p_T*(10**3), True, p_N_c)
+        for pulse in self._bnc:
+            pulse[BNC.DELAY] = pulse.experimentTuple[BNC.DELAY].get()
+            pulse[BNC.WIDTH] = pulse.experimentTuple[BNC.WIDTH].get()
+            pulse[BNC.STATE] = pulse.experimentTuple[BNC.STATE].get()
         self._bnc.run()
         self.avh.startAll(p_N_c)
         n_black = 0
-        while n_black < p_N_c and self.experiment_on:
+
+        while n_black < p_N_c:
 
             self._bnc.sendtrig()
-            time.sleep(p_T)
+            self.after(int(p_T_tot*1E3))
             self.update()
-
 
             n_black += 1
             experiment_logger.debug("Done black {}/{}".format(n_black,
                                                               p_N_c))
-        self.avh.stopAll()
+        self.avh.waitAll()
         self._bnc.stop()
-        self.totalSpectras.append(self.avh.getScopes())
+        self.black_spectra = self.avh.getScopes()
         experiment_logger.info("Black set.")
-    """
+        self.liveDisplay.putSpectrasAndUpdate(2, self.black_spectra)
+        self.avh.stopAll()
+        self.avh.release()
+        self.pause_live_display.clear()
+
+    def set_white(self):
+        self.avh.acquire()
+        self.pause_live_display.set()
+        experiment_logger.info("Starting to set white")
+        p_T_tot = float(self.config_dict[self.T_TOT_ID].get())
+        p_T = float(self.config_dict[self.T].get())
+        p_N_c = int(self.config_dict[self.N_c].get())
+
+        self._bnc.setmode("SINGLE")
+        self._bnc.settrig("TRIG")
+
+        self.avh.prepareAll(p_T*(10**3), True, p_N_c)
+        for pulse in self._bnc:
+            pulse[BNC.DELAY] = pulse.experimentTuple[BNC.DELAY].get()
+            pulse[BNC.WIDTH] = pulse.experimentTuple[BNC.WIDTH].get()
+            pulse[BNC.STATE] = pulse.experimentTuple[BNC.STATE].get()
+
+        self._bnc.run()
+        self.avh.startAll(p_N_c)
+        n_white = 0
+
+        while n_white < p_N_c:
+
+            self._bnc.sendtrig()
+            self.after(int(p_T_tot*1E3))
+            self.update()
+
+            n_white += 1
+            experiment_logger.debug("Done white {}/{}".format(n_white,
+                                                              p_N_c))
+        self.avh.waitAll()
+        self._bnc.stop()
+        self.white_spectra = self.avh.getScopes()
+        experiment_logger.info("White set.")
+        self.liveDisplay.putSpectrasAndUpdate(3, self.white_spectra)
+        self.avh.stopAll()
+        self.avh.release()
+        self.pause_live_display.clear()
 
     def experiment(self):
         experiment_logger.info("Starting experiment")
@@ -431,10 +467,10 @@ class Application(tk.Frame):
         self.avh.acquire()
         abort = False
 
-        p_T_tot = float(self.T_tot.get())
-        p_T = float(self.T.get())
-        p_N_c = int(self.N_c.get())
-        p_N_d = int(self.N_d.get())
+        p_T_tot = float(self.config_dict[self.T_TOT_ID].get())
+        p_T = float(self.config_dict[self.T].get())
+        p_N_c = int(self.config_dict[self.N_c].get())
+        p_N_d = int(self.config_dict[self.N_d].get())
 
         n_d = 1
 
@@ -448,53 +484,18 @@ class Application(tk.Frame):
             assert(p_N_d*float(pulse.experimentTuple[BNC.dPHASE].get()) < p_T)
 
         self.avh.prepareAll(p_T*(10**3), True, p_N_c)
-        self.totalSpectras = []
+        totalSpectras = []
 
-        if not abort and tMsg.\
-                askokcancel("Black", "Ready to set black ? (Cancel to exit)"):
-
-            experiment_logger.info("Setting black.")
-            self._bnc.run()
-            self.avh.startAll(p_N_c)
-            n_black = 0
-            while n_black < p_N_c and self.experiment_on:
-
-                self._bnc.sendtrig()
-                self.after(int(p_T_tot*1E3))
-                self.update()
-
-                n_black += 1
-                experiment_logger.debug("Done black {}/{}".format(n_black,
-                                                                  p_N_c))
-            self.avh.waitAll()
-            self._bnc.stop()
-            self.totalSpectras.append(self.avh.getScopes())
-            experiment_logger.info("Black set.")
-        else:
+        try:
+            self.black_spectra
+        except Exception:
             experiment_logger.warning("Black not set, aborting.")
             abort = True
             self.experiment_on = False
 
-        if not abort and tMsg.\
-                askokcancel("White", "Ready to set white ? (Cancel to exit)"):
-            experiment_logger.info("Setting white.")
-            self._bnc.run()
-            self.avh.startAll(p_N_c)
-            n_white = 0
-            while n_white < p_N_c and self.experiment_on:
-
-                self._bnc.sendtrig()
-                self.after(int(p_T_tot*1E3))
-                self.update()
-
-                n_white += 1
-                experiment_logger.debug("Done black {}/{}".format(n_white,
-                                                                  p_N_c))
-            self.avh.waitAll()
-            self._bnc.stop()
-            self.totalSpectras.append(self.avh.getScopes())
-            experiment_logger.info("White set.")
-        else:
+        try:
+            self.white_spectra
+        except Exception:
             experiment_logger.warning("White not set, aborting.")
             self.experiment_on = False
             abort = True
@@ -508,6 +509,8 @@ class Application(tk.Frame):
 
             message = tk.Message(pop_up)
             message.pack()
+            tk.Button(pop_up, text="Abort", command=self.stop_experiment).\
+                pack(side=tk.BOTTOM)
             pop_up["height"] = 150
             pop_up["width"] = 150
 
@@ -540,7 +543,8 @@ class Application(tk.Frame):
                         float(pulse.experimentTuple[BNC.DELAY].get()) + n_d * \
                         float(pulse.experimentTuple[BNC.dPHASE].get())
                 tp_scopes = self.avh.getScopes()
-                self.totalSpectras.append(tp_scopes)
+                self.avh.stopAll()
+                totalSpectras.append(tp_scopes)
                 self.liveDisplay.putSpectrasAndUpdate(0, tp_scopes)
 
             pop_up.destroy()
@@ -556,11 +560,12 @@ class Application(tk.Frame):
             experiment_logger.warning("Experiment aborted.")
             abort = True
             self.experiment_on = False
-        self.treatSpectras()
+        self.treatSpectras([self.black_spectra, self.white_spectra]
+                           + totalSpectras)
         self.avh.release()
         self.pause_live_display.clear()
 
-    def treatSpectras(self):
+    def treatSpectras(self, spectras):
 
         def format_data(filepath, datas):
             begin = " "
@@ -609,13 +614,13 @@ class Application(tk.Frame):
 
         for i in range(nr_chans):
             # This item is all the lambdas
-            to_save = [self.totalSpectras[0][0].lambdas]
+            to_save = [spectras[0][0].lambdas]
             interp_lam_range = list(linspace(float(self.startLambda.get()),
                                              float(self.stopLambda.get()),
                                              int(self.nrPoints.get())))
 
             # Saving Raw datas
-            for spectra in self.totalSpectras:
+            for spectra in spectras:
                 to_save.append(spectra[i].values)  # Gathering Raw datas
 
             format_data(raw_path + os.sep
@@ -624,7 +629,7 @@ class Application(tk.Frame):
             # Saving Interpolated datas
 
             interpolated = [interp_lam_range]
-            for spectra in self.totalSpectras:
+            for spectra in spectras:
                 interpolated.append(spectra[i].getInterpolated(
                                     startingLamb=interp_lam_range[0],
                                     endingLamb=interp_lam_range[-1],
@@ -636,7 +641,7 @@ class Application(tk.Frame):
             # Saving Cosmetic datas
 
             cosmetic = [interp_lam_range]
-            for spectrum in self.totalSpectras:
+            for spectrum in spectras:
                 cosmetic.append(spectra[i].getInterpolated(
                                 startingLamb=interp_lam_range[0],
                                 endingLamb=interp_lam_range[-1],
@@ -646,24 +651,27 @@ class Application(tk.Frame):
                         + "cosm{}_chan{}.txt".format(timeStamp, i+1), cosmetic)
 
         config_dict = self.get_saving_dict()
+
+        # Here we write all informations about current configuration
+
         with open(save_dir + os.sep + "config.txt", "w") as file:
             file.write("BNC parameters :\n")
-            for i, pulse_dict in enumerate(config_dict[self.BNC_ID]):  # bnc
+            for i, pulse_dict in enumerate(config_dict[0]):  # bnc
                 file.write("\tPulse {} :\n".format(i+1))
                 for key, value in pulse_dict.items():
                     file.write("\t\t{} : {}\n".format(key, value))
-            file.write("T_tot : {}\n".format(config_dict[self.T_TOT_ID]))
-            file.write("T : {}\n".format(config_dict[self.T_ID]))
-            file.write("N_c : {}\n".format(config_dict[self.N_C_ID]))
-            file.write("N_d : {}\n".format(config_dict[self.N_D_ID]))
-            file.write("startLam : {}\n".format(config_dict[self.STARTLAM_ID]))
-            file.write("endLam : {}\n".format(config_dict[self.ENDLAM_ID]))
-            file.write("nrPoints : {}\n".format(config_dict[self.NRPTS_ID]))
+            for key in self.CONFIG_KEYS:
+                if key != self.SEPARATOR_ID:
+                    file.write("{} : {}".format(key,
+                                                self.config_dict[key].get()))
             file.close()
 
     def goodbye_app(self):
+        with open(self.BACKUP_CONFIG_FILE_NAME, "wb") as saveFile:
+            self._rawSaveConfig(saveFile)
         self._bnc._bnc_handler._con.close()
-        self.pause_live_display.is_set()
+        self.pause_live_display.set()
+        self.stop_live_display.set()
         self.experiment_on = True
         self.avh._done()
         self.destroy()
@@ -675,14 +683,6 @@ def report_callback_exception(self, *args):
     logger.critical("Error :", exc_info=err)
 
 
-tk.Tk.report_callback_exception = report_callback_exception
-
-print("CALOA Copyright (C) 2018 Thomas Vigouroux")
-print("This program comes with ABSOLUTELY NO WARRANTY.")
-print("This is a free software, and you are welcome to redistribute it")
-print("under certain conditions.")
-
-
 def root_goodbye():
     global root
     global app
@@ -690,12 +690,18 @@ def root_goodbye():
     root.destroy()
 
 
+tk.Tk.report_callback_exception = report_callback_exception
+
+print("CALOA Copyright (C) 2018 Thomas Vigouroux")
+print("This program comes with ABSOLUTELY NO WARRANTY.")
+print("This is a free software, and you are welcome to redistribute it")
+print("under certain conditions.")
+
 root = tk.Tk()
 root.title("CALOA")
 app = Application(master=root)
-root.protocol("WM_DELETE_WINDOW", root_goodbye)
+root.protocol("WM_DELETE_WINDOW", root_goodbye)  # If window is closed
 app.mainloop()
-
 
 logger_init.filehandler.doRollover()
 logging.shutdown()
