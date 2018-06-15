@@ -118,9 +118,9 @@ class Application(tk.Frame):
 
     SEPARATOR_ID = "[SEPARATOR]"
 
-    CONFIG_KEYS = (
+    DISPLAY_KEYS = (
         "T_TOT",
-        "T",
+        "INT_T",
         "N_C",
         "N_D",
         SEPARATOR_ID,
@@ -130,17 +130,27 @@ class Application(tk.Frame):
         SEPARATOR_ID
         )
 
-    (T_TOT_ID, T_ID, N_C_ID, N_D_ID, _1,
-        STARTLAM_ID, ENDLAM_ID, NRPTS_ID, _2) = CONFIG_KEYS
+    (T_TOT_ID, INT_T_ID, N_C_ID, N_D_ID, _1,
+        STARTLAM_ID, ENDLAM_ID, NRPTS_ID, _2) = DISPLAY_KEYS
 
     DISPLAY_TEXTS = {
-        T_TOT_ID: "Total experiment time (in s)",
-        T_ID: "Integration time (in s)",
+        T_TOT_ID: "Total experiment time (in ms)",
+        INT_T_ID: "Integration time (in ms)",
         N_C_ID: "Averaging number (integer)",
         N_D_ID: "Delay Number (integer)",
         STARTLAM_ID: "Starting lambda (in nm)",
         ENDLAM_ID: "Ending lambda (in nm)",
         NRPTS_ID: "Points number (integer)"
+        }
+
+    PARAMETERS_KEYS = (
+        "ROUTINE_DISPLAY_PERIOD",
+        )
+
+    ROUT_PERIOD, = PARAMETERS_KEYS
+
+    PARAMETERS_TEXTS = {
+        ROUT_PERIOD: "Display's period (# of ms)",
         }
 
     BACKUP_CONFIG_FILE_NAME = "temporary_cfg.ctcf"
@@ -166,7 +176,7 @@ class Application(tk.Frame):
         except Exception as e:  # File not found
             logger.info("Impossible to open config file.", exc_info=e)
 
-    def createScreen(self, menu=True):
+    def createScreen(self):
         """Creates and draw main app screen."""
         self.mainOpt = ttk.Notebook(self)  # Main display
 
@@ -202,6 +212,11 @@ class Application(tk.Frame):
         """Display the preference pane, for better parameter handling."""
         config_pane = tk.Toplevel()
         config_pane.title("Preferences")
+        for i, key in enumerate(self.PARAMETERS_KEYS):
+            tk.Label(config_pane,
+                     text=self.PARAMETERS_TEXTS[key]).grid(row=i, column=0)
+            tk.Entry(config_pane,
+                     textvariable=self.config_dict[key]).grid(row=i, column=1)
 
     def updateScreen(self):
         """Easier way to update the screen."""
@@ -230,7 +245,11 @@ class Application(tk.Frame):
                 self.liveDisplay.putSpectrasAndUpdate(1, to_plot_list)
 
             self.avh.release()
-            self.after(250, self.routine_data_sender)
+            try:
+                self.after(int(self.config_dict[self.ROUT_PERIOD].get()),
+                           self.routine_data_sender)
+            except Exception:
+                self.after(250, self.routine_data_sender)
         elif not self.stop_live_display.wait(0):
             self.after(1000, self.routine_data_sender)
         else:
@@ -324,8 +343,8 @@ class Application(tk.Frame):
 
         # Here we make all interactible for experiment configuration.
         sub_fen = tk.Frame(button_fen)
-        sub_fen.grid(row=3, rowspan=len(self.CONFIG_KEYS), columnspan=2)
-        for i, key in enumerate(self.CONFIG_KEYS):
+        sub_fen.grid(row=3, rowspan=len(self.DISPLAY_KEYS), columnspan=2)
+        for i, key in enumerate(self.DISPLAY_KEYS):
             if key == self.SEPARATOR_ID:
                 ttk.Separator(sub_fen,
                               orient=tk.HORIZONTAL).grid(row=i,
@@ -340,8 +359,9 @@ class Application(tk.Frame):
                 tk.Entry(sub_fen,
                          textvariable=self.config_dict[key]).\
                     grid(row=i, column=1)
-            else:
-                pass
+
+        for key in self.PARAMETERS_KEYS:
+            self.config_dict[key] = tk.StringVar()
 
         tk.Label(button_fen,
                  text="Reference channel").\
@@ -388,13 +408,13 @@ class Application(tk.Frame):
         self.avh.acquire()
         experiment_logger.info("Starting to set black")
         p_T_tot = float(self.config_dict[self.T_TOT_ID].get())
-        p_T = float(self.config_dict[self.T].get())
-        p_N_c = int(self.config_dict[self.N_c].get())
+        p_T = float(self.config_dict[self.INT_T_ID].get())
+        p_N_c = int(self.config_dict[self.N_C_ID].get())
 
         self._bnc.setmode("SINGLE")
         self._bnc.settrig("TRIG")
 
-        self.avh.prepareAll(p_T*(10**3), True, p_N_c)
+        self.avh.prepareAll(p_T, True, p_N_c)
         for pulse in self._bnc:
             pulse[BNC.DELAY] = pulse.experimentTuple[BNC.DELAY].get()
             pulse[BNC.WIDTH] = pulse.experimentTuple[BNC.WIDTH].get()
@@ -406,7 +426,7 @@ class Application(tk.Frame):
         while n_black < p_N_c:
 
             self._bnc.sendtrig()
-            self.after(int(p_T_tot*1E3))
+            self.after(int(p_T_tot))
             self.update()
 
             n_black += 1
@@ -426,13 +446,13 @@ class Application(tk.Frame):
         self.pause_live_display.set()
         experiment_logger.info("Starting to set white")
         p_T_tot = float(self.config_dict[self.T_TOT_ID].get())
-        p_T = float(self.config_dict[self.T].get())
-        p_N_c = int(self.config_dict[self.N_c].get())
+        p_T = float(self.config_dict[self.INT_T_ID].get())
+        p_N_c = int(self.config_dict[self.N_C_ID].get())
 
         self._bnc.setmode("SINGLE")
         self._bnc.settrig("TRIG")
 
-        self.avh.prepareAll(p_T*(10**3), True, p_N_c)
+        self.avh.prepareAll(p_T, True, p_N_c)
         for pulse in self._bnc:
             pulse[BNC.DELAY] = pulse.experimentTuple[BNC.DELAY].get()
             pulse[BNC.WIDTH] = pulse.experimentTuple[BNC.WIDTH].get()
@@ -445,7 +465,7 @@ class Application(tk.Frame):
         while n_white < p_N_c:
 
             self._bnc.sendtrig()
-            self.after(int(p_T_tot*1E3))
+            self.after(int(p_T_tot))
             self.update()
 
             n_white += 1
@@ -468,9 +488,9 @@ class Application(tk.Frame):
         abort = False
 
         p_T_tot = float(self.config_dict[self.T_TOT_ID].get())
-        p_T = float(self.config_dict[self.T].get())
-        p_N_c = int(self.config_dict[self.N_c].get())
-        p_N_d = int(self.config_dict[self.N_d].get())
+        p_T = float(self.config_dict[self.INT_T_ID].get())
+        p_N_c = int(self.config_dict[self.N_C_ID].get())
+        p_N_d = int(self.config_dict[self.N_D_ID].get())
 
         n_d = 1
 
@@ -483,7 +503,7 @@ class Application(tk.Frame):
             pulse[BNC.STATE] = pulse.experimentTuple[BNC.STATE].get()
             assert(p_N_d*float(pulse.experimentTuple[BNC.dPHASE].get()) < p_T)
 
-        self.avh.prepareAll(p_T*(10**3), True, p_N_c)
+        self.avh.prepareAll(p_T, True, p_N_c)
         totalSpectras = []
 
         try:
@@ -511,8 +531,8 @@ class Application(tk.Frame):
             message.pack()
             tk.Button(pop_up, text="Abort", command=self.stop_experiment).\
                 pack(side=tk.BOTTOM)
-            pop_up["height"] = 150
-            pop_up["width"] = 150
+            pop_up["height"] = 200
+            pop_up["width"] = 200
 
             while n_d <= p_N_d and self.experiment_on:
                 n_c = 1
@@ -524,7 +544,7 @@ class Application(tk.Frame):
                         "Processing\n\tAvg : {}/{}".format(n_c, p_N_c)\
                         + "\n\tDel : {}/{}".format(n_d, p_N_d)
                     self._bnc.sendtrig()
-                    self.after(int(p_T_tot*1E3))
+                    self.after(int(p_T_tot))
                     self.update()
 
                     n_c += 1
@@ -660,10 +680,9 @@ class Application(tk.Frame):
                 file.write("\tPulse {} :\n".format(i+1))
                 for key, value in pulse_dict.items():
                     file.write("\t\t{} : {}\n".format(key, value))
-            for key in self.CONFIG_KEYS:
-                if key != self.SEPARATOR_ID:
-                    file.write("{} : {}".format(key,
-                                                self.config_dict[key].get()))
+            for key in self.config_dict.keys():
+                file.write("{} : {}".format(key,
+                                            self.config_dict[key].get()))
             file.close()
 
     def goodbye_app(self):
