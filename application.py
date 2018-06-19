@@ -73,7 +73,7 @@ class Scope_Display(tk.Frame, Queue):
         for name in nameList:
             figure = Figure(figsize=(6, 5.5), dpi=100)  # The scope figure
 
-            plot = figure.add_subplot(111)  # Set-up axis and get plotting area
+            plot = figure.add_subplot(111)
 
             frame = tk.Frame(self.globalPwnd)
 
@@ -81,11 +81,11 @@ class Scope_Display(tk.Frame, Queue):
                                        master=frame)  # Get the tkinter canvas
 
             # Add the canvas to global NoteBook
-            self.globalPwnd.add(frame, text=name)
+            self.globalPwnd.add(frame, text=name[0])
 
             canvas.get_tk_widget().pack(fill=tk.BOTH)  # Pack the canvas
 
-            self.panelsList.append([plot, canvas])
+            self.panelsList.append([plot, canvas, name[1]])
         self.bind(self.SCOPE_UPDATE_SEQUENCE, self.reactUpdate)
 
         self.globalPwnd.pack(fill=tk.BOTH)  # Pack the Global Notebook
@@ -103,10 +103,26 @@ class Scope_Display(tk.Frame, Queue):
             with main_lock:
                 plotting_area = self.panelsList[tp_instruction[0]][0]
                 canvas = self.panelsList[tp_instruction[0]][1]
+                plot_type = self.panelsList[tp_instruction[0]][2]
                 plotting_area.clear()
                 plotting_area.grid()
-                for spectrum in tp_instruction[1]:
-                    plotting_area.plot(spectrum.lambdas, spectrum.values)
+                if plot_type == "2D":
+                    for spectrum in tp_instruction[1]:
+                        plotting_area.plot(spectrum.lambdas, spectrum.values)
+                else:
+                    for i, spectra in enumerate(tp_instruction[1]):
+                        if i == len(tp_instruction[1])-1:
+                            for spectrum in spectra:
+                                plotting_area.plot(
+                                    spectrum.lambdas,
+                                    spectrum.values,
+                                    (1,0,0))
+                        else:
+                            for spectrum in spectra:
+                                plotting_area.plot(
+                                    spectrum.lambdas,
+                                    spectrum.values,
+                                    3*(i/len(tp_instruction[1]),))
                 canvas.draw()
 
 # %% Application Object, true application is happening here
@@ -421,8 +437,11 @@ class Application(tk.Frame):
         self.pause_live_display = Event()
         self.stop_live_display = Event()
         self.liveDisplay = Scope_Display(scope_fen,
-                                         ["Scopes", "Absorbance",
-                                          "Black", "White"],
+                                         [("Scopes", "2D"),
+                                          ("Black", "2D"),
+                                          ("White", "2D"),
+                                          ("Experiment raw", "Superp"),
+                                          ("Experiment abs.", "Superp")],
                                          self.stop_live_display)
         self.liveDisplay.pack(fill=tk.BOTH)
         self.after(0, self.routine_data_sender)
@@ -475,7 +494,7 @@ class Application(tk.Frame):
         self._bnc.stop()
         self.black_spectra = self.avh.getScopes()
         experiment_logger.info("Black set.")
-        self.liveDisplay.putSpectrasAndUpdate(2, self.black_spectra)
+        self.liveDisplay.putSpectrasAndUpdate(1, self.black_spectra)
         self.avh.stopAll()
         self.avh.release()
         self.pause_live_display.clear()
@@ -514,7 +533,7 @@ class Application(tk.Frame):
         self._bnc.stop()
         self.white_spectra = self.avh.getScopes()
         experiment_logger.info("White set.")
-        self.liveDisplay.putSpectrasAndUpdate(3, self.white_spectra)
+        self.liveDisplay.putSpectrasAndUpdate(2, self.white_spectra)
         self.avh.stopAll()
         self.avh.release()
         self.pause_live_display.clear()
@@ -551,6 +570,7 @@ class Application(tk.Frame):
 
         self.avh.prepareAll(p_T, True, p_N_c)
         totalSpectras = []
+        totalAbsorbanceSpectras = []
 
         try:
             self.black_spectra
@@ -565,6 +585,8 @@ class Application(tk.Frame):
             experiment_logger.warning("White not set, aborting.")
             self.experiment_on = False
             abort = True
+
+        correction_spectrum = self.get_selected_absorbance(self.white_spectra)
 
         experiment_logger.info("Starting observation.")
         if not abort and tMsg.\
@@ -611,11 +633,15 @@ class Application(tk.Frame):
                 tp_scopes = self.avh.getScopes()
                 self.avh.stopAll()
                 totalSpectras.append(tp_scopes)
-                self.liveDisplay.putSpectrasAndUpdate(0, tp_scopes)
+                self.liveDisplay.putSpectrasAndUpdate(3, totalSpectras)
 
                 if self.referenceChannel.get() != "":
-                    self.liveDisplay.putSpectrasAndUpdate(
-                        1, self.get_selected_absorbance(tp_scopes))
+                    totalAbsorbanceSpectras.append(
+                        self.get_selected_absorbance(tp_scopes)
+                        - correction_spectrum)
+
+                self.liveDisplay.putSpectrasAndUpdate(
+                    4, totalAbsorbanceSpectras)
 
             pop_up.destroy()
 
