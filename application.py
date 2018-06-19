@@ -110,19 +110,17 @@ class Scope_Display(tk.Frame, Queue):
                     for spectrum in tp_instruction[1]:
                         plotting_area.plot(spectrum.lambdas, spectrum.values)
                 else:
-                    for i, spectra in enumerate(tp_instruction[1]):
+                    for i, spectrum in enumerate(tp_instruction[1]):
                         if i == len(tp_instruction[1])-1:
-                            for spectrum in spectra:
-                                plotting_area.plot(
-                                    spectrum.lambdas,
-                                    spectrum.values,
-                                    (1,0,0))
+                            plotting_area.plot(
+                                spectrum.lambdas,
+                                spectrum.values,
+                                (1,0,0))
                         else:
-                            for spectrum in spectra:
-                                plotting_area.plot(
-                                    spectrum.lambdas,
-                                    spectrum.values,
-                                    3*(i/len(tp_instruction[1]),))
+                            plotting_area.plot(
+                                spectrum.lambdas,
+                                spectrum.values,
+                                3*(i/len(tp_instruction[1]),))
                 canvas.draw()
 
 # %% Application Object, true application is happening here

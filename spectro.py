@@ -457,6 +457,8 @@ class AvaSpec_Handler:
         Meas.m_IntegrationTime = intTime
         Meas.m_NrAverages = nrAverages
         Meas.m_Trigger.m_Mode = int(triggerred)
+        Meas.m_Trigger.m_Source = 0
+        Meas.m_Trigger.m_SourceType = 0
 
         AVS_DLL.AVS_PrepareMeasure(device, ctypes.byref(Meas))
 
@@ -554,6 +556,12 @@ class Spectrum:
                                    + " {} - {})".format(self.lambdas[0],
                                                         self.lambdas[-1]))
         return self._interpolator(P_lambda)
+
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, tp_dict):
+        self.__dict__ = tp_dict
 
     def getInterpolated(self, startingLamb=None, endingLamb=None,
                         nrPoints=None,
