@@ -233,6 +233,33 @@ class Application(tk.Frame):
         """Easier way to update the screen."""
         self.mainOpt.update()
 
+    def get_selected_absorbance(self, scopes):
+        key_list = list(self.avh.devList.keys())
+        chosen = key_list.index(int(self.referenceChannel.get()))
+
+        # Modification that justifies above copy
+        ref_spectrum = scopes.pop(chosen)
+        try:
+            abs_spectras = \
+                [spectro.Spectrum.absorbanceSpectrum(
+                    ref_spectrum, spec).getInterpolated(
+                        int(self.config_dict[self.ROUT_START_LAM].
+                            get()),
+                        int(self.config_dict[self.ROUT_END_LAM].
+                            get()),
+                        int(self.config_dict[self.ROUT_NR_POINTS].
+                            get()),
+                        True,
+                        int(self.config_dict[self.ROUT_INTERP_INT].
+                            get()))
+                 for spec in scopes]
+        except Exception:
+            abs_spectras = \
+                [spectro.Spectrum.absorbanceSpectrum(ref_spectrum, spec)
+                 for spec in scopes]
+
+        return abs_spectras
+
     def routine_data_sender(self):
         if not self.pause_live_display.wait(0):
             self.avh.acquire()
@@ -248,36 +275,14 @@ class Application(tk.Frame):
             # further modification of the list.
             # Send raw spectras.
             self.liveDisplay.putSpectrasAndUpdate(0, scopes.copy())
-
+            """
             if self.referenceChannel.get() != "":
                 # Here we get the channel selected by user, process is a little
                 # complex but first we get the list of channel names then
                 # we get the one selected by user.
-                key_list = list(self.avh.devList.keys())
-                chosen = key_list.index(int(self.referenceChannel.get()))
-
-                # Modification that justifies above copy
-                ref_spectrum = scopes.pop(chosen)
-                try:
-                    to_plot_list = \
-                        [spectro.Spectrum.absorbanceSpectrum(
-                            ref_spectrum, spec).getInterpolated(
-                                int(self.config_dict[self.ROUT_START_LAM].
-                                    get()),
-                                int(self.config_dict[self.ROUT_END_LAM].
-                                    get()),
-                                int(self.config_dict[self.ROUT_NR_POINTS].
-                                    get()),
-                                True,
-                                int(self.config_dict[self.ROUT_INTERP_INT].
-                                    get()))
-                         for spec in scopes]
-                except Exception:
-                    to_plot_list = \
-                        [spectro.Spectrum.absorbanceSpectrum(ref_spectrum, spec)
-                         for spec in scopes]
-                self.liveDisplay.putSpectrasAndUpdate(1, to_plot_list)
-
+                self.liveDisplay.putSpectrasAndUpdate(
+                    1, self.get_selected_absorbance(scopes))
+            """
             self.avh.release()
             try:
                 self.after(int(self.config_dict[self.ROUT_PERIOD].get()),
@@ -607,6 +612,10 @@ class Application(tk.Frame):
                 self.avh.stopAll()
                 totalSpectras.append(tp_scopes)
                 self.liveDisplay.putSpectrasAndUpdate(0, tp_scopes)
+
+                if self.referenceChannel.get() != "":
+                    self.liveDisplay.putSpectrasAndUpdate(
+                        1, self.get_selected_absorbance(tp_scopes))
 
             pop_up.destroy()
 
