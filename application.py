@@ -345,7 +345,10 @@ class Application(tk.Frame):
     def get_saving_dict(self):
         tp_config_dict = dict([])
         for key in self.config_dict.keys():
-            tp_config_dict[key] = self.config_dict[key].get()
+            if not isinstance(self.config_dict[key], list):
+                tp_config_dict[key] = self.config_dict[key].get()
+            else:
+                tp_config_dict[key] = self.config_dict[key]
         return self._bnc.save_to_pickle(), tp_config_dict
 
     def _rawSaveConfig(self, file):
