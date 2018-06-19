@@ -231,7 +231,7 @@ class Application(tk.Frame):
         filemenu.add_command(label="Save current config",
                              command=self.saveConfig)
         filemenu.add_separator()
-        filemenu.add_command(label="Quit", command=self.quit)
+        filemenu.add_command(label="Quit", command=self.goodbye_app)
         menubar.add_cascade(label="File", menu=filemenu)  # Add it to menubar
 
         menubar.add_command(label="Preferences...",
@@ -789,7 +789,7 @@ class Application(tk.Frame):
         self.stop_live_display.set()
         self.experiment_on = True
         self.avh._done()
-        self.destroy()
+        self.quit()
 
 
 def report_callback_exception(self, *args):
