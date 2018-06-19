@@ -652,8 +652,8 @@ class Application(tk.Frame):
 
                 if self.referenceChannel.get() != "":
                     totalAbsorbanceSpectras.append(
-                        self.get_selected_absorbance(tp_scopes)
-                        - correction_spectrum)
+                        self.get_selected_absorbance(tp_scopes)[0]
+                        - correction_spectrum[0])
 
                 self.liveDisplay.putSpectrasAndUpdate(
                     4, totalAbsorbanceSpectras)
