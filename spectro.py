@@ -489,6 +489,7 @@ class AvaSpec_Handler:
         AVS_DLL.AVS_StopMeasure(device)
 
     def prepareAll(self, intTime=10, triggered=False, nrAverages=1):
+        assert(intTime > 1.1)
         for device in self.devList:
             self.prepareMeasure(device, intTime, triggered, nrAverages)
 
