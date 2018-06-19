@@ -775,6 +775,7 @@ class Application(tk.Frame):
                 for key, value in pulse_dict.items():
                     file.write("\t\t{} : {}\n".format(key, value))
             for key in self.config_dict.keys():
+                if key in self.DISPLAY_KEYS or key in self.PARAMETERS_KEYS:
                 file.write("{} : {}".format(key,
                                             self.config_dict[key].get()))
             file.close()
