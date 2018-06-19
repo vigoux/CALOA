@@ -110,17 +110,21 @@ class Scope_Display(tk.Frame, Queue):
                     for spectrum in tp_instruction[1]:
                         plotting_area.plot(spectrum.lambdas, spectrum.values)
                 else:
-                    for i, spectrum in enumerate(tp_instruction[1]):
+                    for i, spectra in enumerate(tp_instruction[1]):
                         if i == len(tp_instruction[1])-1:
-                            plotting_area.plot(
-                                spectrum.lambdas,
-                                spectrum.values,
-                                (1,0,0))
+                            for spectrum in spectra:
+                                plotting_area.plot(
+                                    spectrum.lambdas,
+                                    spectrum.values,
+                                    (1, 0, 0))
                         else:
-                            plotting_area.plot(
-                                spectrum.lambdas,
-                                spectrum.values,
-                                3*(i/len(tp_instruction[1]),))
+                            for spectrum in spectra:
+                                plotting_area.plot(
+                                    spectrum.lambdas,
+                                    spectrum.values,
+                                    (i/len(tp_instruction[1]),
+                                     i/len(tp_instruction[1]),
+                                     i/len(tp_instruction[1])))
                 canvas.draw()
 
 # %% Application Object, true application is happening here
@@ -577,7 +581,7 @@ class Application(tk.Frame):
                 raise AssertionError(
                     "Experiment time to short. Pulse nr {}".
                     format(pulse.number)
-                    + " uses {}s but {}s were allocated.".format(
+                    + " uses {}ms but {}ms were allocated.".format(
                         total_time_used, p_T))
 
         self.avh.prepareAll(p_T, True, p_N_c)
@@ -602,6 +606,9 @@ class Application(tk.Frame):
             correction_spectrum = self.get_selected_absorbance(
                 self.config_dict[self.WHITE])
         else:
+            experiment_logger.warning(
+                "No reference channel selected, aborting.")
+            self.experiment_on = True
             abort = True
 
         experiment_logger.info("Starting observation.")
@@ -653,8 +660,9 @@ class Application(tk.Frame):
 
                 if self.referenceChannel.get() != "":
                     totalAbsorbanceSpectras.append(
-                        self.get_selected_absorbance(tp_scopes)[0]
-                        - correction_spectrum[0])
+                        [self.get_selected_absorbance(tp_scopes)[i]
+                         - correction_spectrum[i]
+                         for i in range(len(correction_spectrum))])
 
                 self.liveDisplay.putSpectrasAndUpdate(
                     4, totalAbsorbanceSpectras)
@@ -776,8 +784,8 @@ class Application(tk.Frame):
                     file.write("\t\t{} : {}\n".format(key, value))
             for key in self.config_dict.keys():
                 if key in self.DISPLAY_KEYS or key in self.PARAMETERS_KEYS:
-                file.write("{} : {}".format(key,
-                                            self.config_dict[key].get()))
+                    file.write("{} : {}".format(key,
+                                                self.config_dict[key].get()))
             file.close()
 
     def goodbye_app(self):
