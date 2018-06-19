@@ -182,6 +182,9 @@ class Application(tk.Frame):
 
     BACKUP_CONFIG_FILE_NAME = "temporary_cfg.ctcf"
 
+    WHITE = "WHITE"
+    BLACK = "BLACK"
+
     def __init__(self, master=None, P_bnc=None):
 
         super().__init__(master)
@@ -324,7 +327,16 @@ class Application(tk.Frame):
         try:
             self._bnc.load_from_pick(tp_config_tup[0])
             for key in tp_config_tup[1].keys():
-                self.config_dict[key].set(tp_config_tup[1][key])
+                if isinstance(tp_config_tup[1][key], str):
+                    self.config_dict[key].set(tp_config_tup[1][key])
+                elif isinstance(tp_config_tup[1][key], spectro.Spectrum):
+                    self.config_dict[key] = tp_config_tup[1][key]
+                    if key == self.WHITE:
+                        self.liveDisplay.putSpectrasAndUpdate(
+                            2, self.config_dict[key])
+                    elif key == self.BLACK:
+                        self.liveDisplay.putSpectrasAndUpdate(
+                            1, self.config_dict[key])
         except Exception as e:
             logger.critical("Error while loading file :", exc_info=e)
         finally:
@@ -334,7 +346,6 @@ class Application(tk.Frame):
         tp_config_dict = dict([])
         for key in self.config_dict.keys():
             tp_config_dict[key] = self.config_dict[key].get()
-
         return self._bnc.save_to_pickle(), tp_config_dict
 
     def _rawSaveConfig(self, file):
@@ -492,9 +503,9 @@ class Application(tk.Frame):
                                                               p_N_c))
         self.avh.waitAll()
         self._bnc.stop()
-        self.black_spectra = self.avh.getScopes()
+        self.config_dict[self.BLACK] = self.avh.getScopes()
         experiment_logger.info("Black set.")
-        self.liveDisplay.putSpectrasAndUpdate(1, self.black_spectra)
+        self.liveDisplay.putSpectrasAndUpdate(1, self.config_dict[self.BLACK])
         self.avh.stopAll()
         self.avh.release()
         self.pause_live_display.clear()
@@ -531,9 +542,9 @@ class Application(tk.Frame):
                                                               p_N_c))
         self.avh.waitAll()
         self._bnc.stop()
-        self.white_spectra = self.avh.getScopes()
+        self.config_dict[self.WHITE] = self.avh.getScopes()
         experiment_logger.info("White set.")
-        self.liveDisplay.putSpectrasAndUpdate(2, self.white_spectra)
+        self.liveDisplay.putSpectrasAndUpdate(2, self.config_dict[self.WHITE])
         self.avh.stopAll()
         self.avh.release()
         self.pause_live_display.clear()
@@ -573,20 +584,24 @@ class Application(tk.Frame):
         totalAbsorbanceSpectras = []
 
         try:
-            self.black_spectra
+            self.config_dict[self.BLACK]
         except Exception:
             experiment_logger.warning("Black not set, aborting.")
             abort = True
             self.experiment_on = False
 
         try:
-            self.white_spectra
+            self.config_dict[self.WHITE]
         except Exception:
             experiment_logger.warning("White not set, aborting.")
             self.experiment_on = False
             abort = True
 
-        correction_spectrum = self.get_selected_absorbance(self.white_spectra)
+        if self.referenceChannel.get() != "":
+            correction_spectrum = self.get_selected_absorbance(
+                self.config_dict[self.WHITE])
+        else:
+            abort = True
 
         experiment_logger.info("Starting observation.")
         if not abort and tMsg.\
@@ -656,8 +671,9 @@ class Application(tk.Frame):
             experiment_logger.warning("Experiment aborted.")
             abort = True
             self.experiment_on = False
-        self.treatSpectras([self.black_spectra, self.white_spectra]
-                           + totalSpectras)
+        self.treatSpectras(
+            [self.config_dict[self.BLACK], self.config_dict[self.WHITE]]
+            + totalSpectras)
         self.avh.release()
         self.pause_live_display.clear()
 
