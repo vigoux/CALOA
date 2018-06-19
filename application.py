@@ -145,12 +145,23 @@ class Application(tk.Frame):
 
     PARAMETERS_KEYS = (
         "ROUTINE_DISPLAY_PERIOD",
+        "ROUTINE_INT_TIME",
+        "ROUTINE_INTERPOLATION",
+        "ROUTINE_STARTING_LAMBDA",
+        "ROUTINE_ENDING_LAMBDA",
+        "ROUTINE_NR_POINTS"
         )
 
-    ROUT_PERIOD, = PARAMETERS_KEYS
+    (ROUT_PERIOD, ROUT_INT_TIME, ROUT_INTERP_INT,
+        ROUT_START_LAM, ROUT_END_LAM, ROUT_NR_POINTS) = PARAMETERS_KEYS
 
     PARAMETERS_TEXTS = {
         ROUT_PERIOD: "Display's period (# of ms)",
+        ROUT_INT_TIME: "Display's integration time (in ms)",
+        ROUT_INTERP_INT: "Display's smoothing intensity (in %)",
+        ROUT_START_LAM: "Display's starting wavelength (in nm)",
+        ROUT_END_LAM: "Display's ending wavelength (in nm)",
+        ROUT_NR_POINTS: "Display's # of points (integer)"
         }
 
     BACKUP_CONFIG_FILE_NAME = "temporary_cfg.ctcf"
@@ -225,7 +236,12 @@ class Application(tk.Frame):
     def routine_data_sender(self):
         if not self.pause_live_display.wait(0):
             self.avh.acquire()
-            self.avh.prepareAll(intTime=10)
+            try:
+                self.avh.prepareAll(
+                    intTime=float(self.config_dict[self.ROUT_INT_TIME].get()))
+            except Exception:
+                self.avh.prepareAll()
+
             scopes = self.avh.startAllAndGetScopes()
 
             # list.copy() is realy important because of the
@@ -234,14 +250,32 @@ class Application(tk.Frame):
             self.liveDisplay.putSpectrasAndUpdate(0, scopes.copy())
 
             if self.referenceChannel.get() != "":
+                # Here we get the channel selected by user, process is a little
+                # complex but first we get the list of channel names then
+                # we get the one selected by user.
                 key_list = list(self.avh.devList.keys())
                 chosen = key_list.index(int(self.referenceChannel.get()))
 
                 # Modification that justifies above copy
                 ref_spectrum = scopes.pop(chosen)
-                to_plot_list = \
-                    [spectro.Spectrum.absorbanceSpectrum(ref_spectrum, spec)
-                     for spec in scopes]
+                try:
+                    to_plot_list = \
+                        [spectro.Spectrum.absorbanceSpectrum(
+                            ref_spectrum, spec).getInterpolated(
+                                int(self.config_dict[self.ROUT_START_LAM].
+                                    get()),
+                                int(self.config_dict[self.ROUT_END_LAM].
+                                    get()),
+                                int(self.config_dict[self.ROUT_NR_POINTS].
+                                    get()),
+                                True,
+                                int(self.config_dict[self.ROUT_INTERP_INT].
+                                    get()))
+                         for spec in scopes]
+                except Exception:
+                    to_plot_list = \
+                        [spectro.Spectrum.absorbanceSpectrum(ref_spectrum, spec)
+                         for spec in scopes]
                 self.liveDisplay.putSpectrasAndUpdate(1, to_plot_list)
 
             self.avh.release()
@@ -635,9 +669,10 @@ class Application(tk.Frame):
         for i in range(nr_chans):
             # This item is all the lambdas
             to_save = [spectras[0][0].lambdas]
-            interp_lam_range = list(linspace(float(self.startLambda.get()),
-                                             float(self.stopLambda.get()),
-                                             int(self.nrPoints.get())))
+            interp_lam_range = list(linspace(
+                float(self.config_dict[self.STARTLAM_ID].get()),
+                float(self.config_dict[self.ENDLAM_ID].get()),
+                int(self.config_dict[self.NRPTS_ID].get())))
 
             # Saving Raw datas
             for spectra in spectras:
