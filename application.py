@@ -535,7 +535,14 @@ class Application(tk.Frame):
             pulse[BNC.DELAY] = pulse.experimentTuple[BNC.DELAY].get()
             pulse[BNC.WIDTH] = pulse.experimentTuple[BNC.WIDTH].get()
             pulse[BNC.STATE] = pulse.experimentTuple[BNC.STATE].get()
-            assert(p_N_d*float(pulse.experimentTuple[BNC.dPHASE].get()) < p_T)
+            total_time_used = p_N_d*float(
+                pulse.experimentTuple[BNC.dPHASE].get())
+            if total_time_used >= p_T:
+                raise AssertionError(
+                    "Experiment time to short. Pulse nr {}".
+                    format(pulse.number)
+                    + " uses {}s but {}s were allocated.".format(
+                        total_time_used, p_T))
 
         self.avh.prepareAll(p_T, True, p_N_c)
         totalSpectras = []
