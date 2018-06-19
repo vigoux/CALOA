@@ -67,7 +67,7 @@ updated_version_nbr = dict_latest_release["tag_name"]
 
 # Downloading and install
 
-if updated_version_nbr > vers_id:
+if updated_version_nbr != vers_id:
 
     update_logger.info("Software version is outdated, updating...")
 
