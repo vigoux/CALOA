@@ -191,6 +191,7 @@ class Application(tk.Frame):
 
         super().__init__(master)
         self.config_dict = dict([])
+        self.spectra_dict = dict([])
         if P_bnc is None:
             P_bnc = BNC.BNC(P_dispUpdate=False)
 
@@ -259,7 +260,7 @@ class Application(tk.Frame):
         chosen = key_list.index(int(self.referenceChannel.get()))
 
         # Modification that justifies above copy
-        ref_spectrum = scopes.pop(chosen)
+        ref_spectrum = scopes[chosen]
         try:
             abs_spectras = \
                 [spectro.Spectrum.absorbanceSpectrum(
@@ -279,6 +280,7 @@ class Application(tk.Frame):
                 [spectro.Spectrum.absorbanceSpectrum(ref_spectrum, spec)
                  for spec in scopes]
 
+        abs_spectras.pop(chosen)
         return abs_spectras
 
     def routine_data_sender(self):
@@ -318,47 +320,40 @@ class Application(tk.Frame):
     # Save and load
 
     def loadConfig(self):
+        """Loads a config file selected by user."""
         with tkFileDialog.askopenfile(mode="rb",
                                       filetypes=[("CALOA Config file",
                                                   "*.cbc")]) as saveFile:
             self._rawLoadConfig(saveFile)
 
     def _rawLoadConfig(self, file):
+        """Loads the file at file path given as parameter file."""
         unpick = Unpickler(file)
         tp_config_tup = unpick.load()
         try:
             self._bnc.load_from_pick(tp_config_tup[0])
             for key in tp_config_tup[1].keys():
-                if isinstance(tp_config_tup[1][key], str):
-                    self.config_dict[key].set(tp_config_tup[1][key])
-                elif isinstance(tp_config_tup[1][key], spectro.Spectrum):
-                    self.config_dict[key] = tp_config_tup[1][key]
-                    if key == self.WHITE:
-                        self.liveDisplay.putSpectrasAndUpdate(
-                            2, self.config_dict[key])
-                    elif key == self.BLACK:
-                        self.liveDisplay.putSpectrasAndUpdate(
-                            1, self.config_dict[key])
+                self.config_dict[key].set(tp_config_tup[1][key])
         except Exception as e:
             logger.critical("Error while loading file :", exc_info=e)
         finally:
             self.updateScreen()
 
     def get_saving_dict(self):
+        """Gather all configuration information that needs to be saved"""
         tp_config_dict = dict([])
         for key in self.config_dict.keys():
-            if not isinstance(self.config_dict[key], list):
-                tp_config_dict[key] = self.config_dict[key].get()
-            else:
-                tp_config_dict[key] = self.config_dict[key]
+            tp_config_dict[key] = self.config_dict[key].get()
         return self._bnc.save_to_pickle(), tp_config_dict
 
     def _rawSaveConfig(self, file):
+        """Saves all config at file given as parameter file."""
         pick = Pickler(file)
         total_list = self.get_saving_dict()
         pick.dump(total_list)
 
     def saveConfig(self):
+        """Saves config in a user selected location."""
         saveFileName = tkFileDialog.asksaveasfilename(
             defaultextension=".cbc",
             filetypes=[("CALOA Config file",
@@ -508,9 +503,9 @@ class Application(tk.Frame):
                                                               p_N_c))
         self.avh.waitAll()
         self._bnc.stop()
-        self.config_dict[self.BLACK] = self.avh.getScopes()
+        self.spectra_dict[self.BLACK] = self.avh.getScopes()
         experiment_logger.info("Black set.")
-        self.liveDisplay.putSpectrasAndUpdate(1, self.config_dict[self.BLACK])
+        self.liveDisplay.putSpectrasAndUpdate(1, self.spectra_dict[self.BLACK])
         self.avh.stopAll()
         self.avh.release()
         self.pause_live_display.clear()
@@ -547,15 +542,21 @@ class Application(tk.Frame):
                                                               p_N_c))
         self.avh.waitAll()
         self._bnc.stop()
-        self.config_dict[self.WHITE] = self.avh.getScopes()
+        self.spectra_dict[self.WHITE] = self.avh.getScopes()
         experiment_logger.info("White set.")
-        self.liveDisplay.putSpectrasAndUpdate(2, self.config_dict[self.WHITE])
+        self.liveDisplay.putSpectrasAndUpdate(2, self.spectra_dict[self.WHITE])
         self.avh.stopAll()
         self.avh.release()
         self.pause_live_display.clear()
 
+    def get_timestamp(self):
+        return \
+            "{time.tm_mday}_{time.tm_mon}_{time.tm_hour}_{time.tm_min}".\
+            format(time=time.localtime())
+
     def experiment(self):
-        experiment_logger.info("Starting experiment")
+        exp_timestamp = self.get_timestamp()
+        experiment_logger.info("Starting experiment.")
         self.experiment_on = True
         self.pause_live_display.set()
         self.avh.acquire()
@@ -585,18 +586,16 @@ class Application(tk.Frame):
                         total_time_used, p_T))
 
         self.avh.prepareAll(p_T, True, p_N_c)
-        totalSpectras = []
-        totalAbsorbanceSpectras = []
 
         try:
-            self.config_dict[self.BLACK]
+            self.spectra_dict[self.BLACK]
         except Exception:
             experiment_logger.warning("Black not set, aborting.")
             abort = True
             self.experiment_on = False
 
         try:
-            self.config_dict[self.WHITE]
+            self.spectra_dict[self.WHITE]
         except Exception:
             experiment_logger.warning("White not set, aborting.")
             self.experiment_on = False
@@ -604,7 +603,7 @@ class Application(tk.Frame):
 
         if self.referenceChannel.get() != "":
             correction_spectrum = self.get_selected_absorbance(
-                self.config_dict[self.WHITE])
+                self.spectra_dict[self.WHITE])
         else:
             experiment_logger.warning(
                 "No reference channel selected, aborting.")
@@ -655,7 +654,7 @@ class Application(tk.Frame):
                         float(pulse.experimentTuple[BNC.dPHASE].get())
                 tp_scopes = self.avh.getScopes()
                 self.avh.stopAll()
-                totalSpectras.append(tp_scopes)
+                self.spectra_dict["SPEC"+exp_timestamp+str(n_d)] = tp_scopes
                 self.liveDisplay.putSpectrasAndUpdate(3, totalSpectras)
 
                 if self.referenceChannel.get() != "":
@@ -681,7 +680,7 @@ class Application(tk.Frame):
             abort = True
             self.experiment_on = False
         self.treatSpectras(
-            [self.config_dict[self.BLACK], self.config_dict[self.WHITE]]
+            [self.spectra_dict[self.BLACK], self.spectra_dict[self.WHITE]]
             + totalSpectras)
         self.avh.release()
         self.pause_live_display.clear()

@@ -652,3 +652,69 @@ class Spectrum:
                     for val in opacity_spectrum.values]
 
         return Spectrum(l_lambdas, l_values)
+
+
+class Spectrum_Storage:
+
+    """
+    This class is meant to be used as a storage for spectra.
+    It may be useful for further improvements of application.
+    It will store all desired spectra in a folder-like way.
+
+    Some basic "files" are pre-built for a better handling.
+
+    "File" arborescence is as follows :
+
+    Spectrum_Storage
+    |- Basic
+    |  |- Black
+    |  |- White
+    |- [TIMESTAMP]
+    |  |- 1
+    |  |  |- CHAN1
+    |  |  |- CHAN2
+    |  |  :
+    |  |- 2
+    |  |  :
+    |  :
+    |- [OTHER TIMESTAMP]
+    |  :
+    :
+    """
+
+    def get_timestamp(self):
+        """Creates the time current time stamp as follows :
+        DDMMYYYY_HHMMSS
+        Where in the same order :
+            D = a day number digit
+            M = a month number digit
+            Y = a year number digit
+            H = an hour number digit
+            M = a minute number digit
+            S = a second number digit
+        """
+        return \
+            "{time.tm_mday}{time.tm_mon}{time.tm_year}_{time.tm_hour}{time.tm_min}{time.tm_sec}".\
+            format(time=time.localtime())
+
+    def createStorageUnit(self):
+        """
+        Inits a storage unit in the storage space, time_stamp itm and returns
+        his identifier (timestamp).
+        """
+        cur_timestamp = self.get_timestamp()
+        self._hidden_directory[cur_timestamp] = []
+        return cur_timestamp
+
+
+    def __init__(self):
+        """Inits self and creates basic storage space."""
+        self._hidden_directory = {"Basic":[]}
+
+    def __getitem__(self, indicator_tuple):
+        """
+        Get a spectrum or a list of spectra depending on
+        the given indicator_tuple
+        """
+        if len(indicator_tuple) == 0:
+            return
