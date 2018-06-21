@@ -742,8 +742,85 @@ class Spectrum_Storage:
 
         class_types = tuple(map(type, indicator_tuple))
 
+        for i in range(3):
+            if class_types[i] == slice:
+                if indicator_tuple[i] != slice(None, None, None):
+                    raise ValueError("Use slices only with \":\"")
+
         if class_types == (str, int, str):
-            
+
+            # Her the user wants to see only one spectrum
+
+            choosen_folder = self._hidden_directory[indicator_tuple[0]]
+            choosen_subfolder = choosen_folder[indicator_tuple[1]]
+            return choosen_subfolder[indicator_tuple[2]]
+
+        elif class_types == (slice, int, str):
+
+            # In this case the user wants to see all spectra corresponding
+            # to one delay and one spectrometer.
+
+            tp_dict_to_return = dict([])
+
+            for key in self._hidden_directory.keys():
+                if key != "Basic":
+                    tp_dict_to_return[key] =\
+                        self._hidden_directory[key][
+                        indicator_tuple[1]][
+                        indicator_tuple[2]]
+            return tp_dict_to_return
+
+        elif class_types == (str, slice, str):
+
+            # Here we need to return a dict containing all spectra that come
+            # from the same spectrometer and from the same folder
+
+            tp_dict_to_return = dict([])
+
+            folder = self._hidden_directory[indicator_tuple[0]]
+            for key in folder.keys():
+                tp_dict_to_return[key] = folder[key][indicator_tuple[2]]
+
+        elif class_types == (str, int, slice):
+
+            # Here we want all spectra corresponding to one delay and from
+            # the same folder
+
+            return self._hidden_directory[indicator_tuple[0]][
+                indicator_tuple[1]]
+
+        elif class_types == (slice, slice, str):
+
+            # This corresponds to all spectra coming from the same spectrometer
+
+            tp_dict_to_return = dict([])
+
+            for folder_id in self._hidden_directory.keys():
+                tp_dict_to_append = dict([])
+
+                for subfolder_id in self._hidden_directory[folder_id].keys():
+                    tp_dict_to_append[subfolder_id] =\
+                        self._hidden_directory[folder_id][subfolder_id][
+                        indicator_tuple[2]]
+
+        elif class_types == (slice, int, slice):
+
+            # This is all spectra with the same delay number (subfolder_id)
+
+            tp_dict_to_return = dict([])
+
+            for folder_id in self._hidden_directory.keys():
+                tp_dict_to_return[folder_id] =\
+                    self._hidden_directory[folder_id][indicator_tuple[1]]
+
+        elif class_types == (str, slice, slice):
+
+            # This is all spectra in the same folder
+
+            return self._hidden_directory[indicator_tuple[0]]
+
+        else:
+            return self._hidden_directory
 
     def putSpectra(self, folder_id, subfolder_id, spectra):
         """
@@ -778,3 +855,35 @@ class Spectrum_Storage:
             tp_spectrum_dict[channel_id] = spectrum
 
         self._hidden_directory[folder_id][subfolder_id] = tp_spectrum_dict
+
+    def putBlack(self, new_spectra):
+
+        self._hidden_directory["Basic"]["Black"] = new_spectra
+
+    def getBlack(self):
+
+        return self._hidden_directory["Basic"]["Black"]
+
+    latest_black = property(putBlack, getBlack)
+
+    def putWhite(self, new_spectra):
+
+        self._hidden_directory["Basic"]["White"] = new_spectra
+
+    def getWhite(self):
+
+        return self._hidden_directory["Basic"]["White"]
+
+    latest_white = property(putWhite, getWhite)
+
+    def blackIsSet(self):
+
+        return "Black" in self._hidden_directory["Basic"]
+
+    def whiteIsSet(self):
+
+        return "White" in self._hidden_directory["Basic"]
+
+    def isExperimentReady(self):
+
+        return self.blackIsSet() and self.whiteIsSet()
