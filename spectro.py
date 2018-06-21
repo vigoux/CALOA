@@ -29,6 +29,7 @@ from scipy.interpolate import CubicSpline
 from scipy.signal import savgol_filter
 import math
 from threading import Event, Lock
+import time
 
 abp = os.path.abspath("as5216x64.dll")
 AVS_DLL = ctypes.WinDLL(abp)
@@ -485,7 +486,7 @@ class AvaSpec_Handler:
         lambdaList = (ctypes.c_double * numPix.value)()
         AVS_DLL.AVS_GetLambda(device, ctypes.byref(lambdaList))
         logger_ASH.debug("{} scopes gathered.".format(device))
-        return Spectrum(list(lambdaList), list(spect))
+        return self.devList[device][0], Spectrum(list(lambdaList), list(spect))
 
     def stopMeasure(self, device):
         AVS_DLL.AVS_StopMeasure(device)
@@ -661,9 +662,9 @@ class Spectrum_Storage:
     It may be useful for further improvements of application.
     It will store all desired spectra in a folder-like way.
 
-    Some basic "files" are pre-built for a better handling.
+    Some basic "folders" are pre-built for a better handling.
 
-    "File" arborescence is as follows :
+    "folder" arborescence is as follows :
 
     Spectrum_Storage
     |- Basic
@@ -671,8 +672,8 @@ class Spectrum_Storage:
     |  |- White
     |- [TIMESTAMP]
     |  |- 1
-    |  |  |- CHAN1
-    |  |  |- CHAN2
+    |  |  |- [CHAN ID] : Spectrum ...
+    |  |  |- [OTHER CHAN ID] : Spectrum ...
     |  |  :
     |  |- 2
     |  |  :
@@ -684,7 +685,7 @@ class Spectrum_Storage:
 
     def get_timestamp(self):
         """Creates the time current time stamp as follows :
-        DDMMYYYY_HHMMSS
+        DD:MM:YYYY_HH:MM:SS
         Where in the same order :
             D = a day number digit
             M = a month number digit
@@ -694,7 +695,7 @@ class Spectrum_Storage:
             S = a second number digit
         """
         return \
-            "{time.tm_mday}{time.tm_mon}{time.tm_year}_{time.tm_hour}{time.tm_min}{time.tm_sec}".\
+            "{time.tm_mday}:{time.tm_mon}:{time.tm_year}_{time.tm_hour}:{time.tm_min}:{time.tm_sec}".\
             format(time=time.localtime())
 
     def createStorageUnit(self):
@@ -706,15 +707,57 @@ class Spectrum_Storage:
         self._hidden_directory[cur_timestamp] = []
         return cur_timestamp
 
-
     def __init__(self):
         """Inits self and creates basic storage space."""
-        self._hidden_directory = {"Basic":[]}
+        self._hidden_directory = {"Basic": []}
 
     def __getitem__(self, indicator_tuple):
         """
         Get a spectrum or a list of spectra depending on
-        the given indicator_tuple
+        the given indicator_tuple.
+        The first index of indicator_tuple must be a Spectrum-folder identifier
+            (a timestamp given by createStorageUnit method) or a slice of
+            Spectrum-folder identifiers wich don't includes "Basic"
+        The second can be an integer or slice of integers.
+        The third and last must be an integer or slice of integers.
         """
-        if len(indicator_tuple) == 0:
-            return
+
+        if len(indicator_tuple) != 3:
+            raise ValueError("Argument don't have correct length.")
+
+        if not isinstance(indicator_tuple[0], (str, slice)):
+            raise ValueError("Argument nr 1 is not of the correct type."
+                             + " Excpected one of : str, slice.")
+
+        if not isinstance(indicator_tuple[1], (int, slice)):
+            raise ValueError("Argument nr 2 is not of the correct type."
+                             + " Excpected one of : int, slice.")
+
+        if not isinstance(indicator_tuple[2], (str, slice)):
+            raise ValueError("Argument nr 3 is not of the correct type."
+                             + " Expected one of : str, slice.")
+
+        class_types = tuple(map(type, indicator_tuple))
+
+        return self._hidden_directory[indicator_tuple[0]][indicator_tuple[1]][indicator_tuple[2]]
+
+    def putSpectra(self, folder_id, spectra):
+        """
+        Put given spectra in the selected folder.
+        First we create a new subfolder (append it in the folder)
+        Then we associate channel id to the corresponding Spectrum.
+        We base this method on AvaSpec_Handler.getScopes, which returns a list
+        of tuple like so :
+
+            [(channel_id, spectrum), ...]
+        """
+
+        if folder_id not in self._hidden_directory:
+            raise IndexError(
+                "{} is not a correct folder id.".format(folder_id))
+
+        tp_spectrum_dict = dict({})
+        for channel_id, spectrum in spectra:
+            tp_spectrum_dict[channel_id] = spectrum
+
+        self._hidden_directory[folder_id].append(tp_spectrum_dict)
