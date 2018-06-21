@@ -35,6 +35,9 @@ import spectro
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
+import matplotlib.colors as colors
+import matplotlib.cm as cmx
 from numpy import linspace
 
 from pickle import Pickler, Unpickler
@@ -91,6 +94,15 @@ class Scope_Display(tk.Frame, Queue):
         self.globalPwnd.pack(fill=tk.BOTH)  # Pack the Global Notebook
 
     def putSpectrasAndUpdate(self, frame_id, spectras):
+        """
+        Use this method to update a live screen.
+        This will send an instruction to the queue.
+        Spectra must be :
+            - if display is a 2D live display, the list of spectrum to display
+              as given by Spectrum_Storage[folder_id, subfolder_id, :]
+            - if display is a 3D live display, the list of spectra to display
+              as given by Spectrum_Storage[folder_id, :, :]
+        """
         self.put((frame_id, spectras))
         self.event_generate(self.SCOPE_UPDATE_SEQUENCE)
 
@@ -107,24 +119,15 @@ class Scope_Display(tk.Frame, Queue):
                 plotting_area.clear()
                 plotting_area.grid()
                 if plot_type == "2D":
-                    for spectrum in tp_instruction[1]:
-                        plotting_area.plot(spectrum.lambdas, spectrum.values)
+                    for channel_name, spectrum in tp_instruction[1]:
+                        plotting_area.plot(
+                            spectrum.lambdas, spectrum.values,
+                            label=channel_name)
                 else:
-                    for i, spectra in enumerate(tp_instruction[1]):
-                        if i == len(tp_instruction[1])-1:
-                            for spectrum in spectra:
-                                plotting_area.plot(
-                                    spectrum.lambdas,
-                                    spectrum.values,
-                                    (1, 0, 0))
-                        else:
-                            for spectrum in spectra:
-                                plotting_area.plot(
-                                    spectrum.lambdas,
-                                    spectrum.values,
-                                    (i/len(tp_instruction[1]),
-                                     i/len(tp_instruction[1]),
-                                     i/len(tp_instruction[1])))
+                    # To find some other colormap ideas :
+                    # https://matplotlib.org/examples/color/colormaps_reference.html
+
+                    colormap = plt.get_cmap("plasma")
                 canvas.draw()
 
 # %% Application Object, true application is happening here
@@ -184,14 +187,11 @@ class Application(tk.Frame):
 
     BACKUP_CONFIG_FILE_NAME = "temporary_cfg.ctcf"
 
-    WHITE = "WHITE"
-    BLACK = "BLACK"
-
     def __init__(self, master=None, P_bnc=None):
 
         super().__init__(master)
         self.config_dict = dict([])
-        self.spectra_dict = dict([])
+        self.spectra_storage = spectro.Spectrum_Storage()
         if P_bnc is None:
             P_bnc = BNC.BNC(P_dispUpdate=False)
 
@@ -439,6 +439,11 @@ class Application(tk.Frame):
                            text=self.avh.devList[avsHandle][0],
                            variable=self.referenceChannel,
                            value=avsHandle).grid(row=90+i, column=1)
+
+        self.processing_text = tk.Label(
+            button_fen, text="No running experiment...")
+
+        self.processing_text.grid(row=4, columnspan=2)
         button_fen.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
 
         # Drawing Scope Frame
@@ -468,11 +473,14 @@ class Application(tk.Frame):
     # Mambu38
     # 39092278+Mambu38@users.noreply.github.com
     # https://github.com/Mambu38/CALOA/issues/46
+
     # IDEA: In the end, write N/B as default, to be red at next start. id:34
     # Mambu38
     # 39092278+Mambu38@users.noreply.github.com
     # https://github.com/Mambu38/CALOA/issues/45
+
     def set_black(self):
+        self.processing_text["text"] = "Preparing black-setting..."
         self.pause_live_display.set()
         self.avh.acquire()
         experiment_logger.info("Starting to set black")
@@ -493,6 +501,8 @@ class Application(tk.Frame):
         n_black = 0
 
         while n_black < p_N_c:
+            self.processing_text["text"] = "Processing black :\n"\
+                + "\tAverage : {}/{}".format(n_black, p_N_c)
 
             self._bnc.sendtrig()
             self.after(int(p_T_tot))
@@ -503,16 +513,19 @@ class Application(tk.Frame):
                                                               p_N_c))
         self.avh.waitAll()
         self._bnc.stop()
-        self.spectra_dict[self.BLACK] = self.avh.getScopes()
+        self.spectra_storage.putBlack(self.avh.getScopes())
         experiment_logger.info("Black set.")
-        self.liveDisplay.putSpectrasAndUpdate(1, self.spectra_dict[self.BLACK])
+        self.liveDisplay.putSpectrasAndUpdate(
+            1, self.spectra_storage.latest_black)
         self.avh.stopAll()
         self.avh.release()
         self.pause_live_display.clear()
+        self.processing_text["text"] = "No running experiment..."
 
     def set_white(self):
-        self.avh.acquire()
+        self.processing_text["text"] = "Preparing white-setting..."
         self.pause_live_display.set()
+        self.avh.acquire()
         experiment_logger.info("Starting to set white")
         p_T_tot = float(self.config_dict[self.T_TOT_ID].get())
         p_T = float(self.config_dict[self.INT_T_ID].get())
@@ -533,6 +546,9 @@ class Application(tk.Frame):
 
         while n_white < p_N_c:
 
+            self.processing_text["text"] = "Processing white :\n"\
+                + "\tAverage : {}/{}".format(n_white, p_N_c)
+
             self._bnc.sendtrig()
             self.after(int(p_T_tot))
             self.update()
@@ -542,12 +558,14 @@ class Application(tk.Frame):
                                                               p_N_c))
         self.avh.waitAll()
         self._bnc.stop()
-        self.spectra_dict[self.WHITE] = self.avh.getScopes()
+        self.spectra_storage.putBlack(self.avh.getScopes())
         experiment_logger.info("White set.")
-        self.liveDisplay.putSpectrasAndUpdate(2, self.spectra_dict[self.WHITE])
+        self.liveDisplay.putSpectrasAndUpdate(
+            2, self.spectra_storage.latest_white)
         self.avh.stopAll()
         self.avh.release()
         self.pause_live_display.clear()
+        self.processing_text["text"] = "No running experiment..."
 
     def get_timestamp(self):
         return \
@@ -555,7 +573,8 @@ class Application(tk.Frame):
             format(time=time.localtime())
 
     def experiment(self):
-        exp_timestamp = self.get_timestamp()
+        self.processing_text["text"] = "Preparing experiment..."
+        exp_timestamp = self.spectra_storage.createStorageUnit()
         experiment_logger.info("Starting experiment.")
         self.experiment_on = True
         self.pause_live_display.set()
@@ -583,56 +602,44 @@ class Application(tk.Frame):
                     "Experiment time to short. Pulse nr {}".
                     format(pulse.number)
                     + " uses {}ms but {}ms were allocated.".format(
-                        total_time_used, p_T))
+                        total_time_used, p_T_tot))
 
         self.avh.prepareAll(p_T, True, p_N_c)
 
-        try:
-            self.spectra_dict[self.BLACK]
-        except Exception:
+        if not self.spectra_storage.blackIsSet():
             experiment_logger.warning("Black not set, aborting.")
             abort = True
             self.experiment_on = False
 
-        try:
-            self.spectra_dict[self.WHITE]
-        except Exception:
+        if not self.spectra_storage.whiteIsSet():
             experiment_logger.warning("White not set, aborting.")
             self.experiment_on = False
             abort = True
 
         if self.referenceChannel.get() != "":
             correction_spectrum = self.get_selected_absorbance(
-                self.spectra_dict[self.WHITE])
+                self.latest_white)
         else:
             experiment_logger.warning(
                 "No reference channel selected, aborting.")
-            self.experiment_on = True
+            self.experiment_on = False
             abort = True
 
         experiment_logger.info("Starting observation.")
-        if not abort and tMsg.\
-                askokcancel("Ready", "Ready to start experiment ?"):
-
-            pop_up = tk.Toplevel()
-            pop_up.title("Processing...")
-
-            message = tk.Message(pop_up)
-            message.pack()
-            tk.Button(pop_up, text="Abort", command=self.stop_experiment).\
-                pack(side=tk.BOTTOM)
-            pop_up["height"] = 200
-            pop_up["width"] = 200
+        if not abort:
 
             while n_d <= p_N_d and self.experiment_on:
+
                 n_c = 1
                 self._bnc.run()
                 self.avh.startAll(p_N_c)
 
                 while n_c <= p_N_c and self.experiment_on:
-                    message["text"] = \
-                        "Processing\n\tAvg : {}/{}".format(n_c, p_N_c)\
-                        + "\n\tDel : {}/{}".format(n_d, p_N_d)
+
+                    self.processing_text["text"] = "Processing experiment :\n"\
+                        + "\tAverage : {}/{}\n".format(n_c, p_N_c)\
+                        + "\tDelay : {}/{}".format(n_d/p_N_d)
+
                     self._bnc.sendtrig()
                     self.after(int(p_T_tot))
                     self.update()
@@ -654,19 +661,18 @@ class Application(tk.Frame):
                         float(pulse.experimentTuple[BNC.dPHASE].get())
                 tp_scopes = self.avh.getScopes()
                 self.avh.stopAll()
-                self.spectra_dict["SPEC"+exp_timestamp+str(n_d)] = tp_scopes
-                self.liveDisplay.putSpectrasAndUpdate(3, totalSpectras)
+                self.spectra_storage.putSpectra(exp_timestamp, n_d, tp_scopes)
+                self.liveDisplay.putSpectrasAndUpdate(
+                    3, self.spectra_storage[exp_timestamp, n_d, :])
 
-                if self.referenceChannel.get() != "":
-                    totalAbsorbanceSpectras.append(
-                        [self.get_selected_absorbance(tp_scopes)[i]
-                         - correction_spectrum[i]
-                         for i in range(len(correction_spectrum))])
+                self.spectra_storage.putSpectra(
+                    exp_timestamp, p_N_d+n_d,
+                    [self.get_selected_absorbance(tp_scopes)[i]
+                     - correction_spectrum[i]
+                     for i in range(len(correction_spectrum))])
 
                 self.liveDisplay.putSpectrasAndUpdate(
-                    4, totalAbsorbanceSpectras)
-
-            pop_up.destroy()
+                    4, self.spectra_storage[exp_timestamp, :, :])
 
             if not self.experiment_on:
                 experiment_logger.info("Experiment stopped.")
@@ -684,6 +690,7 @@ class Application(tk.Frame):
             + totalSpectras)
         self.avh.release()
         self.pause_live_display.clear()
+        self.processing_text["text"] = "No running experiment..."
 
     def treatSpectras(self, spectras):
 
