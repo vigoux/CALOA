@@ -654,6 +654,8 @@ class Spectrum:
 
         return Spectrum(l_lambdas, l_values)
 
+# %% Spectrum_Storage class, useful for further improvements on
+# spectrum handling
 
 class Spectrum_Storage:
 
