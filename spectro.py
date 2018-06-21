@@ -657,6 +657,7 @@ class Spectrum:
 # %% Spectrum_Storage class, useful for further improvements on
 # spectrum handling
 
+
 class Spectrum_Storage:
 
     """
@@ -729,11 +730,11 @@ class Spectrum_Storage:
 
         if not isinstance(indicator_tuple[0], (str, slice)):
             raise ValueError("Argument nr 1 is not of the correct type."
-                             + " Excpected one of : str, slice.")
+                             + " Expected one of : str, slice.")
 
         if not isinstance(indicator_tuple[1], (int, slice)):
             raise ValueError("Argument nr 2 is not of the correct type."
-                             + " Excpected one of : int, slice.")
+                             + " Expected one of : int, slice.")
 
         if not isinstance(indicator_tuple[2], (str, slice)):
             raise ValueError("Argument nr 3 is not of the correct type."
@@ -741,12 +742,14 @@ class Spectrum_Storage:
 
         class_types = tuple(map(type, indicator_tuple))
 
-        return self._hidden_directory[indicator_tuple[0]][indicator_tuple[1]][indicator_tuple[2]]
+        if class_types == (str, int, str):
+            
 
-    def putSpectra(self, folder_id, spectra):
+    def putSpectra(self, folder_id, subfolder_id, spectra):
         """
         Put given spectra in the selected folder.
         First we create a new subfolder (append it in the folder)
+        Then we create a subfolder.
         Then we associate channel id to the corresponding Spectrum.
         We base this method on AvaSpec_Handler.getScopes, which returns a list
         of tuple like so :
@@ -756,10 +759,22 @@ class Spectrum_Storage:
 
         if folder_id not in self._hidden_directory:
             raise IndexError(
-                "{} is not a correct folder id.".format(folder_id))
+                "{} is not a correct folder id.".format(folder_id)
+            )
+
+        if subfolder_id in self._hidden_directory[folder_id]:
+            raise IndexError(
+                "{} is already in folder {}.".format(subfolder_id, folder_id)
+            )
+
+        if isinstance(subfolder_id, int):
+            raise TypeError(
+                "subfolder_id must be an integer."
+            )
 
         tp_spectrum_dict = dict({})
+
         for channel_id, spectrum in spectra:
             tp_spectrum_dict[channel_id] = spectrum
 
-        self._hidden_directory[folder_id].append(tp_spectrum_dict)
+        self._hidden_directory[folder_id][subfolder_id] = tp_spectrum_dict
