@@ -98,10 +98,12 @@ class Scope_Display(tk.Frame, Queue):
         Use this method to update a live screen.
         This will send an instruction to the queue.
         Spectra must be :
-            - if display is a 2D live display, the list of spectrum to display
-              as given by Spectrum_Storage[folder_id, subfolder_id, :]
-            - if display is a 3D live display, the list of spectra to display
-              as given by Spectrum_Storage[folder_id, :, :]
+        - if display is a 2D live display, the list of spectrum to display
+          as given by Spectrum_Storage[folder_id, subfolder_id, :] :
+            [(channel_id, spectrum), ...]
+        - if display is a 3D live display, the list of spectra to display
+          as given by Spectrum_Storage[folder_id, :, channel_id] :
+            [(subfolder_id, spectrum), ...]
         """
         self.put((frame_id, spectras))
         self.event_generate(self.SCOPE_UPDATE_SEQUENCE)
@@ -119,15 +121,45 @@ class Scope_Display(tk.Frame, Queue):
                 plotting_area.clear()
                 plotting_area.grid()
                 if plot_type == "2D":
+                    # In this case we should have a list of spectrum as given by
+                    # Spectrum_Storage[folder_id, subfolder_id, :]:
+                    # [(channel_id, spectrum), ...]
+
                     for channel_name, spectrum in tp_instruction[1]:
                         plotting_area.plot(
                             spectrum.lambdas, spectrum.values,
                             label=channel_name)
+                    plotting_area.legend()
                 else:
+
+                    # In this case we should have a list of spectra as given by
+                    # Spectrum_Storage[folder_id, :, channel_id] :
+                    # [(subfolder_id, spectrum), ...]
+
                     # To find some other colormap ideas :
                     # https://matplotlib.org/examples/color/colormaps_reference.html
 
+                    # This part of the work is based on an answers to a
+                    # StackOverflow question :
+                    # Using colomaps to set color of line in matplotlib
+
+                    values = [tup[0] for tup in tp_instruction[1]]
+
                     colormap = plt.get_cmap("plasma")
+
+                    cNorm = colors.Normalize(vmin=0, vmax=values[-1])
+
+                    scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=colormap)
+
+                    for idx in range(len(values)):
+                        spectrum = tp_instruction[idx][1]
+                        colorVal = scalarMap.to_rgba(values[idx])
+                        plotting_area.plot(
+                            spectrum.lambdas, spectrum.values,
+                            color=colorVal
+                            )
+                    plotting_area.xlabel("Wavelength (nm)")
+                    plotting_area.ylabel("Counts")
                 canvas.draw()
 
 # %% Application Object, true application is happening here
@@ -256,31 +288,43 @@ class Application(tk.Frame):
         self.mainOpt.update()
 
     def get_selected_absorbance(self, scopes):
-        key_list = list(self.avh.devList.keys())
-        chosen = key_list.index(int(self.referenceChannel.get()))
+        """
+        This method returns the absorbance spectra using the channel
+        selected in the GUI.
 
-        # Modification that justifies above copy
-        ref_spectrum = scopes[chosen]
-        try:
-            abs_spectras = \
-                [spectro.Spectrum.absorbanceSpectrum(
-                    ref_spectrum, spec).getInterpolated(
-                        int(self.config_dict[self.ROUT_START_LAM].
-                            get()),
-                        int(self.config_dict[self.ROUT_END_LAM].
-                            get()),
-                        int(self.config_dict[self.ROUT_NR_POINTS].
-                            get()),
-                        True,
-                        int(self.config_dict[self.ROUT_INTERP_INT].
-                            get()))
-                 for spec in scopes]
-        except Exception:
-            abs_spectras = \
-                [spectro.Spectrum.absorbanceSpectrum(ref_spectrum, spec)
-                 for spec in scopes]
+        Parameters :
+            - scopes -- this is the spectra dict as given by
+                Spectrum_Storage[folder_id, subfolder_id, :]
+        """
+        # As defined in createWidgetsSimple, referenceChannel is a textvariable
+        # containing an int corresponding to an AvsHandle.
+        # In AvaSpec_Handler.devList, keys are AvsHandles and items are
+        # (m_aUserFriendlyId, Callbackfunc)
+        # In Spectrum_Storage, spectra are indexed using m_aUserFriendlyId
+        # thus the next line is used to get m_aUserFriendlyId of the choosen
+        # channel as reference.
+        chosen = self.avh.devList[int(self.referenceChannel.get())][0]
 
-        abs_spectras.pop(chosen)
+        ref_spectrum = scopes[chosen]  # This is the reference spectrum
+
+        # We now generate absorbance spectra and format them in the correct way
+        # as acceptable by Spectrum_Storage.putSpectra()
+        # Naming convention for absorbance spectrum is as follows :
+        #   "ABSORBANCE-{channel_id}"
+
+        abs_spectras = []
+
+        for key in scopes:
+
+            # This is not useful to compute the absorbanceSpectrum of the
+            # referenceChannel, thus we don't do it.
+
+            if key != chosen:
+                abs_spectras.append(
+                    ("ABSORBANCE-{}".format(key),
+                     spectro.Spectrum.absorbanceSpectrum(
+                        ref_spectrum, scopes[key])))
+
         return abs_spectras
 
     def routine_data_sender(self):
@@ -665,14 +709,20 @@ class Application(tk.Frame):
                 self.liveDisplay.putSpectrasAndUpdate(
                     3, self.spectra_storage[exp_timestamp, n_d, :])
 
+                tp_absorbance = self.get_selected_absorbance(tp_scopes)
+
+                first_absorbance_spectrum_name = tp_scopes[0][0]
+
                 self.spectra_storage.putSpectra(
-                    exp_timestamp, p_N_d+n_d,
-                    [self.get_selected_absorbance(tp_scopes)[i]
-                     - correction_spectrum[i]
-                     for i in range(len(correction_spectrum))])
+                    exp_timestamp, n_d,
+                    [(tp_absorbance[i][0],
+                      tp_absorbance[i][1]-correction_spectrum[i][1])
+                     for i in range(len(tp_absorbance))])
 
                 self.liveDisplay.putSpectrasAndUpdate(
-                    4, self.spectra_storage[exp_timestamp, :, :])
+                    4,
+                    self.spectra_storage[
+                        exp_timestamp, :, first_absorbance_spectrum_name])
 
             if not self.experiment_on:
                 experiment_logger.info("Experiment stopped.")
@@ -685,9 +735,13 @@ class Application(tk.Frame):
             experiment_logger.warning("Experiment aborted.")
             abort = True
             self.experiment_on = False
+        """
+        THIS PART NEEDS TO BE UPDATED
+
         self.treatSpectras(
             [self.spectra_dict[self.BLACK], self.spectra_dict[self.WHITE]]
             + totalSpectras)
+        """
         self.avh.release()
         self.pause_live_display.clear()
         self.processing_text["text"] = "No running experiment..."
