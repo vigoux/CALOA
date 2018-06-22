@@ -709,9 +709,17 @@ class Application(tk.Frame):
                 self.liveDisplay.putSpectrasAndUpdate(
                     3, self.spectra_storage[exp_timestamp, n_d, :])
 
-                tp_absorbance = self.get_selected_absorbance(tp_scopes)
+                black_corrected_scopes = [
+                    (tp_scopes[i][0],
+                     tp_scopes[i][1]-self.spectra_storage.latest_black)
+                    for i in range(len(tp_scopes))
+                    ]
 
-                first_absorbance_spectrum_name = tp_scopes[0][0]
+                tp_absorbance = self.get_selected_absorbance(
+                    black_corrected_scopes
+                    )
+
+                first_absorbance_spectrum_name = black_corrected_scopes[0][0]
 
                 self.spectra_storage.putSpectra(
                     exp_timestamp, n_d,
@@ -735,20 +743,28 @@ class Application(tk.Frame):
             experiment_logger.warning("Experiment aborted.")
             abort = True
             self.experiment_on = False
-        """
-        THIS PART NEEDS TO BE UPDATED
-
-        self.treatSpectras(
-            [self.spectra_dict[self.BLACK], self.spectra_dict[self.WHITE]]
-            + totalSpectras)
-        """
+        self.treatSpectras(exp_timestamp)
         self.avh.release()
         self.pause_live_display.clear()
         self.processing_text["text"] = "No running experiment..."
 
-    def treatSpectras(self, spectras):
+    def treatSpectras(self, folder_id):
+        """
+        This method is used to export spectra contained in folder_id.
+        This will proceed by getting all spectra corresponding to each channel
+        contained in folder_id and gathering all data using
+        Spectrum_Storage[folder_id, :, channel_id]
+        Saving process will create 3 folders containing a file for each
+        spectrometer containing : lambdas, black, ref, spectra, ...
+        """
 
         def format_data(filepath, datas):
+            """
+            Parameters :
+                - filepath -- filepath to file where datas need to be saved
+                - datas -- data list organized as follows :
+                    [lambdas, black, white, spectrum1, spectrum2, ...]
+            """
             begin = " "
             for i, spect_tup in enumerate(datas):
                 if i == 0:
@@ -791,46 +807,48 @@ class Application(tk.Frame):
         cosmetic_path = save_dir + os.sep + "cosmetic"
         os.mkdir(cosmetic_path)
 
-        nr_chans = app.avh._nr_spec_connected
+        channel_ids = [tup[0] for tup in self.avh.devList.items()]
 
-        for i in range(nr_chans):
+        for id in channel_ids:
             # This item is all the lambdas
-            to_save = [spectras[0][0].lambdas]
+            to_save = self.spectra_storage[folder_id, :, id]
             interp_lam_range = list(linspace(
                 float(self.config_dict[self.STARTLAM_ID].get()),
                 float(self.config_dict[self.ENDLAM_ID].get()),
                 int(self.config_dict[self.NRPTS_ID].get())))
 
-            # Saving Raw datas
-            for spectra in spectras:
-                to_save.append(spectra[i].values)  # Gathering Raw datas
-
-            format_data(raw_path + os.sep
-                        + "raw{}_chan{}.txt".format(timeStamp, i+1), to_save)
+            format_data(
+                raw_path + os.sep + "raw{}_chan{}.txt".format(timeStamp, id),
+                [self.spectra_storage.latest_black[id].lambdas,  # LAMBDAS
+                 self.spectra_storage.latest_black[id].values,  # BLACK
+                 self.spectra_storage.latest_white[id].values]  # WHITE
+                + [
+                   tup[1].values for tup in to_save
+                  ])
 
             # Saving Interpolated datas
 
             interpolated = [interp_lam_range]
-            for spectra in spectras:
-                interpolated.append(spectra[i].getInterpolated(
+            for _, spectrum in to_save:
+                interpolated.append(spectrum.getInterpolated(
                                     startingLamb=interp_lam_range[0],
                                     endingLamb=interp_lam_range[-1],
                                     nrPoints=len(interp_lam_range)).values)
             format_data(interp_path + os.sep
-                        + "interp{}_chan{}.txt".format(timeStamp, i+1),
+                        + "interp{}_chan{}.txt".format(timeStamp, id),
                         interpolated)
 
             # Saving Cosmetic datas
 
             cosmetic = [interp_lam_range]
-            for spectrum in spectras:
-                cosmetic.append(spectra[i].getInterpolated(
+            for _, spectrum in to_save:
+                cosmetic.append(spectrum.getInterpolated(
                                 startingLamb=interp_lam_range[0],
                                 endingLamb=interp_lam_range[-1],
                                 nrPoints=len(interp_lam_range),
                                 smoothing=True).values)
             format_data(cosmetic_path + os.sep
-                        + "cosm{}_chan{}.txt".format(timeStamp, i+1), cosmetic)
+                        + "cosm{}_chan{}.txt".format(timeStamp, id), cosmetic)
 
         config_dict = self.get_saving_dict()
 
