@@ -278,8 +278,10 @@ class Application(tk.Frame):
         config_pane = tk.Toplevel()
         config_pane.title("Preferences")
         for i, key in enumerate(self.PARAMETERS_KEYS):
-            tk.Label(config_pane,
-                     text=self.PARAMETERS_TEXTS[key]).grid(row=i, column=0)
+            tk.Label(
+                config_pane,
+                text=self.PARAMETERS_TEXTS[key]
+                ).grid(row=i, column=0, sticky=tk.W)
             tk.Entry(config_pane,
                      textvariable=self.config_dict[key]).grid(row=i, column=1)
 
@@ -488,6 +490,10 @@ class Application(tk.Frame):
             button_fen, text="No running experiment...")
 
         self.processing_text.grid(row=4, columnspan=2)
+        tk.Button(
+            button_fen, text="Abort current observation.",
+            command=self.stop_experiment
+            ).grid(row=10, columnspan=2, sticky=tk.E+tk.W)
         button_fen.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
 
         # Drawing Scope Frame
