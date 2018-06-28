@@ -134,7 +134,7 @@ class Scope_Display(tk.Frame, Queue):
 
                     # In this case we should have a list of spectra as given by
                     # Spectrum_Storage[folder_id, :, channel_id] :
-                    # [(subfolder_id, spectrum), ...]
+                    # {subfolder_id: spectrum, ...}
 
                     # To find some other colormap ideas :
                     # https://matplotlib.org/examples/color/colormaps_reference.html
@@ -143,7 +143,7 @@ class Scope_Display(tk.Frame, Queue):
                     # StackOverflow question :
                     # Using colomaps to set color of line in matplotlib
 
-                    values = [tup[0] for tup in tp_instruction[1]]
+                    values = list(tp_instruction[1].keys())
 
                     colormap = plt.get_cmap("plasma")
 
@@ -152,7 +152,7 @@ class Scope_Display(tk.Frame, Queue):
                     scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=colormap)
 
                     for idx in range(len(values)):
-                        spectrum = tp_instruction[idx][1]
+                        spectrum = tp_instruction[idx]
                         colorVal = scalarMap.to_rgba(values[idx])
                         plotting_area.plot(
                             spectrum.lambdas, spectrum.values,
@@ -629,7 +629,7 @@ class Application(tk.Frame):
 
     def experiment(self):
         self.processing_text["text"] = "Preparing experiment..."
-        exp_timestamp = self.spectra_storage.createStorageUnit()
+        raw_timestamp = self.spectra_storage.createStorageUnit()
         experiment_logger.info("Starting experiment.")
         self.experiment_on = True
         self.pause_live_display.set()
@@ -661,6 +661,8 @@ class Application(tk.Frame):
                             total_time_used, p_T_tot))
 
         self.avh.prepareAll(p_T, True, p_N_c)
+
+        abs_timestamp = self.spectra_storage.createStorageUnit()
 
         if not self.spectra_storage.blackIsSet():
             experiment_logger.warning("Black not set, aborting.")
@@ -719,9 +721,9 @@ class Application(tk.Frame):
                                 float(pulse.experimentTuple[BNC.dPHASE].get())
                 tp_scopes = self.avh.getScopes()
                 self.avh.stopAll()
-                self.spectra_storage.putSpectra(exp_timestamp, n_d, tp_scopes)
+                self.spectra_storage.putSpectra(raw_timestamp, n_d, tp_scopes)
                 self.liveDisplay.putSpectrasAndUpdate(
-                    3, self.spectra_storage[exp_timestamp, n_d, :])
+                    3, self.spectra_storage[raw_timestamp, n_d, :])
 
                 black_corrected_scopes = dict([])
 
@@ -742,12 +744,12 @@ class Application(tk.Frame):
                         tp_absorbance[key]-correction_spectrum[key]
 
                 self.spectra_storage.putSpectra(
-                    exp_timestamp, n_d, tp_absorbance)
+                    abs_timestamp, n_d, tp_absorbance)
 
                 self.liveDisplay.putSpectrasAndUpdate(
                     4,
                     self.spectra_storage[
-                        exp_timestamp, :, first_absorbance_spectrum_name])
+                        abs_timestamp, :, first_absorbance_spectrum_name])
 
             if not self.experiment_on:
                 experiment_logger.info("Experiment stopped.")
@@ -760,7 +762,7 @@ class Application(tk.Frame):
             experiment_logger.warning("Experiment aborted.")
             abort = True
             self.experiment_on = False
-        self.treatSpectras(exp_timestamp)
+        self.treatSpectras(raw_timestamp)
         self.avh.release()
         self.pause_live_display.clear()
         self.processing_text["text"] = "No running experiment..."
