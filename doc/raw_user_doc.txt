@@ -165,3 +165,13 @@ if you use multiple spectrometers, some tests showed that a minimum integration
 time of 15 ms is needed.
 Then enter the number of averages and number of delays.
 Averaging number corresponds to the number of averages for a single delay
+number.
+Delay number corresponds to the number of times CALOA will delay all
+instruments.
+
+You now have to set all parameters for all 8 generator channels.
+In each channel cell, as previously mentionned, you can set 5 parameters.
+Label can be set to whatever value you want, it is used as a human readable
+indentification.
+Channel parameters will be set only if State is enabled, if not,
+for the sake of time saving other parameters will be skipped.

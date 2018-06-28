@@ -455,7 +455,6 @@ class Application(tk.Frame):
 
         # Here we make all interactible for experiment configuration.
         sub_fen = tk.Frame(button_fen)
-        sub_fen.grid(row=3, rowspan=len(self.DISPLAY_KEYS), columnspan=2)
         for i, key in enumerate(self.DISPLAY_KEYS):
             if key == self.SEPARATOR_ID:
                 ttk.Separator(sub_fen,
@@ -471,6 +470,7 @@ class Application(tk.Frame):
                 tk.Entry(sub_fen,
                          textvariable=self.config_dict[key]).\
                     grid(row=i, column=1)
+        sub_fen.grid(row=3, rowspan=len(self.DISPLAY_KEYS), columnspan=2)
 
         for key in self.PARAMETERS_KEYS:
             self.config_dict[key] = tk.StringVar()
@@ -642,17 +642,18 @@ class Application(tk.Frame):
         self._bnc.settrig("TRIG")
 
         for pulse in self._bnc:
-            pulse[BNC.DELAY] = pulse.experimentTuple[BNC.DELAY].get()
-            pulse[BNC.WIDTH] = pulse.experimentTuple[BNC.WIDTH].get()
             pulse[BNC.STATE] = pulse.experimentTuple[BNC.STATE].get()
-            total_time_used = p_N_d*float(
-                pulse.experimentTuple[BNC.dPHASE].get())
-            if total_time_used >= p_T:
-                raise AssertionError(
-                    "Experiment time to short. Pulse nr {}".
-                    format(pulse.number)
-                    + " uses {}ms but {}ms were allocated.".format(
-                        total_time_used, p_T_tot))
+            if pulse[BNC.STATE] == "1":
+                pulse[BNC.DELAY] = pulse.experimentTuple[BNC.DELAY].get()
+                pulse[BNC.WIDTH] = pulse.experimentTuple[BNC.WIDTH].get()
+                total_time_used = p_N_d*float(
+                    pulse.experimentTuple[BNC.dPHASE].get())
+                if total_time_used >= p_T:
+                    raise AssertionError(
+                        "Experiment time to short. Pulse nr {}".
+                        format(pulse.number)
+                        + " uses {}ms but {}ms were allocated.".format(
+                            total_time_used, p_T_tot))
 
         self.avh.prepareAll(p_T, True, p_N_c)
 
@@ -706,9 +707,11 @@ class Application(tk.Frame):
                 n_d += 1
 
                 for pulse in self._bnc:
-                    pulse[BNC.DELAY] = \
-                        float(pulse.experimentTuple[BNC.DELAY].get()) + n_d * \
-                        float(pulse.experimentTuple[BNC.dPHASE].get())
+                        if pulse[BNC.STATE] == "1":
+                            pulse[BNC.DELAY] = \
+                                float(pulse.experimentTuple[BNC.DELAY].get()) \
+                                + n_d * \
+                                float(pulse.experimentTuple[BNC.dPHASE].get())
                 tp_scopes = self.avh.getScopes()
                 self.avh.stopAll()
                 self.spectra_storage.putSpectra(exp_timestamp, n_d, tp_scopes)
