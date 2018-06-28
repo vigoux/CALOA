@@ -788,6 +788,8 @@ class Spectrum_Storage:
             for key in folder.keys():
                 tp_dict_to_return[key] = folder[key][indicator_tuple[2]]
 
+            return tp_dict_to_return
+
         elif class_types == (str, int, slice):
 
             # Here we want all spectra corresponding to one delay and from
@@ -810,6 +812,8 @@ class Spectrum_Storage:
                         self._hidden_directory[folder_id][subfolder_id][
                         indicator_tuple[2]]
 
+            return tp_dict_to_return
+
         elif class_types == (slice, int, slice):
 
             # This is all spectra with the same delay number (subfolder_id)
@@ -819,6 +823,8 @@ class Spectrum_Storage:
             for folder_id in self._hidden_directory.keys():
                 tp_dict_to_return[folder_id] =\
                     self._hidden_directory[folder_id][indicator_tuple[1]]
+
+            return tp_dict_to_return
 
         elif class_types == (str, slice, slice):
 
