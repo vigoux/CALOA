@@ -714,7 +714,7 @@ class Spectrum_Storage:
         his identifier (timestamp).
         """
         cur_timestamp = self.get_timestamp()
-        self._hidden_directory[cur_timestamp] = []
+        self._hidden_directory[cur_timestamp] = dict([])
         return cur_timestamp
 
     def __init__(self):
