@@ -151,9 +151,9 @@ class Scope_Display(tk.Frame, Queue):
 
                     scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=colormap)
 
-                    for idx in range(len(values)):
-                        spectrum = tp_instruction[1][idx]
-                        colorVal = scalarMap.to_rgba(values[idx])
+                    for val in values:
+                        spectrum = tp_instruction[1][val]
+                        colorVal = scalarMap.to_rgba(values[val])
                         plotting_area.plot(
                             spectrum.lambdas, spectrum.values,
                             color=colorVal
