@@ -489,11 +489,11 @@ class Application(tk.Frame):
         self.processing_text = tk.Label(
             button_fen, text="No running experiment...")
 
-        self.processing_text.grid(row=4, columnspan=2)
+        self.processing_text.grid(columnspan=2)
         tk.Button(
             button_fen, text="Abort current observation.",
             command=self.stop_experiment
-            ).grid(row=10, columnspan=2, sticky=tk.E+tk.W)
+            ).grid(columnspan=2, sticky=tk.E+tk.W)
         button_fen.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
 
         # Drawing Scope Frame
