@@ -475,6 +475,11 @@ class Application(tk.Frame):
         for key in self.PARAMETERS_KEYS:
             self.config_dict[key] = tk.StringVar()
 
+        ttk.Separator(button_fen,
+                      orient=tk.HORIZONTAL).grid(columnspan=2,
+                                                 sticky=tk.E+tk.W,
+                                                 pady=5)
+
         tk.Label(button_fen,
                  text="Reference channel").\
             grid(row=90, column=0, rowspan=self.avh._nr_spec_connected)
@@ -608,7 +613,7 @@ class Application(tk.Frame):
                                                               p_N_c))
         self.avh.waitAll()
         self._bnc.stop()
-        self.spectra_storage.putBlack(self.avh.getScopes())
+        self.spectra_storage.putWhite(self.avh.getScopes())
         experiment_logger.info("White set.")
         self.liveDisplay.putSpectrasAndUpdate(
             2, self.spectra_storage.latest_white)

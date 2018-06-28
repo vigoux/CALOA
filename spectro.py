@@ -712,7 +712,7 @@ class Spectrum_Storage:
 
     def __init__(self):
         """Inits self and creates basic storage space."""
-        self._hidden_directory = {"Basic": []}
+        self._hidden_directory = {"Basic": dict([])}
 
     def __getitem__(self, indicator_tuple):
         """
