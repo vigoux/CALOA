@@ -864,7 +864,7 @@ class Spectrum_Storage:
 
         return self._hidden_directory["Basic"]["Black"]
 
-    latest_black = property(putBlack, getBlack)
+    latest_black = property(getBlack, putBlack)
 
     def putWhite(self, new_spectra):
 
@@ -874,7 +874,7 @@ class Spectrum_Storage:
 
         return self._hidden_directory["Basic"]["White"]
 
-    latest_white = property(putWhite, getWhite)
+    latest_white = property(getWhite, putWhite)
 
     def blackIsSet(self):
 
