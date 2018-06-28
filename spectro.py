@@ -844,7 +844,7 @@ class Spectrum_Storage:
                 "{} is already in folder {}.".format(subfolder_id, folder_id)
             )
 
-        if isinstance(subfolder_id, int):
+        if isinstance(subfolder_id, int) and folder_id != "Basic":
             raise TypeError(
                 "subfolder_id must be an integer."
             )
@@ -858,7 +858,7 @@ class Spectrum_Storage:
 
     def putBlack(self, new_spectra):
 
-        self._hidden_directory["Basic"]["Black"] = new_spectra
+        self.putSpectra("Basic", "Black", new_spectra)
 
     def getBlack(self):
 
@@ -868,7 +868,7 @@ class Spectrum_Storage:
 
     def putWhite(self, new_spectra):
 
-        self._hidden_directory["Basic"]["White"] = new_spectra
+        self.putSpectra("Basic", "White", new_spectra)
 
     def getWhite(self):
 
