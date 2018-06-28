@@ -695,7 +695,7 @@ class Application(tk.Frame):
 
                     self.processing_text["text"] = "Processing experiment :\n"\
                         + "\tAverage : {}/{}\n".format(n_c, p_N_c)\
-                        + "\tDelay : {}/{}".format(n_d/p_N_d)
+                        + "\tDelay : {}/{}".format(n_d, p_N_d)
 
                     self._bnc.sendtrig()
                     self.after(int(p_T_tot))
