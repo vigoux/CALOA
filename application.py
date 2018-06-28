@@ -123,7 +123,7 @@ class Scope_Display(tk.Frame, Queue):
                 if plot_type == "2D":
                     # In this case we should have a list of spectrum as given by
                     # Spectrum_Storage[folder_id, subfolder_id, :]:
-                    # [(channel_id, spectrum), ...]
+                    # {channel_id: spectrum, ...}
 
                     for channel_name, spectrum in tp_instruction[1].items():
                         plotting_area.plot(
@@ -147,19 +147,19 @@ class Scope_Display(tk.Frame, Queue):
 
                     colormap = plt.get_cmap("plasma")
 
-                    cNorm = colors.Normalize(vmin=0, vmax=values[-1])
+                    cNorm = colors.Normalize(vmin=values[0], vmax=values[-1])
 
                     scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=colormap)
 
                     for idx in range(len(values)):
-                        spectrum = tp_instruction[idx]
+                        spectrum = tp_instruction[1][idx]
                         colorVal = scalarMap.to_rgba(values[idx])
                         plotting_area.plot(
                             spectrum.lambdas, spectrum.values,
                             color=colorVal
                             )
-                    plotting_area.xlabel("Wavelength (nm)")
-                    plotting_area.ylabel("Counts")
+                plotting_area.xlabel("Wavelength (nm)")
+                plotting_area.ylabel("Counts")
                 canvas.draw()
 
 # %% Application Object, true application is happening here
