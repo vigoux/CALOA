@@ -153,7 +153,7 @@ class Scope_Display(tk.Frame, Queue):
 
                     for val in values:
                         spectrum = tp_instruction[1][val]
-                        colorVal = scalarMap.to_rgba(values[val])
+                        colorVal = scalarMap.to_rgba(val)
                         plotting_area.plot(
                             spectrum.lambdas, spectrum.values,
                             color=colorVal
