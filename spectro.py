@@ -859,7 +859,7 @@ class Spectrum_Storage:
 
     def putBlack(self, new_spectra):
 
-        self.putSpectra("Basic", "Black", new_spectra)
+        self._hidden_directory["Basic"]["Black"] = new_spectra
 
     def getBlack(self):
 
@@ -869,7 +869,7 @@ class Spectrum_Storage:
 
     def putWhite(self, new_spectra):
 
-        self.putSpectra("Basic", "White", new_spectra)
+        self._hidden_directory["Basic"]["White"] = new_spectra
 
     def getWhite(self):
 
