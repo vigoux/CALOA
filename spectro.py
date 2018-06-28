@@ -505,7 +505,11 @@ class AvaSpec_Handler:
             self.waitMeasurmentReady(device)
 
     def getScopes(self):
-        return [self.getScope(device) for device in self.devList]
+        tp_dict_to_return = dict([])
+        for device in self.devList:
+            tp_tup = self.getScope(device)
+            tp_dict_to_return[tp_tup[0]] = tp_tup[1]
+        return tp_dict_to_return
 
     def stopAll(self):
         for device in self.devList:
@@ -831,10 +835,9 @@ class Spectrum_Storage:
         First we create a new subfolder (append it in the folder)
         Then we create a subfolder.
         Then we associate channel id to the corresponding Spectrum.
-        We base this method on AvaSpec_Handler.getScopes, which returns a list
-        of tuple like so :
+        We base this method on AvaSpec_Handler.getScopes, which returns a dict:
 
-            [(channel_id, spectrum), ...]
+            {channel_id: spectrum, ...}
         """
 
         if folder_id not in self._hidden_directory:
@@ -852,12 +855,7 @@ class Spectrum_Storage:
                 "subfolder_id must be an integer."
             )
 
-        tp_spectrum_dict = dict({})
-
-        for channel_id, spectrum in spectra:
-            tp_spectrum_dict[channel_id] = spectrum
-
-        self._hidden_directory[folder_id][subfolder_id] = tp_spectrum_dict
+        self._hidden_directory[folder_id][subfolder_id] = spectra
 
     def putBlack(self, new_spectra):
 
