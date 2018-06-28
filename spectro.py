@@ -436,8 +436,8 @@ class AvaSpec_Handler:
                 begin = AvsDevList[0].m_aSerialId[:-4]
                 dev.m_aSerialId = begin + dev.m_aSerialId
                 dev.m_aUserFriendlyId = begin + dev.m_aUserFriendlyId
-            devDict[AVS_DLL.AVS_Activate(ctypes.byref(dev))] =\
-                (dev.m_aUserFriendlyId, Callback_Measurment())
+            devDict[AVS_DLL.AVS_Activate(ctypes.byref(dev))] = \
+                (bytes.decode(dev.m_aUserFriendlyId), Callback_Measurment())
         return devDict
 
     def acquire(self):
