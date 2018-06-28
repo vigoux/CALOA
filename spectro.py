@@ -856,7 +856,7 @@ class Spectrum_Storage:
                 "{} is already in folder {}.".format(subfolder_id, folder_id)
             )
 
-        if isinstance(subfolder_id, int) and folder_id != "Basic":
+        if not isinstance(subfolder_id, int) and folder_id != "Basic":
             raise TypeError(
                 "subfolder_id must be an integer."
             )
