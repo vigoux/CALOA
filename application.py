@@ -674,7 +674,7 @@ class Application(tk.Frame):
 
         if self.referenceChannel.get() != "":
             correction_spectrum = self.get_selected_absorbance(
-                self.latest_white)
+                self.spectra_storage.latest_white)
         else:
             experiment_logger.warning(
                 "No reference channel selected, aborting.")
