@@ -314,7 +314,7 @@ class Application(tk.Frame):
         # Naming convention for absorbance spectrum is as follows :
         #   "ABSORBANCE-{channel_id}"
 
-        abs_spectras = []
+        abs_spectras = dict([])
 
         for key in scopes:
 
@@ -322,10 +322,9 @@ class Application(tk.Frame):
             # referenceChannel, thus we don't do it.
 
             if key != chosen:
-                abs_spectras.append(
-                    ("ABSORBANCE-{}".format(key),
-                     spectro.Spectrum.absorbanceSpectrum(
-                        ref_spectrum, scopes[key])))
+                abs_spectras["ABSORBANCE-{}".format(key)] = \
+                    spectro.Spectrum.absorbanceSpectrum(
+                        ref_spectrum, scopes[key])
 
         return abs_spectras
 
@@ -724,23 +723,26 @@ class Application(tk.Frame):
                 self.liveDisplay.putSpectrasAndUpdate(
                     3, self.spectra_storage[exp_timestamp, n_d, :])
 
-                black_corrected_scopes = [
-                    (tp_scopes[i][0],
-                     tp_scopes[i][1]-self.spectra_storage.latest_black)
-                    for i in range(len(tp_scopes))
-                    ]
+                black_corrected_scopes = dict([])
+
+                for id, spectrum in tp_scopes.items():
+                    black_corrected_scopes[id] = \
+                        spectrum - self.spectra_storage.latest_black[id]
 
                 tp_absorbance = self.get_selected_absorbance(
                     black_corrected_scopes
                     )
 
-                first_absorbance_spectrum_name = black_corrected_scopes[0][0]
+                first_absorbance_spectrum_name = tp_absorbance.keys()[0]
+
+                corrected_absorbance = dict([])
+
+                for key in tp_absorbance:
+                    corrected_absorbance[key] = \
+                        tp_absorbance[key]-correction_spectrum[key]
 
                 self.spectra_storage.putSpectra(
-                    exp_timestamp, n_d,
-                    [(tp_absorbance[i][0],
-                      tp_absorbance[i][1]-correction_spectrum[i][1])
-                     for i in range(len(tp_absorbance))])
+                    exp_timestamp, n_d, tp_absorbance)
 
                 self.liveDisplay.putSpectrasAndUpdate(
                     4,
