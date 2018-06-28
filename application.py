@@ -510,7 +510,7 @@ class Application(tk.Frame):
                                          [("Scopes", "2D"),
                                           ("Black", "2D"),
                                           ("White", "2D"),
-                                          ("Experiment raw", "Superp"),
+                                          ("Experiment raw", "2D"),
                                           ("Experiment abs.", "Superp")],
                                          self.stop_live_display)
         self.liveDisplay.pack(fill=tk.BOTH)
@@ -733,7 +733,7 @@ class Application(tk.Frame):
                     black_corrected_scopes
                     )
 
-                first_absorbance_spectrum_name = tp_absorbance.keys()[0]
+                first_absorbance_spectrum_name = list(tp_absorbance.keys())[0]
 
                 corrected_absorbance = dict([])
 
