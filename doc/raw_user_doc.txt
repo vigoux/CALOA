@@ -116,7 +116,7 @@ informations :
 
             2 - Observation management frame
 
-Here again, interface can be split in two parts :
+Here again, interface can be split in three parts :
 
                 1 - Experiment management
 
@@ -136,8 +136,9 @@ In this part you can set you interpolation parameters.
     * Ending wavelength : the wavelength you want the spectra to end with
     * Points number : number of points you want between starting and ending
         wavelengths.
-    * Reference channel selector : Here is the useful part to manage absorbance
-        reference spectrum, select here the AvaSpec channel used as reference.
+                3 - Reference channel selector
+Here is the useful part to manage absorbance reference spectrum,
+select here the AvaSpec channel used as reference.
 
             3 - Scope Display
 
@@ -150,3 +151,17 @@ This is really not useful to interact with BNC using this mode.
 But if you want some fine tunes of BNC, you should use this interface.
 More informations about how to use and program BNC are given in his own documentation,
 given along this file.
+
+    3 - Starting an observation
+
+CALOA is used to perform spectrometry over time using a generator and Avantes
+spectrometers.
+
+First of all you will have to enter your parameters in the application.
+Enter the total observation time (this is the time between two triggers) in
+the Entry labeled "Total time" in milliseconds.
+Then enter the integration time of the spectrometers, be careful,
+if you use multiple spectrometers, some tests showed that a minimum integration
+time of 15 ms is needed.
+Then enter the number of averages and number of delays.
+Averaging number corresponds to the number of averages for a single delay
