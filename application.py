@@ -158,8 +158,6 @@ class Scope_Display(tk.Frame, Queue):
                             spectrum.lambdas, spectrum.values,
                             color=colorVal
                             )
-                plotting_area.xlabel("Wavelength (nm)")
-                plotting_area.ylabel("Counts")
                 canvas.draw()
 
 # %% Application Object, true application is happening here
