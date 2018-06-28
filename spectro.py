@@ -672,11 +672,14 @@ class Spectrum_Storage:
     Spectrum_Storage
     |- Basic
     |  |- Black
+    |  |  |- [CHAN ID] : Spectrum
+    |  |  |- [OTHER CHAN ID] : Spectrum
+    |  |  :
     |  |- White
+    |  |  :
     |- [TIMESTAMP]
     |  |- 1
     |  |  |- [CHAN ID] : Spectrum ...
-    |  |  |- [OTHER CHAN ID] : Spectrum ...
     |  |  :
     |  |- 2
     |  |  :

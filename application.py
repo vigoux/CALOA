@@ -125,7 +125,7 @@ class Scope_Display(tk.Frame, Queue):
                     # Spectrum_Storage[folder_id, subfolder_id, :]:
                     # [(channel_id, spectrum), ...]
 
-                    for channel_name, spectrum in tp_instruction[1]:
+                    for channel_name, spectrum in tp_instruction[1].items():
                         plotting_area.plot(
                             spectrum.lambdas, spectrum.values,
                             label=channel_name)
@@ -822,7 +822,7 @@ class Application(tk.Frame):
         cosmetic_path = save_dir + os.sep + "cosmetic"
         os.mkdir(cosmetic_path)
 
-        channel_ids = [tup[0] for tup in self.avh.devList.items()]
+        channel_ids = [tup[0] for tup in self.avh.devList.values()]
 
         for id in channel_ids:
             # This item is all the lambdas
