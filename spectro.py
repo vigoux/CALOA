@@ -649,6 +649,9 @@ class Spectrum:
     def __imul__(self, spectrum):
         return self * spectrum
 
+    def __iadd__(self, spectrum):
+        return self + spectrum
+
     def absorbanceSpectrum(reference, spectrum):
         opacity_spectrum = reference/spectrum
 
