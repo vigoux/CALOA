@@ -475,11 +475,6 @@ class Application(tk.Frame):
         for key in self.PARAMETERS_KEYS:
             self.config_dict[key] = tk.StringVar()
 
-        ttk.Separator(button_fen,
-                      orient=tk.HORIZONTAL).grid(columnspan=2,
-                                                 sticky=tk.E+tk.W,
-                                                 pady=5)
-
         tk.Label(button_fen,
                  text="Reference channel").\
             grid(row=90, column=0, rowspan=self.avh._nr_spec_connected)
@@ -490,6 +485,11 @@ class Application(tk.Frame):
                            text=self.avh.devList[avsHandle][0],
                            variable=self.referenceChannel,
                            value=avsHandle).grid(row=90+i, column=1)
+
+        ttk.Separator(button_fen,
+                      orient=tk.HORIZONTAL).grid(columnspan=2,
+                                                 sticky=tk.E+tk.W,
+                                                 pady=5)
 
         self.processing_text = tk.Label(
             button_fen, text="No running experiment...")
@@ -558,7 +558,7 @@ class Application(tk.Frame):
         while n_black < p_N_c:
             self.processing_text["text"] = "Processing black :\n"\
                 + "\tAverage : {}/{}".format(n_black, p_N_c)
-
+            self.update()
             self._bnc.sendtrig()
             self.after(int(p_T_tot))
             self.update()
@@ -603,6 +603,7 @@ class Application(tk.Frame):
 
             self.processing_text["text"] = "Processing white :\n"\
                 + "\tAverage : {}/{}".format(n_white, p_N_c)
+            self.update()
 
             self._bnc.sendtrig()
             self.after(int(p_T_tot))
