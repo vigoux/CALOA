@@ -853,11 +853,12 @@ class Spectrum_Storage:
             raise IndexError(
                 "{} is not a correct folder id.".format(folder_id)
             )
-
+        """
         if subfolder_id in self._hidden_directory[folder_id]:
             raise IndexError(
                 "{} is already in folder {}.".format(subfolder_id, folder_id)
             )
+        """
 
         if not isinstance(subfolder_id, int) and folder_id != "Basic":
             raise TypeError(

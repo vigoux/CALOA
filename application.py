@@ -741,8 +741,8 @@ class Application(tk.Frame):
                     corrected_absorbance[key] = \
                         tp_absorbance[key]-correction_spectrum[key]
 
-            #    self.spectra_storage.putSpectra(
-            #        exp_timestamp, n_d, tp_absorbance)
+                self.spectra_storage.putSpectra(
+                    exp_timestamp, n_d, tp_absorbance)
 
                 self.liveDisplay.putSpectrasAndUpdate(
                     4,
