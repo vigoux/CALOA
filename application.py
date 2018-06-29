@@ -960,7 +960,8 @@ def report_callback_exception(self, *args):
     url = "https://api.github.com/repos/Mambu38/CALOA/issues"
     err_str = platform.platform()+"\n"
     err_str += \
-        platform.python_implementation() + "-" + platform.python_version()
+        platform.python_implementation() + "-" + platform.python_version()\
+        + "\n"
     for line in err:
         err_str += line
     payload = {
