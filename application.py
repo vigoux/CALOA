@@ -267,6 +267,47 @@ class Application(tk.Frame):
         filemenu.add_command(label="Quit", command=self.goodbye_app)
         menubar.add_cascade(label="File", menu=filemenu)  # Add it to menubar
 
+        # Create the general spectra management menu
+        spectra_menu = tk.Menu(menubar, tearoff=0)
+
+        # Create the White menu
+        white_menu = tk.Menu(spectra_menu, tearoff=0)
+
+        # Technique using lambda functions to pass arguments to functions is
+        # advised by answer to StackOverflow question :
+        # https://stackoverflow.com/questions/6920302/how-to-pass-arguments-to-a-button-command-in-tkinter
+        white_menu.add_command(
+            label="Save White",
+            command=lambda: self.saveSpectra("Basic", "White")
+        )
+        white_menu.add_command(
+            label="Load White",
+            command=lambda: self.loadSpectra("Basic", "White")
+        )
+        spectra_menu.add_cascade(
+            label="White",
+            menu=white_menu
+        )
+
+        black_menu = tk.Menu(spectra_menu, tearoff=0)
+        black_menu.add_command(
+            label="Save Black",
+            command=lambda: self.saveSpectra("Basic", "Black")
+        )
+        black_menu.add_command(
+            label="Load Black",
+            command=lambda: self.loadSpectra("Basic", "Black")
+        )
+        spectra_menu.add_cascade(
+            label="Black",
+            menu=black_menu
+        )
+
+        menubar.add_cascade(
+            label="Spectra",
+            menu=spectra_menu
+        )
+
         menubar.add_command(label="Preferences...",
                             command=self.display_preference_menu)
         self.master.config(menu=menubar)
@@ -338,17 +379,9 @@ class Application(tk.Frame):
             scopes = self.avh.startAllAndGetScopes()
 
             # list.copy() is realy important because of the
-            # further modification of the list.
+            # eventual further modification of the list.
             # Send raw spectras.
             self.liveDisplay.putSpectrasAndUpdate(0, scopes.copy())
-            """
-            if self.referenceChannel.get() != "":
-                # Here we get the channel selected by user, process is a little
-                # complex but first we get the list of channel names then
-                # we get the one selected by user.
-                self.liveDisplay.putSpectrasAndUpdate(
-                    1, self.get_selected_absorbance(scopes))
-            """
             self.avh.release()
             try:
                 self.after(int(self.config_dict[self.ROUT_PERIOD].get()),
@@ -403,6 +436,28 @@ class Application(tk.Frame):
                         "*.cbc")])
         with open(saveFileName, "wb") as saveFile:
             self._rawSaveConfig(saveFile)
+
+    def saveSpectra(self, folder_id, subfolder_id):
+        logger.debug("Starting to save {}-{}".format(folder_id, subfolder_id))
+        save_path = tMsg.asksaveasfilename(
+            title="Saving spectra.",
+            defaultextension=".css")
+        if save_path is not None:
+            with open(save_path, "wb") as save_file:
+                pick = Pickler(save_file)
+                pick.dump(self.spectra_storage[folder_id, subfolder_id, :])
+        logger.debug("Saved {}-{}".format(folder_id, subfolder_id))
+
+    def loadSpectra(self, folder_id, subfolder_id):
+        logger.debug("Starting to load {}-{}".format(folder_id, subfolder_id))
+        load_path = tMsg.asksaveasfilename(
+            title="Saving spectra.",
+            defaultextension=".css")
+        if load_path is not None:
+            with open(load_path, "wb") as load_file:
+                unpick = Unpickler(load_file)
+                self.putSpectra(folder_id, subfolder_id, unpick.load())
+        logger.debug("Loaded {}-{}".format(folder_id, subfolder_id))
 
     # TODO: Enhance advanced frame aspect id:32
     # Mambu38
