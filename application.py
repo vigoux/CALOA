@@ -959,7 +959,7 @@ def report_callback_exception(self, *args):
     url = "https://api.github.com/repos/Mambu38/CALOA/issues"
     payload = {
         "title": "AUTO BUG REPORT: {}".format(args[0]),
-        "body": err,
+        "body": str(err),
         "labels": ["bug", ]
     }
     r = requests.post(
