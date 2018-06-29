@@ -47,6 +47,7 @@ import os
 # Used to send automatic bug reports
 import requests
 import json
+import platform
 
 logger = logging.getLogger(__name__)
 experiment_logger = logging.getLogger(__name__+".experiment")
@@ -957,12 +958,14 @@ def report_callback_exception(self, *args):
     tMsg.showerror("Error", args[1])  # This is exception message
     logger.critical("Error :", exc_info=err)
     url = "https://api.github.com/repos/Mambu38/CALOA/issues"
-    err_str="```"
+    err_str = platform.platform()+"\n"
+    err_str += \
+        platform.python_implementation() + "-" + platform.python_version()
     for line in err:
         err_str += line
     payload = {
         "title": "AUTO BUG REPORT: {}".format(args[1]),
-        "body": err_str+"```",
+        "body": "```" + err_str + "```",
         "labels": ["bug", ]
     }
     r = requests.post(
