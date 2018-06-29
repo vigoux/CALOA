@@ -439,7 +439,7 @@ class Application(tk.Frame):
 
     def saveSpectra(self, folder_id, subfolder_id):
         logger.debug("Starting to save {}-{}".format(folder_id, subfolder_id))
-        save_path = tMsg.asksaveasfilename(
+        save_path = tkFileDialog.asksaveasfilename(
             title="Saving spectra.",
             defaultextension=".css")
         if save_path is not None:
@@ -450,7 +450,7 @@ class Application(tk.Frame):
 
     def loadSpectra(self, folder_id, subfolder_id):
         logger.debug("Starting to load {}-{}".format(folder_id, subfolder_id))
-        load_path = tMsg.asksaveasfilename(
+        load_path = tkFileDialog.asksaveasfilename(
             title="Saving spectra.",
             defaultextension=".css")
         if load_path is not None:
