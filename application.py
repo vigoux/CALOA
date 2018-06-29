@@ -957,12 +957,12 @@ def report_callback_exception(self, *args):
     tMsg.showerror("Error", args[1])  # This is exception message
     logger.critical("Error :", exc_info=err)
     url = "https://api.github.com/repos/Mambu38/CALOA/issues"
-    err_str=""
+    err_str="```"
     for line in err:
         err_str += line
     payload = {
         "title": "AUTO BUG REPORT: {}".format(args[1]),
-        "body": err_str,
+        "body": err_str+"```",
         "labels": ["bug", ]
     }
     r = requests.post(
