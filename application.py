@@ -627,7 +627,8 @@ class Application(tk.Frame):
 
     def experiment(self):
         self.processing_text["text"] = "Preparing experiment..."
-        raw_timestamp = self.spectra_storage.createStorageUnit()
+        raw_timestamp = self.spectra_storage.createStorageUnit(end="RAW")
+        abs_timestamp = self.spectra_storage.createStorageUnit(end="ABS")
         experiment_logger.info("Starting experiment.")
         self.experiment_on = True
         self.pause_live_display.set()
@@ -659,8 +660,6 @@ class Application(tk.Frame):
                             total_time_used, p_T_tot))
 
         self.avh.prepareAll(p_T, True, p_N_c)
-
-        abs_timestamp = self.spectra_storage.createStorageUnit()
 
         if not self.spectra_storage.blackIsSet():
             experiment_logger.warning("Black not set, aborting.")

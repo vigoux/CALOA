@@ -696,7 +696,7 @@ class Spectrum_Storage:
     :
     """
 
-    def get_timestamp(self):
+    def get_timestamp(self, end=""):
         """Creates the time current time stamp as follows :
         DD:MM:YYYY_HH:MM:SS
         Where in the same order :
@@ -707,16 +707,21 @@ class Spectrum_Storage:
             M = a minute number digit
             S = a second number digit
         """
-        return \
-            "{time.tm_mday}:{time.tm_mon}:{time.tm_year}_{time.tm_hour}:{time.tm_min}:{time.tm_sec}".\
+        tp_time_stamp = \
+            "{time.tm_mday}:{time.tm_mon}:{time.tm_year}_\
+            {time.tm_hour}:{time.tm_min}:{time.tm_sec}".\
             format(time=time.localtime())
 
-    def createStorageUnit(self):
+        if end != "":
+            tp_time_stamp += "_{}".format(end)
+        return tp_time_stamp
+
+    def createStorageUnit(self, end=""):
         """
         Inits a storage unit in the storage space, time_stamp itm and returns
         his identifier (timestamp).
         """
-        cur_timestamp = self.get_timestamp()
+        cur_timestamp = self.get_timestamp(end=end)
         self._hidden_directory[cur_timestamp] = dict([])
         return cur_timestamp
 
@@ -853,7 +858,8 @@ class Spectrum_Storage:
             raise IndexError(
                 "{} is not a correct folder id.".format(folder_id)
             )
-        if subfolder_id in self._hidden_directory[folder_id]:
+        if subfolder_id in self._hidden_directory[folder_id] \
+                and folder_id != "Basic":
             raise IndexError(
                 "{} is already in folder {}.".format(subfolder_id, folder_id)
             )
