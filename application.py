@@ -967,8 +967,7 @@ def report_callback_exception(self, *args):
         data=json.dumps(payload),
         auth=("caloareportsender@gmail.com", "!T&XfDOLONZ3W@5lbC*k")
     )
-    if r.status_code != 201:
-        logger.critical("Unable to send bug report.")
+    logger.info("Bug report sent, received {}".format(r.headers["Status"]))
 
 def root_goodbye():
     global root
