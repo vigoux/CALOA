@@ -44,6 +44,10 @@ from pickle import Pickler, Unpickler
 
 import os
 
+# Used to send automatic bug reports
+import requests
+import json
+
 logger = logging.getLogger(__name__)
 experiment_logger = logging.getLogger(__name__+".experiment")
 
@@ -952,7 +956,19 @@ def report_callback_exception(self, *args):
     err = traceback.format_exception(*args)
     tMsg.showerror("Error", args[0])  # This is exception message
     logger.critical("Error :", exc_info=err)
-
+    url = "https://api.github.com/repos/Mambu38/CALOA/issues"
+    payload = {
+        "title": "AUTO BUG REPORT: {}".format(args[0]),
+        "body": err,
+        "labels": ["bug", ]
+    }
+    r = requests.post(
+        url,
+        data=json.dumps(payload),
+        auth=("caloareportsender@gmail.com", "!T&XfDOLONZ3W@5lbC*k")
+    )
+    if r.status_code != 201:
+        logger.critical("Unable to send bug report.")
 
 def root_goodbye():
     global root
