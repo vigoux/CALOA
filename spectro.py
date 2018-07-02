@@ -848,26 +848,75 @@ class Spectrum:
         return self.__dict__
 
     def __setstate__(self, tp_dict):
+        """
+        Set Spectrum current state.
+        """
+
         self.__dict__ = tp_dict
 
     def getInterpolated(self, startingLamb=None, endingLamb=None,
                         nrPoints=None,
                         smoothing=False, windowSize=51, polDegree=5):
+        """
+        Returns an interpolated version of current spectrum, mainly to save
+        memory space. You can get a smoothed version of the spectrum.
+
+        Interpolation is made using scipy.interpolate.CubicSpline, see :
+        https://docs.scipy.org/doc/scipy-0.18.1/reference/generated/scipy.interpolate.CubicSpline.html
+
+        Smoothing is made using scipy.signal.savgol_filter, see :
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html
+
+        Parameters:
+        - startingLamb -- Starting wavelength of interpolation. If None, this
+        will be the first possible wavelength.
+        - endingLamb -- Same as startingLamb but with endig wavelength.
+        - nrPoints -- Number of points between startingLamb and endingLamb.
+        - smoothing -- Wether you want to smooth data or not
+        - windowSize -- Window size used in Savitsky-Golay filter.
+        - polDegree -- polynomial degree used in Savitsky-Golay filter.
+
+        Returns:
+        a Spectrum object, corresponding to the interpolation/smoothing
+        of self. This returned spectrum is set self._smoothed = True to avoid
+        multiple smoothing.
+        """
+
+        # If one of startingLamb, endingLamb and nrPoints is not set, we
+        # take the actual state of the dataset and will only smooth it.
         if startingLamb is None or endingLamb is None or nrPoints is None:
             startingLamb = self.lambdas[0]
             endingLamb = self.lambdas[-1]
             nrPoints = len(self.lambdas)
-        if startingLamb < self.lambdas[0] or endingLamb > self.lambdas[-1]:
-            raise RuntimeError("{} - {} is not ".format(startingLamb,
-                                                        endingLamb)
-                               + "contained in spectrum range "
-                               + "(wich is {} - {})".format(self.lambdas[0],
-                                                            self.lambdas[-1]))
+
+        # If startingLamb and endingLamb are not correctly set, we raise
+        # an error.
+        if startingLamb < self.lambdas[0] or endingLamb > self.lambdas[-1]\
+                or startingLamb > endingLamb:
+            raise RuntimeError(
+                "{} - {} is not ".format(
+                    startingLamb, endingLamb
+                )
+                + "contained in spectrum range "
+                + "(wich is {} - {})".format(
+                    self.lambdas[0], self.lambdas[-1]
+                )
+            )
+
+        # We make a set of wavelengths equally spaced using numpy.linspace
         lamb_space = linspace(startingLamb, endingLamb, nrPoints)
+
+        interp = None
+
         if smoothing:
+            # As mentionned in self.__init__, we can't smooth multiple times.
             if self._smoothed:
                 raise RuntimeError("This spectrum has already been smoothed.")
+
+            # Compute the filtered dataset.
             to_interpolate = savgol_filter(self.values, windowSize, polDegree)
+
+            # Compute the interpolation.
             interp = CubicSpline(self.lambdas, to_interpolate)
         else:
             interp = self._interpolator
@@ -877,64 +926,30 @@ class Spectrum:
                         P_smoothed=True)
 
     def isSaturated(self):
+        """
+        Check if some pixels are saturated.
+        """
         return max(self.values) >= AVS_SATURATION_VALUE - 1
 
-    # FIXME: Lambdas values may not match, interpolation ? id:30
-    # Mambu38
-    # 39092278+Mambu38@users.noreply.github.com
-    # https://github.com/Mambu38/CALOA/issues/40
-    def __add__(self, spectrum):
-        l_lambdas = []
-        l_values = []
-        smoothed = self._smoothed or spectrum._smoothed
-        for tup1, tup2 in zip(self, spectrum):
-            if tup1[0] == tup2[0]:
-                l_lambdas.append(tup1[0])
-            else:
-                raise RuntimeError("Value seems not to match.")
-            l_values.append(tup1[1] + tup2[1])
-        return Spectrum(l_lambdas, l_values, P_smoothed=smoothed)
-
-    def __sub__(self, spectrum):
-        l_lambdas = []
-        l_values = []
-        smoothed = self._smoothed or spectrum._smoothed
-        for tup1, tup2 in zip(self, spectrum):
-            l_lambdas.append(tup1[0])
-            l_values.append(tup1[1] - tup2[1])
-        return Spectrum(l_lambdas, l_values, P_smoothed=smoothed)
-
-    def __truediv__(self, spectrum):
-        l_lambdas = []
-        l_values = []
-        smoothed = self._smoothed or spectrum._smoothed
-        for tup1, tup2 in zip(self, spectrum):
-            l_lambdas.append(tup1[0])
-            if tup2[1] <= 0:
-                l_values.append(0)
-            else:
-                l_values.append(tup1[1]/tup2[1])
-        return Spectrum(l_lambdas, l_values, P_smoothed=smoothed)
-
-    def __mul__(self, spectrum):
-        l_lambdas = []
-        l_values = []
-        smoothed = self._smoothed or spectrum._smoothed
-        for tup1, tup2 in zip(self, spectrum):
-            l_lambdas.append(tup1[0])
-            if tup2[1] <= 0:
-                l_values.append(0)
-            else:
-                l_values.append(tup1[1]*tup2[1])
-        return Spectrum(l_lambdas, l_values, P_smoothed=smoothed)
-
-    def __imul__(self, spectrum):
-        return self * spectrum
-
-    def __iadd__(self, spectrum):
-        return self + spectrum
-
     def absorbanceSpectrum(reference, spectrum):
+        """
+        Returns the absorbance spectrum using reference and spectrum.
+
+        For further informations about absorbance formulas, see:
+            http://en.wikipedia.org/wiki/Absorbance
+
+        Warning:
+        If any value is impossible to compute, default value will be 0.
+
+        Parameters:
+        - reference -- Reference spectrum to compute absorbance.
+        - spectrum -- Spectrum containing absorbance.
+
+        Returns:
+        a Spectrum object, wich has wavelengths as lambdas, and absorbance as
+        values.
+        """
+
         opacity_spectrum = reference/spectrum
 
         l_lambdas = opacity_spectrum.lambdas
@@ -942,6 +957,92 @@ class Spectrum:
                     for val in opacity_spectrum.values]
 
         return Spectrum(l_lambdas, l_values)
+
+    # Following methods are used to handle spectrum operations.
+    # Computations are made as follows :
+    # - get the smallest set of lambdas (in term of information)
+    # - compute using Spectrum.__call__ the appropriate operation
+    # - return the computed Spectrum
+    # If one of the spectra is smoothed, result will be marked as smoothed.
+
+    def __add__(self, spectrum):
+        """
+        Adds self and spectrum.
+        """
+
+        smoothed = self._smoothed or spectrum._smoothed
+
+        l_lambdas = self.lambdas if len(self.lambdas) > len(spectrum.lambdas)\
+            else spectrum.lambdas
+
+        l_values = [
+            self(lam) + spectrum(lam) for lam in l_lambdas
+        ]
+
+        return Spectrum(l_lambdas, l_values, P_smoothed=smoothed)
+
+    def __sub__(self, spectrum):
+        """
+        Substract self and spectrum.
+        """
+
+        smoothed = self._smoothed or spectrum._smoothed
+
+        l_lambdas = self.lambdas if len(self.lambdas) > len(spectrum.lambdas)\
+            else spectrum.lambdas
+
+        l_values = [
+            self(lam) - spectrum(lam) for lam in l_lambdas
+        ]
+
+        return Spectrum(l_lambdas, l_values, P_smoothed=smoothed)
+
+    def __truediv__(self, spectrum):
+        """
+        Divides self and spectrum.
+        """
+
+        smoothed = self._smoothed or spectrum._smoothed
+
+        l_lambdas = self.lambdas if len(self.lambdas) > len(spectrum.lambdas)\
+            else spectrum.lambdas
+
+        l_values = [
+            self(lam)/spectrum(lam) if spectrum(lam) > 0 else 0
+            for lam in l_lambdas
+        ]
+
+        return Spectrum(l_lambdas, l_values, P_smoothed=smoothed)
+
+    def __mul__(self, spectrum):
+        """
+        Multiply self and spectrum.
+        """
+
+        smoothed = self._smoothed or spectrum._smoothed
+
+        l_lambdas = self.lambdas if len(self.lambdas) > len(spectrum.lambdas)\
+            else spectrum.lambdas
+
+        l_values = [
+            self(lam)*spectrum(lam) for lam in l_lambdas
+        ]
+
+        return Spectrum(l_lambdas, l_values, P_smoothed=smoothed)
+
+    def __imul__(self, spectrum):
+        """
+        Incremental version of self.__mul__
+        """
+
+        return self * spectrum
+
+    def __iadd__(self, spectrum):
+        """
+        Incremental version of self.__add__
+        """
+
+        return self + spectrum
 
 # %% Spectrum_Storage class, useful for further improvements on
 # spectrum handling
