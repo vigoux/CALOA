@@ -36,6 +36,8 @@ AVS_DLL = ctypes.WinDLL(abp)
 
 
 # %% DLL Wrapper part
+# This part is only the python transcription of AvaSpec Manual structure
+# definition.
 
 #####
 # Constants
@@ -349,18 +351,40 @@ class c_DeviceConfigType(ctypes.Structure):  # VERIFIED
 
 class Callback_Measurment(Event):
 
+    """
+    Class used as a callback by AVS_MeasureCallback to notify when a
+    measurment is ready.
+    """
+
     def __init__(self):
+        """
+        Inits self.
+        self.c_callback is the real C-like callback function.
+        """
         Event.__init__(self)
         self.c_callback = \
             ctypes.WINFUNCTYPE(ctypes.c_void_p, ctypes.POINTER(ctypes.c_int),
                                ctypes.POINTER(ctypes.c_int))(self.Callbackfunc)
 
     def Callbackfunc(self, Avh_Pointer, int_pointer):
+        """
+        This is the Python part of the real callback function.
+        A decorator shall be used here but after some tries, it seems not to
+        work.
+        For further informations about this function, see AvaSpec x64-DLL
+        Manual 3.3.12 AVS_MeasureCallback, callback __Done.
+
+        Parameters :
+
+            - Avh_Pointer -- A pointer on a AVS_Handle (integer)
+            - int_pointer -- A pointer on an int
+        """
+        # Get values pointed by pointers
         int_val = int_pointer.contents.value
         Avh_val = Avh_Pointer.contents.value
-        if int_val >= 0:
+        if int_val >= 0:  # Check if any error happened.
             logger_ASH.debug("{} measurments Ready.".format(Avh_val))
-            self.set()
+            self.set()  # Set the flag to True.
         else:
             raise c_AVA_Exceptions(int_val)
 
@@ -372,17 +396,33 @@ logger_ASH = logger_init.logging.getLogger(__name__+".AvaSpec_Handler")
 
 class AvaSpec_Handler:
 
+    """
+    Class used to handle AvaSpec using AvaSpec DLL, and to handle observations.
+    It uses Callback_Measurment to check if a measurment is ready.
+    """
+
     def __init__(self, mode=0):
-        Lock.__init__(self)
+        """
+        Inits self.
+
+        Parameters :
+
+            - mode -- Mode to be passed to AVS_Init. For further information,
+                see AvaSpec x64-DLL Manual 3.3.1 AVS_Init, parameter
+                a_Port.
+        """
 
         logger_ASH.info("Initializing AvaSpec_Handler...")
 
         self._nr_spec_connected = self._init(mode)
         self.devList = self._getDeviceList()
-        self.lock = Lock()
+        self.lock = Lock()  # This lock is used to avoid Thread overlap.
         logger_ASH.info("AvaSpec_Handler initialized.")
 
     def __del__(self):
+        """
+        Delets self.
+        """
 
         logger_ASH.info("Deleting AvaSpec_Handler...")
 
@@ -391,11 +431,21 @@ class AvaSpec_Handler:
         self._done()
 
     def _check_error(self, result, func, arguments):
+        """
+        Method used to check errors.
+        See ctypes manual class ctypes._FuncPtr.errcheck for further
+        information.
+        """
+
         if result < 0:
             raise c_AVA_Exceptions(result)
         return arguments
 
     def _init(self, mode):
+        """
+        Inits AVS_DLL and defines argtypes used by AVS_DLL.AVS_Init as advised
+        by ctypes manual.
+        """
 
         if AVS_DLL.AVS_Init.argtypes is None:
             logger_ASH.debug("Defining AVS_Init function information...")
@@ -408,6 +458,9 @@ class AvaSpec_Handler:
         return AVS_DLL.AVS_Init(mode)
 
     def _done(self):
+        """
+        Same as self._init.
+        """
 
         if AVS_DLL.AVS_Done.argtypes is None:
             logger_ASH.debug("Defining AVS_Done function information...")
@@ -420,19 +473,51 @@ class AvaSpec_Handler:
         return AVS_DLL.AVS_Done()
 
     def _getDeviceList(self):
+        """
+        Gets device list and device handler list using AVS_GetList.
+        Procedure followed here is the one advised by AvaSpec x64-DLL Manual
+        3.2.
+        For further informations about variables, see AvaSpec x64.
+
+        Returns :
+
+        - dict -- key are AVS_Handles ands values are tuples as follows :
+            ((str)m_aUserFriendlyId, a Callback_Measurment object)
+        """
         nrDev = AVS_DLL.AVS_GetNrOfDevices()
+        if nrDev != self._nr_spec_connected:
+            raise RuntimeError(
+                "An unknown error happened. Number of devices changed."
+            )
+
+        #
         ReqSize = ctypes.c_uint(nrDev * ctypes.sizeof(c_AvsIdentityType))
         AvsDevList = (c_AvsIdentityType * nrDev)()
-        AVS_DLL.AVS_GetList.errcheck = self._check_error
-        self.raw = AvsDevList
+
+        AVS_DLL.AVS_GetList.errcheck = self._check_error  # Init errcheck
+
+        # Get the list, further information in AvaSpec DLL manual.
         nrDev = AVS_DLL.AVS_GetList(ReqSize,
                                     ctypes.byref(ReqSize),
                                     ctypes.byref(AvsDevList))
-        devDict = dict([])
+
+        # Init data types about AVS_Activate.
         AVS_DLL.AVS_Activate.errcheck = self._check_error
         AVS_DLL.AVS_Activate.restype = ctypes.c_uint
+
+        devDict = dict([])
+
         for i, dev in enumerate(AvsDevList):
-            if i != 0:
+
+            # As defined above, AvsDevList is an array of c_AvsIdentityType
+            # thus we initialize each AvaSpec.
+            # Some tests showed that DLL may be "lazy".
+            # It returns only the last part of the Id, causing it to bug later
+            # when calling AVS_Activate.
+            # Further tests are needed to determine if this event happens for
+            # every AvaSpec or only for Double-Channel ones.
+
+            if i != 0:  # We patch beforehand identified problem.
                 begin = AvsDevList[0].m_aSerialId[:-4]
                 dev.m_aSerialId = begin + dev.m_aSerialId
                 dev.m_aUserFriendlyId = begin + dev.m_aUserFriendlyId
@@ -441,22 +526,59 @@ class AvaSpec_Handler:
         return devDict
 
     def acquire(self):
+        """
+        Acquire self.lock
+        """
+
         self.lock.acquire()
 
     def release(self):
+        """
+        Release self.lock
+        """
+
         self.lock.release()
 
     def prepareMeasure(self, device, intTime=10, triggerred=False,
                        nrAverages=1):
+        """
+        Prepares a measure on device using given parameters as needed by
+        AvaSpec x64-DLL Manual.
+
+        For further information see AvaSpec x64-DLL Manual 3.3.10
+        AVS_PrepareMeasure and 3.4 Data elements, MeasConfigType.
+
+        As is, this can't be set finely, some improvements can be made.
+
+        Parameters:
+        - device -- AVS_Handle as returned by AVS_Activate corresponding to
+        the device you want to use.
+        - intTime -- Integration time pf the corresponding spectrometer in ms,
+        experiment showed that an integration time < 1.1 causes the
+        spectrometer to crash.
+        - triggerred -- Boolean corresponding to wether you want the
+        spectrometer to be triggered or not.
+        - nrAverages -- Number of averages of the spectrometer if it is
+        triggerred.
+        """
 
         logger_ASH.debug("Preparing measurments on {}.".format(device))
+
+        if intTime < 1.1:
+            raise RuntimeError(
+                "Invalid Integration time, needs to be >= 1.1 ms."
+            )
+        # Get the number of pixels.
         numPix = ctypes.c_short()
         AVS_DLL.AVS_GetNumPixels(device, ctypes.byref(numPix))
+
+        # Init c_MeasConfigType to pass it to AVS_PrepareMeasure.
         Meas = c_MeasConfigType()
         Meas.m_StartPixel = 0
-        Meas.m_StopPixel = numPix.value - 1
+        Meas.m_StopPixel = numPix.value - 1  # Last pixel.
         Meas.m_IntegrationTime = intTime
-        Meas.m_NrAverages = nrAverages
+        Meas.m_NrAverages = nrAverages if triggerred else 1
+        # Trigger configuration.
         Meas.m_Trigger.m_Mode = int(triggerred)
         Meas.m_Trigger.m_Source = 0
         Meas.m_Trigger.m_SourceType = 0
@@ -464,47 +586,131 @@ class AvaSpec_Handler:
         AVS_DLL.AVS_PrepareMeasure(device, ctypes.byref(Meas))
 
     def startMeasure(self, device, nmsr):
+        """
+        Start measure on selected device, callback is done with beforehand
+        stored Callback_Measurment object.
 
-        logger_ASH.debug("Sarting measurment on {}.".format(device))
+        For further information see AvaSpec x64-DLL Manual 3.3.12
+
+        Parameters:
+        - device -- AVS_Handle as given by AVS_Activate corresponding to the
+        spectrometer you want to measure with.
+        - nmsr -- number of measure to be made.
+        """
+
+        logger_ASH.debug("Starting measurment on {}.".format(device))
         calback_event = self.devList[device][1]
         calback_event.clear()
         AVS_DLL.AVS_MeasureCallback(device, calback_event.c_callback, nmsr)
 
     def waitMeasurmentReady(self, device):
+        """
+        Wait device until measurment is ready using his attached
+        Callback_Measurment object.
+
+        Parameters:
+        - device -- AVS_Handle as given by AVS_Activate corresponding to the
+        spectrometer you are waiting for.
+        """
+
         while not self.devList[device][1].wait(0.1):
             pass
 
     def getScope(self, device):
+        """
+        Gather scope made by device.
+
+        For further information see AvaSpec x64-DLL Manual 3.3.14, 3.3.17, and
+        3.3.13.
+
+        Parameters:
+        - device -- AVS_Handle as given by AVS_Activate corresponding to the
+        spectrometer you want to take scope from.
+
+        Returns:
+        tup -- A tuple containing the name of the spectrometer used and a
+        Spectrum.
+        """
+
         logger_ASH.debug("Gathering {} scopes.".format(device))
-        timeStamp = ctypes.c_uint()
+
+        # Get the number of pixels.
         numPix = ctypes.c_short()
         AVS_DLL.AVS_GetNumPixels(device, ctypes.byref(numPix))
+
+        # Prepare data structures and get pixel values.
         spect = (ctypes.c_double * numPix.value)()
-        AVS_DLL.AVS_GetScopeData(device,
-                                 ctypes.byref(timeStamp),
-                                 ctypes.byref(spect))
+        timeStamp = ctypes.c_uint()
+        AVS_DLL.AVS_GetScopeData(
+            device,
+            ctypes.byref(timeStamp),
+            ctypes.byref(spect)
+        )
+
+        # Get lambdas for all pixels.
         lambdaList = (ctypes.c_double * numPix.value)()
         AVS_DLL.AVS_GetLambda(device, ctypes.byref(lambdaList))
+
         logger_ASH.debug("{} scopes gathered.".format(device))
+
+        # Clear Callback_Measurment for further observations
+        self.devList[device][1].clear()
+
         return self.devList[device][0], Spectrum(list(lambdaList), list(spect))
 
     def stopMeasure(self, device):
+        """
+        Stops the measurment on the selected device.
+
+        For further information see AvaSpec x64-DLL Manual 3.3.27.
+
+        Parameters:
+        - device -- AVS_Handle as given by AVS_Activate
+        """
         AVS_DLL.AVS_StopMeasure(device)
 
     def prepareAll(self, intTime=10, triggered=False, nrAverages=1):
-        assert(intTime >= 1.1)
+        """
+        Prepare all spectrometers using given parameters using
+        self.prepareMeasure for all devices.
+
+        Parameters:
+        see self.prepareMeasure
+        """
+
         for device in self.devList:
             self.prepareMeasure(device, intTime, triggered, nrAverages)
 
     def startAll(self, nmsr):
+        """
+        Starts all spectrometers using self.startMeasure
+
+        Parameters:
+        see self.startMeasure
+        """
+
         for device in self.devList:
             self.startMeasure(device, nmsr)
 
     def waitAll(self):
+        """
+        Wait for each spectrometer to be ready to send data using
+        self.waitMeasurmentReady.
+        """
+
         for device in self.devList:
             self.waitMeasurmentReady(device)
 
     def getScopes(self):
+        """
+        Get scope for every spectrometer using self.getScope.
+
+        Returns:
+        dict -- A dict of Spectrum, with keys equals to the spectrometer name
+        and values equals to the Spectrum object. this is the format expected
+        by Spectrum_Storage.putSpectra.
+        """
+
         tp_dict_to_return = dict([])
         for device in self.devList:
             tp_tup = self.getScope(device)
@@ -512,20 +718,52 @@ class AvaSpec_Handler:
         return tp_dict_to_return
 
     def stopAll(self):
+        """
+        Stops all devices using self.stopMeasure.
+        """
+
         for device in self.devList:
             self.stopMeasure(device)
 
     def getParameters(self, device):
+        """
+        Gets all useful informations on a device.
 
+        For further information see AvaSpec x64-DLL 3.3.15
+
+        Parameters:
+        - device -- AVS_Handle as given by AVS_Activate corresponding to the
+        device you want to have information about.
+
+        Returns:
+        Device_Config -- A c_DeviceConfigType corresponding to the divice
+        config of device.
+        """
+
+        # Prepare data structures
         Device_Config = c_DeviceConfigType()
         ReqSize = ctypes.c_uint(ctypes.sizeof(Device_Config))
+
+        # Prepare function errcheck
         AVS_DLL.AVS_GetParameter.errcheck = self._check_error
+
+        # Get config
         AVS_DLL.AVS_GetParameter(device, ReqSize, ctypes.byref(ReqSize),
                                  ctypes.byref(Device_Config))
 
         return Device_Config
 
     def startAllAndGetScopes(self, nmsr=1):
+        """
+        Start all spectrometers and returns scopes using self.startAll,
+        self.waitAll and self.getScopes.
+
+        Parameters:
+        see self.startMeasure
+
+        Returns:
+        see self.getScopes
+        """
         self.startAll(nmsr)
         self.waitAll()
         return self.getScopes()
@@ -535,34 +773,78 @@ class AvaSpec_Handler:
 
 class Spectrum:
 
+    """
+    Useful class to store Spectrum information and to handle varied operations
+    on spectra as absorbance spectrum computation.
+    """
+
     def __init__(self, P_lambdas, P_values, P_smoothed=False):
+        """
+        Inits self.
+        Inits a CubicSpline used as interpolation of the dataset.
+
+        Parameters:
+        - P_lambdas -- A list on values corresponding to the lambdas of the
+        pixel.
+        - P_values -- A list of values corresponding to the values of the
+        pixel.
+        - P_smoothed -- Wether the actual Spectrum is smoothed, this is meant
+        to avoid to smooth multiple times.
+        """
+
         self._lambdas = list(P_lambdas)
         self._values = list(P_values)
         self._smoothed = bool(P_smoothed)
         self._interpolator = CubicSpline(self._lambdas, self._values)
 
     def _get_lambdas(self):
+        """
+        Returns the lambdas.
+        """
+
         return self._lambdas.copy()
 
     lambdas = property(_get_lambdas)
 
     def _get_values(self):
+        """
+        Returns the values.
+        """
+
         return self._values.copy()
 
     values = property(_get_values)
 
     def __iter__(self):
+        """
+        Returns an iterator on self wich contains tups as follows :
+            (lambda, value)
+        """
         return iter(zip(self.lambdas, self.values))
 
     def __call__(self, P_lambda):
+        """
+        Returns the estimated value at P_lambda
+
+        Parameters:
+        - P_lambda -- Value where you want to know the value estimation.
+        """
+
         if P_lambda < self.lambdas[0] or P_lambda > self.lambdas[-1]:
-                raise RuntimeError("{} is not ".format(P_lambda)
-                                   + "contained in spectrum range (wich is"
-                                   + " {} - {})".format(self.lambdas[0],
-                                                        self.lambdas[-1]))
+                raise RuntimeError(
+                    "{} is not ".format(P_lambda)
+                    + "contained in spectrum range (wich is"
+                    + " {} - {})".format(
+                        self.lambdas[0],
+                        self.lambdas[-1]
+                    )
+                )
         return self._interpolator(P_lambda)
 
     def __getstate__(self):
+        """
+        Returns Spectrum current state.
+        """
         return self.__dict__
 
     def __setstate__(self, tp_dict):
