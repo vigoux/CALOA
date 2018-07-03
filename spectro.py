@@ -822,7 +822,7 @@ class Spectrum:
         """
         return iter(zip(self.lambdas, self.values))
 
-    def __call__(self, P_lambda):
+    def __call__(self, P_lambda, force_computation=False):
         """
         Returns the estimated value at P_lambda
 
@@ -830,7 +830,8 @@ class Spectrum:
         - P_lambda -- Value where you want to know the value estimation.
         """
 
-        if P_lambda < self.lambdas[0] or P_lambda > self.lambdas[-1]:
+        if (P_lambda < self.lambdas[0] or P_lambda > self.lambdas[-1])\
+                and not force_computation:
                 raise RuntimeError(
                     "{} is not ".format(P_lambda)
                     + "contained in spectrum range (wich is"
@@ -976,7 +977,9 @@ class Spectrum:
             else spectrum.lambdas
 
         l_values = [
-            self(lam) + spectrum(lam) for lam in l_lambdas
+            self(lam, force_computation=True)
+            + spectrum(lam, force_computation=True)
+            for lam in l_lambdas
         ]
 
         return Spectrum(l_lambdas, l_values, P_smoothed=smoothed)
@@ -992,7 +995,9 @@ class Spectrum:
             else spectrum.lambdas
 
         l_values = [
-            self(lam) - spectrum(lam) for lam in l_lambdas
+            self(lam, force_computation=True)
+            - spectrum(lam, force_computation=True)
+            for lam in l_lambdas
         ]
 
         return Spectrum(l_lambdas, l_values, P_smoothed=smoothed)
@@ -1008,7 +1013,9 @@ class Spectrum:
             else spectrum.lambdas
 
         l_values = [
-            self(lam)/spectrum(lam) if spectrum(lam) > 0 else 0
+            self(lam, force_computation=True)
+            / spectrum(lam, force_computation=True)
+            if spectrum(lam) > 0 else 0
             for lam in l_lambdas
         ]
 
@@ -1025,7 +1032,9 @@ class Spectrum:
             else spectrum.lambdas
 
         l_values = [
-            self(lam)*spectrum(lam) for lam in l_lambdas
+            self(lam, force_computation=True)
+            * spectrum(lam, force_computation=True)
+            for lam in l_lambdas
         ]
 
         return Spectrum(l_lambdas, l_values, P_smoothed=smoothed)
