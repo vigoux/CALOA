@@ -826,12 +826,21 @@ class Application(tk.Frame):
             self.experiment_on = False
             abort = True
 
+        # Here we correct black from reference spectra.
+        tp_reference = dict([])
+        for key in self.spectra_storage.latest_white:
+            tp_reference[key] = \
+                self.spectra_storage.latest_white[key]\
+                - self.spectra_storage.latest_black[key]
+
         if self.referenceChannel.get() != "":
             correction_spectrum = self.get_selected_absorbance(
-                self.spectra_storage.latest_white)
+                tp_reference
+            )
         else:
             experiment_logger.warning(
-                "No reference channel selected, aborting.")
+                "No reference channel selected, aborting."
+            )
             self.experiment_on = False
             abort = True
 
