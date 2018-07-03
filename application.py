@@ -1063,7 +1063,7 @@ def report_callback_exception(self, *args):
             err_str += line
         payload = {
             "title": "AUTO BUG REPORT: {}".format(args[1]),
-            "body": "```" + err_str + "```",
+            "body": "```\n" + err_str + "```",
             "labels": ["bug", ]
         }
         r = requests.post(
