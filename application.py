@@ -524,7 +524,7 @@ class Application(tk.Frame):
 
         logger.debug("Starting to load {}-{}".format(folder_id, subfolder_id))
 
-        load_path = tkFileDialog.askopenfile(
+        load_path = tkFileDialog.askopenfilename(
             title="Saving spectra.",
             defaultextension=".css")
 
