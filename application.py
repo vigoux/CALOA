@@ -60,12 +60,22 @@ main_lock = RLock()
 class Scope_Display(tk.Frame, Queue):
 
     SCOPE_UPDATE_SEQUENCE = "<<SCOPEUPDATE>>"
+    PLOT_TYPE_2D = "2D"
+    PLOT_TYPE_TIME = "Time"
 
-    def __init__(self, master, nameList, stop_event):
+    def __init__(self, master, nameList):
+        """
+        Initializes self.
+        Display is a queue, in wich you put the scopes what you want to draw.
+        To allow multi-threading, Scope_Display uses a bind to a special event.
 
-        # Display is a queue, in wich you put the scopes that you want to
-        # draw. An embedded thread will look inside the queue to update
-        # displays
+        Parameters:
+        - master -- The master widget where self needs to be drawn.
+        - nameList -- A list of 2-tuples containing as follows
+        (panel name, panel type id), it is used to initialize all panels
+        """
+
+        #
 
         Queue.__init__(self)
 
@@ -76,7 +86,11 @@ class Scope_Display(tk.Frame, Queue):
         # The global NoteBook wich contains all scopes
         self.globalPwnd = ttk.Notebook(master=self)
 
-        self.panelsList = []
+        # Create the panelsDict used to store all useful objects to display
+        # spectrum. panelsDict is a dict containing as keys the names of all
+        # panels, and as values a 3-tuple containing :
+        #  (panel axes, panel canvas, panel type id)
+        self.panelsDict = dict([])
 
         for name in nameList:
             figure = Figure(figsize=(6, 5.5), dpi=100)  # The scope figure
@@ -93,7 +107,7 @@ class Scope_Display(tk.Frame, Queue):
 
             canvas.get_tk_widget().pack(fill=tk.BOTH)  # Pack the canvas
 
-            self.panelsList.append([plot, canvas, name[1]])
+            self.panelsDict[name[0]] = plot, canvas, name[1]
         self.bind(self.SCOPE_UPDATE_SEQUENCE, self.reactUpdate)
 
         self.globalPwnd.pack(fill=tk.BOTH)  # Pack the Global Notebook
@@ -114,56 +128,68 @@ class Scope_Display(tk.Frame, Queue):
         self.event_generate(self.SCOPE_UPDATE_SEQUENCE)
 
     def reactUpdate(self, event):
+        """
+        This method is called whenever a new instruction is received.
+        """
+
         try:
+
             tp_instruction = self.get()
+
         except Exception:
             pass
         else:
-            with main_lock:
-                plotting_area = self.panelsList[tp_instruction[0]][0]
-                canvas = self.panelsList[tp_instruction[0]][1]
-                plot_type = self.panelsList[tp_instruction[0]][2]
-                plotting_area.clear()
-                plotting_area.grid()
-                if plot_type == "2D":
-                    # In this case we should have a list of spectrum as given by
-                    # Spectrum_Storage[folder_id, subfolder_id, :]:
-                    # {channel_id: spectrum, ...}
 
-                    for channel_name, spectrum in tp_instruction[1].items():
-                        plotting_area.plot(
-                            spectrum.lambdas, spectrum.values,
-                            label=channel_name)
-                    plotting_area.legend()
-                else:
+            # Extract useful objects
+            plotting_area = self.panelsDict[tp_instruction[0]][0]
+            canvas = self.panelsDict[tp_instruction[0]][1]
+            plot_type = self.panelsDict[tp_instruction[0]][2]
 
-                    # In this case we should have a list of spectra as given by
-                    # Spectrum_Storage[folder_id, :, channel_id] :
-                    # {subfolder_id: spectrum, ...}
+            plotting_area.clear()
+            plotting_area.grid()
 
-                    # To find some other colormap ideas :
-                    # https://matplotlib.org/examples/color/colormaps_reference.html
+            if plot_type == self.PLOT_TYPE_2D:
 
-                    # This part of the work is based on an answers to a
-                    # StackOverflow question :
-                    # Using colomaps to set color of line in matplotlib
+                # In this case we should have a list of spectrum as given
+                # by Spectrum_Storage[folder_id, subfolder_id, :]:
+                # {channel_id: spectrum, ...}
 
-                    values = list(tp_instruction[1].keys())
+                for channel_name, spectrum in tp_instruction[1].items():
+                    plotting_area.plot(
+                        spectrum.lambdas, spectrum.values,
+                        label=channel_name)
+                plotting_area.legend()
 
-                    colormap = plt.get_cmap("plasma")
+            elif self.PLOT_TYPE_TIME:
 
-                    cNorm = colors.Normalize(vmin=values[0], vmax=values[-1])
+                # In this case we should have a list of spectra as given by
+                # Spectrum_Storage[folder_id, :, channel_id] :
+                # {subfolder_id: spectrum, ...}
 
-                    scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=colormap)
+                # To find some other colormap ideas :
+                # https://matplotlib.org/examples/color/colormaps_reference.html
 
-                    for val in values:
-                        spectrum = tp_instruction[1][val]
-                        colorVal = scalarMap.to_rgba(val)
-                        plotting_area.plot(
-                            spectrum.lambdas, spectrum.values,
-                            color=colorVal
-                            )
-                canvas.draw()
+                # This part of the work is based on an answers to a
+                # StackOverflow question :
+                # Using colomaps to set color of line in matplotlib
+
+                values = list(tp_instruction[1].keys())
+
+                # colormap = plt.get_cmap("plasma")
+                colormap = plt.get_cmap("YlOrRd")
+
+                cNorm = colors.Normalize(vmin=values[0], vmax=values[-1])
+
+                scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=colormap)
+
+                for val in values:
+                    spectrum = tp_instruction[1][val]
+                    colorVal = scalarMap.to_rgba(val)
+                    plotting_area.plot(
+                        spectrum.lambdas, spectrum.values,
+                        color=colorVal
+                        )
+            canvas.draw()
 
 # %% Application Object, true application is happening here
 
@@ -222,21 +248,31 @@ class Application(tk.Frame):
 
     BACKUP_CONFIG_FILE_NAME = "temporary_cfg.ctcf"
 
-    def __init__(self, master=None, P_bnc=None):
+    def __init__(self, master=None):
+        """
+        Inits self.
+
+        Parameters:
+        - master -- Master widget to draw application in.
+        """
 
         super().__init__(master)
-        self.config_dict = dict([])
-        self.spectra_storage = spectro.Spectrum_Storage()
-        if P_bnc is None:
-            P_bnc = BNC.BNC(P_dispUpdate=False)
 
+        self.config_dict = dict([])
         self.experiment_on = False
-        self._bnc = P_bnc
+
+        # Initialize all data structures
+        self.spectra_storage = spectro.Spectrum_Storage()
+        self._bnc = BNC.BNC(P_dispUpdate=False)
         self.avh = spectro.AvaSpec_Handler()
-        self.focus_set()
-        self.pack()
+
+        # Create screen and menu
         self.createScreen()
         self.initMenu()
+
+        # Set focus and pack
+        self.focus_set()
+        self.pack()
 
         try:  # to open preceding config file
             with open(self.BACKUP_CONFIG_FILE_NAME, "rb") as file:
@@ -246,15 +282,14 @@ class Application(tk.Frame):
 
     def createScreen(self):
         """Creates and draw main app screen."""
+
         self.mainOpt = ttk.Notebook(self)  # Main display
 
         # Normal mode
-
         wind2 = self.createWidgetsSimple(self.mainOpt)
         self.mainOpt.add(wind2, text="Normal")
 
         # Advanced mode
-
         wind = self.createWidgetsAdvanced(self.mainOpt)
         self.mainOpt.add(wind, text="Advanced")
 
@@ -262,6 +297,7 @@ class Application(tk.Frame):
 
     def initMenu(self):
         """Inits and draw menubar."""
+
         menubar = tk.Menu(self.master)
 
         filemenu = tk.Menu(menubar, tearoff=0)  # Create the file menu scroll
@@ -319,6 +355,7 @@ class Application(tk.Frame):
 
     def display_preference_menu(self):
         """Display the preference pane, for better parameter handling."""
+
         config_pane = tk.Toplevel()
         config_pane.title("Preferences")
         for i, key in enumerate(self.PARAMETERS_KEYS):
@@ -331,6 +368,7 @@ class Application(tk.Frame):
 
     def updateScreen(self):
         """Easier way to update the screen."""
+
         self.mainOpt.update()
 
     def get_selected_absorbance(self, scopes):
@@ -373,11 +411,19 @@ class Application(tk.Frame):
         return abs_spectras
 
     def routine_data_sender(self):
+        """
+        This routine is meant to send data to scope display.
+        This is a live-display-like feature.
+        """
+
         if not self.pause_live_display.wait(0):
+
             self.avh.acquire()
+
             try:
                 self.avh.prepareAll(
-                    intTime=float(self.config_dict[self.ROUT_INT_TIME].get()))
+                    intTime=float(self.config_dict[self.ROUT_INT_TIME].get())
+                )
             except Exception:
                 self.avh.prepareAll()
 
@@ -386,22 +432,23 @@ class Application(tk.Frame):
             # list.copy() is realy important because of the
             # eventual further modification of the list.
             # Send raw spectras.
-            self.liveDisplay.putSpectrasAndUpdate(0, scopes.copy())
+            self.liveDisplay.putSpectrasAndUpdate("Scopes", scopes.copy())
             self.avh.release()
             try:
-                self.after(int(self.config_dict[self.ROUT_PERIOD].get()),
-                           self.routine_data_sender)
+                self.after(
+                    int(self.config_dict[self.ROUT_PERIOD].get()),
+                    self.routine_data_sender
+                )
             except Exception:
                 self.after(250, self.routine_data_sender)
         elif not self.stop_live_display.wait(0):
             self.after(1000, self.routine_data_sender)
-        else:
-            pass
 
     # Save and load
 
     def loadConfig(self):
         """Loads a config file selected by user."""
+
         with tkFileDialog.askopenfile(mode="rb",
                                       filetypes=[("CALOA Config file",
                                                   "*.cbc")]) as saveFile:
@@ -409,6 +456,7 @@ class Application(tk.Frame):
 
     def _rawLoadConfig(self, file):
         """Loads the file at file path given as parameter file."""
+
         unpick = Unpickler(file)
         tp_config_tup = unpick.load()
         try:
@@ -422,6 +470,7 @@ class Application(tk.Frame):
 
     def get_saving_dict(self):
         """Gather all configuration information that needs to be saved"""
+
         tp_config_dict = dict([])
         for key in self.config_dict.keys():
             tp_config_dict[key] = self.config_dict[key].get()
@@ -429,12 +478,14 @@ class Application(tk.Frame):
 
     def _rawSaveConfig(self, file):
         """Saves all config at file given as parameter file."""
+
         pick = Pickler(file)
         total_list = self.get_saving_dict()
         pick.dump(total_list)
 
     def saveConfig(self):
         """Saves config in a user selected location."""
+
         saveFileName = tkFileDialog.asksaveasfilename(
             defaultextension=".cbc",
             filetypes=[("CALOA Config file",
@@ -443,25 +494,39 @@ class Application(tk.Frame):
             self._rawSaveConfig(saveFile)
 
     def saveSpectra(self, folder_id, subfolder_id):
+        """
+        Saves spectra located at folder_id, subfolder_id
+        """
+
         logger.debug("Starting to save {}-{}".format(folder_id, subfolder_id))
+
         save_path = tkFileDialog.asksaveasfilename(
             title="Saving spectra.",
             defaultextension=".css")
+
         if save_path is not None:
             with open(save_path, "wb") as save_file:
                 pick = Pickler(save_file)
                 pick.dump(self.spectra_storage[folder_id, subfolder_id, :])
+
         logger.debug("Saved {}-{}".format(folder_id, subfolder_id))
 
     def loadSpectra(self, folder_id, subfolder_id):
+        """
+        Loads spectra.
+        """
+
         logger.debug("Starting to load {}-{}".format(folder_id, subfolder_id))
+
         load_path = tkFileDialog.asksaveasfilename(
             title="Saving spectra.",
             defaultextension=".css")
+
         if load_path is not None:
             with open(load_path, "wb") as load_file:
                 unpick = Unpickler(load_file)
                 self.putSpectra(folder_id, subfolder_id, unpick.load())
+
         logger.debug("Loaded {}-{}".format(folder_id, subfolder_id))
 
     # TODO: Enhance advanced frame aspect id:32
@@ -470,23 +535,35 @@ class Application(tk.Frame):
     # https://github.com/Mambu38/CALOA/issues/43
 
     def createWidgetsAdvanced(self, master):
+        """
+        Creates the advanced pane.
+        """
 
         wind = tk.PanedWindow(master, orient=tk.HORIZONTAL)
+
         self.Lframe = tk.Frame(wind)
         wind.add(self.Lframe)
         bnc_frame = self._bnc.drawComplete(self.Lframe)
         bnc_frame.pack(side=tk.LEFT)
+
         sep1 = ttk.Separator(wind, orient=tk.VERTICAL)
         wind.add(sep1)
+
         self.Mframe = tk.Frame(wind)
         wind.add(self.Mframe)
-        tk.Button(self.Mframe, command=self._bnc.reset,
-                  text="Reset BNC").pack(side=tk.RIGHT)
+        tk.Button(
+            self.Mframe, command=self._bnc.reset,
+            text="Reset BNC"
+        ).pack(side=tk.RIGHT)
+
         wind.pack()
 
         return wind
 
     def createWidgetsSimple(self, master):
+        """
+        Draw the simple pane.
+        """
         frame = tk.Frame(master)
 
         #  Drawing BNC Frame
@@ -564,13 +641,15 @@ class Application(tk.Frame):
 
         self.pause_live_display = Event()
         self.stop_live_display = Event()
-        self.liveDisplay = Scope_Display(scope_fen,
-                                         [("Scopes", "2D"),
-                                          ("Black", "2D"),
-                                          ("White", "2D"),
-                                          ("Experiment raw", "2D"),
-                                          ("Experiment abs.", "Superp")],
-                                         self.stop_live_display)
+        self.liveDisplay = Scope_Display(
+            scope_fen,
+            [("Scopes", Scope_Display.PLOT_TYPE_2D),
+             ("Black", Scope_Display.PLOT_TYPE_2D),
+             ("White", Scope_Display.PLOT_TYPE_2D),
+             ("Experiment raw", Scope_Display.PLOT_TYPE_2D),
+             ("Experiment abs.", Scope_Display.PLOT_TYPE_TIME)],
+            self.stop_live_display
+        )
         self.liveDisplay.pack(fill=tk.BOTH)
         self.after(0, self.routine_data_sender)
         scope_fen.pack(side=tk.RIGHT, padx=10, pady=10, fill=tk.BOTH)
@@ -628,7 +707,7 @@ class Application(tk.Frame):
         self.spectra_storage.putBlack(self.avh.getScopes())
         experiment_logger.info("Black set.")
         self.liveDisplay.putSpectrasAndUpdate(
-            1, self.spectra_storage.latest_black)
+            "Black", self.spectra_storage.latest_black)
         self.avh.stopAll()
         self.avh.release()
         self.pause_live_display.clear()
@@ -674,7 +753,7 @@ class Application(tk.Frame):
         self.spectra_storage.putWhite(self.avh.getScopes())
         experiment_logger.info("White set.")
         self.liveDisplay.putSpectrasAndUpdate(
-            2, self.spectra_storage.latest_white)
+            "White", self.spectra_storage.latest_white)
         self.avh.stopAll()
         self.avh.release()
         self.pause_live_display.clear()
@@ -780,7 +859,9 @@ class Application(tk.Frame):
                 self.avh.stopAll()
                 self.spectra_storage.putSpectra(raw_timestamp, n_d, tp_scopes)
                 self.liveDisplay.putSpectrasAndUpdate(
-                    3, self.spectra_storage[raw_timestamp, n_d, :])
+                    "Experiment raw",
+                    self.spectra_storage[raw_timestamp, n_d, :]
+                )
 
                 black_corrected_scopes = dict([])
 
@@ -801,12 +882,15 @@ class Application(tk.Frame):
                         tp_absorbance[key]-correction_spectrum[key]
 
                 self.spectra_storage.putSpectra(
-                    abs_timestamp, n_d, tp_absorbance)
+                    abs_timestamp, n_d, tp_absorbance
+                )
 
                 self.liveDisplay.putSpectrasAndUpdate(
-                    4,
+                    "Experiment abs.",
                     self.spectra_storage[
-                        abs_timestamp, :, first_absorbance_spectrum_name])
+                        abs_timestamp, :, first_absorbance_spectrum_name
+                    ]
+                )
 
             if not self.experiment_on:
                 experiment_logger.info("Experiment stopped.")
