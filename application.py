@@ -973,7 +973,11 @@ class Application(tk.Frame):
         channel_ids = [tup[0] for tup in self.avh.devList.values()]
 
         for id in channel_ids:
-            # This item is all the lambdas
+
+            # Quick reminder : Spectrum_Storage[folder_i, :, id] returns
+            # a dict of the form :
+            #   {subfolder_id: Spectrum, ...}
+
             to_save = self.spectra_storage[folder_id, :, id]
             interp_lam_range = list(linspace(
                 float(self.config_dict[self.STARTLAM_ID].get()),
@@ -982,12 +986,12 @@ class Application(tk.Frame):
 
             format_data(
                 raw_path + os.sep + "raw{}_chan{}.txt".format(timeStamp, id),
-                [self.spectra_storage.latest_black[id].lambdas,  # LAMBDAS
-                 self.spectra_storage.latest_black[id].values,  # BLACK
-                 self.spectra_storage.latest_white[id].values]  # WHITE
-                + [
-                   tup[1].values for tup in to_save
-                  ])
+                [
+                    self.spectra_storage.latest_black[id].lambdas,  # LAMBDAS
+                    self.spectra_storage.latest_black[id].values,  # BLACK
+                    self.spectra_storage.latest_white[id].values  # WHITE
+                ] + list(to_save.values())
+            )
 
             # Saving Interpolated datas
 
