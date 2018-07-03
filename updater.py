@@ -89,6 +89,7 @@ if config.AUTO_UPDATE_ENABLED:
 
     if config.DEVELOPER_MODE_ENABLED:
         updated_version_nbr = dict_latest_release[0]["tag_name"]
+        dict_latest_release = dict_latest_release[0]
     else:
         updated_version_nbr = dict_latest_release["tag_name"]
 
