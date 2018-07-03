@@ -326,7 +326,7 @@ class Application(tk.Frame):
         )
         white_menu.add_command(
             label="Load White",
-            command=lambda: self.loadSpectra("Basic", "White")
+            command=lambda: self.loadSpectra("Basic", "White", "White")
         )
         spectra_menu.add_cascade(
             label="White",
@@ -340,7 +340,7 @@ class Application(tk.Frame):
         )
         black_menu.add_command(
             label="Load Black",
-            command=lambda: self.loadSpectra("Basic", "Black")
+            command=lambda: self.loadSpectra("Basic", "Black", "Black")
         )
         spectra_menu.add_cascade(
             label="Black",
@@ -517,7 +517,7 @@ class Application(tk.Frame):
 
         logger.debug("Saved {}-{}".format(folder_id, subfolder_id))
 
-    def loadSpectra(self, folder_id, subfolder_id):
+    def loadSpectra(self, folder_id, subfolder_id, display_screen=None):
         """
         Loads spectra.
         """
@@ -529,10 +529,18 @@ class Application(tk.Frame):
             defaultextension=".css")
 
         if load_path is not None:
+            tp_spectra = None
             with open(load_path, "rb") as load_file:
                 unpick = Unpickler(load_file)
+                tp_spectra = unpick.load()
                 self.spectra_storage.\
-                    _hidden_directory[folder_id][subfolder_id] = unpick.load()
+                    _hidden_directory[folder_id][subfolder_id] = tp_spectra
+
+        if display_screen is not None:
+            self.liveDisplay.putSpectrasAndUpdate(
+                display_screen,
+                tp_spectra
+            )
 
         logger.debug("Loaded {}-{}".format(folder_id, subfolder_id))
 
