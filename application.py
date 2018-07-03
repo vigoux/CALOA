@@ -510,7 +510,10 @@ class Application(tk.Frame):
         if save_path is not None:
             with open(save_path, "wb") as save_file:
                 pick = Pickler(save_file)
-                pick.dump(self.spectra_storage[folder_id, subfolder_id, :])
+                pick.dump(
+                    self.spectra_storage.  # NOT END OF LINE
+                    _hidden_directory[folder_id][subfolder_id]
+                )
 
         logger.debug("Saved {}-{}".format(folder_id, subfolder_id))
 
@@ -528,7 +531,8 @@ class Application(tk.Frame):
         if load_path is not None:
             with open(load_path, "wb") as load_file:
                 unpick = Unpickler(load_file)
-                self.putSpectra(folder_id, subfolder_id, unpick.load())
+                self.spectra_storage.\
+                    _hidden_directory[folder_id][subfolder_id] = unpick.load()
 
         logger.debug("Loaded {}-{}".format(folder_id, subfolder_id))
 
