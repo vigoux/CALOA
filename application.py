@@ -1051,7 +1051,7 @@ class Application(tk.Frame):
                     file.write("\t\t{} : {}\n".format(key, value))
             for key in self.config_dict.keys():
                 if key in self.DISPLAY_KEYS or key in self.PARAMETERS_KEYS:
-                    file.write("{} : {}".format(key,
+                    file.write("{} : {}\n".format(key,
                                                 self.config_dict[key].get()))
             file.close()
 
