@@ -1126,19 +1126,22 @@ class Spectrum_Storage:
         if len(indicator_tuple) != 3:
             raise ValueError("Argument don't have correct length.")
 
-        if not isinstance(indicator_tuple[0], (str, slice)):
-            raise ValueError("Argument nr 1 is not of the correct type."
-                             + " Expected one of : str, slice.")
-
-        if not isinstance(indicator_tuple[1], (int, slice)):
-            raise ValueError("Argument nr 2 is not of the correct type."
-                             + " Expected one of : int, slice.")
-
-        if not isinstance(indicator_tuple[2], (str, slice)):
-            raise ValueError("Argument nr 3 is not of the correct type."
-                             + " Expected one of : str, slice.")
-
         class_types = tuple(map(type, indicator_tuple))
+
+        if class_types[0] not in (str, slice):
+            raise ValueError("Argument nr 1 is not of the correct type."
+                             + " Expected one of : str, slice."
+                             + " Found {}.".format(class_types[0]))
+
+        if class_types[1] not in (int, slice):
+            raise ValueError("Argument nr 2 is not of the correct type."
+                             + " Expected one of : int, slice."
+                             + " Found {}.".format(class_types[0]))
+
+        if class_types[2] not in (str, slice):
+            raise ValueError("Argument nr 3 is not of the correct type."
+                             + " Expected one of : str, slice."
+                             + " Found {}.".format(class_types[0]))
 
         for i in range(3):
             if class_types[i] == slice:
