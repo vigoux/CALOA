@@ -524,12 +524,12 @@ class Application(tk.Frame):
 
         logger.debug("Starting to load {}-{}".format(folder_id, subfolder_id))
 
-        load_path = tkFileDialog.asksaveasfilename(
+        load_path = tkFileDialog.askopenfile(
             title="Saving spectra.",
             defaultextension=".css")
 
         if load_path is not None:
-            with open(load_path, "wb") as load_file:
+            with open(load_path, "rb") as load_file:
                 unpick = Unpickler(load_file)
                 self.spectra_storage.\
                     _hidden_directory[folder_id][subfolder_id] = unpick.load()
