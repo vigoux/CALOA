@@ -995,7 +995,7 @@ class Application(tk.Frame):
                     self.spectra_storage.latest_black[id].lambdas,  # LAMBDAS
                     self.spectra_storage.latest_black[id].values,  # BLACK
                     self.spectra_storage.latest_white[id].values  # WHITE
-                ] + list(to_save.values())
+                ] + [spectrum.values for spectrum in to_save.values()]
             )
 
             # Saving Interpolated datas
