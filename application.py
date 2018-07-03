@@ -1018,7 +1018,7 @@ class Application(tk.Frame):
             # Saving Interpolated datas
 
             interpolated = [interp_lam_range]
-            for _, spectrum in to_save:
+            for spectrum in to_save.values():
                 interpolated.append(spectrum.getInterpolated(
                                     startingLamb=interp_lam_range[0],
                                     endingLamb=interp_lam_range[-1],
@@ -1030,7 +1030,7 @@ class Application(tk.Frame):
             # Saving Cosmetic datas
 
             cosmetic = [interp_lam_range]
-            for _, spectrum in to_save:
+            for spectrum in to_save.values():
                 cosmetic.append(spectrum.getInterpolated(
                                 startingLamb=interp_lam_range[0],
                                 endingLamb=interp_lam_range[-1],
