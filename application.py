@@ -646,12 +646,13 @@ class Application(tk.Frame):
         self.stop_live_display = Event()
         self.liveDisplay = Scope_Display(
             scope_fen,
-            [("Scopes", Scope_Display.PLOT_TYPE_2D),
-             ("Black", Scope_Display.PLOT_TYPE_2D),
-             ("White", Scope_Display.PLOT_TYPE_2D),
-             ("Experiment raw", Scope_Display.PLOT_TYPE_2D),
-             ("Experiment abs.", Scope_Display.PLOT_TYPE_TIME)],
-            self.stop_live_display
+            [
+                ("Scopes", Scope_Display.PLOT_TYPE_2D),
+                ("Black", Scope_Display.PLOT_TYPE_2D),
+                ("White", Scope_Display.PLOT_TYPE_2D),
+                ("Experiment raw", Scope_Display.PLOT_TYPE_2D),
+                ("Experiment abs.", Scope_Display.PLOT_TYPE_TIME)
+            ]
         )
         self.liveDisplay.pack(fill=tk.BOTH)
         self.after(0, self.routine_data_sender)
