@@ -44,6 +44,9 @@ from pickle import Pickler, Unpickler
 
 import os
 
+# Config file to manage functionnalities
+import config
+
 # Used to send automatic bug reports
 import requests
 import json
@@ -1041,24 +1044,26 @@ def report_callback_exception(self, *args):
     err = traceback.format_exception(*args)
     tMsg.showerror("Error", args[1])  # This is exception message
     logger.critical("Error :", exc_info=err)
-    url = "https://api.github.com/repos/Mambu38/CALOA/issues"
-    err_str = platform.platform()+"\n"
-    err_str += \
-        platform.python_implementation() + "-" + platform.python_version()\
-        + "\n"
-    for line in err:
-        err_str += line
-    payload = {
-        "title": "AUTO BUG REPORT: {}".format(args[1]),
-        "body": "```" + err_str + "```",
-        "labels": ["bug", ]
-    }
-    r = requests.post(
-        url,
-        data=json.dumps(payload),
-        auth=("caloareportsender@gmail.com", "!T&XfDOLONZ3W@5lbC*k")
-    )
-    logger.info("Bug report sent, received {}".format(r.headers["Status"]))
+    if config.AUTO_BUG_REPORT_ENABLED:
+        url = "https://api.github.com/repos/Mambu38/CALOA/issues"
+        err_str = platform.platform()+"\n"
+        err_str += \
+            platform.python_implementation() + "-" + platform.python_version()\
+            + "\n"
+        for line in err:
+            err_str += line
+        payload = {
+            "title": "AUTO BUG REPORT: {}".format(args[1]),
+            "body": "```" + err_str + "```",
+            "labels": ["bug", ]
+        }
+        r = requests.post(
+            url,
+            data=json.dumps(payload),
+            auth=("caloareportsender@gmail.com", "!T&XfDOLONZ3W@5lbC*k")
+        )
+        logger.info("Bug report sent, received {}".format(r.headers["Status"]))
+
 
 def root_goodbye():
     global root
