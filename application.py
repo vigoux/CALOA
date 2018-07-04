@@ -1157,8 +1157,14 @@ class Application(tk.Frame):
             self._rawSaveConfig(configFile)
 
         logger.debug("Saving B/W spectra.")
-        self.saveSpectra("Basic", "Black", path=self.BACKUP_BLACK_FILE_NAME)
-        self.saveSpectra("Basic", "White", path=self.BACKUP_WHITE_FILE_NAME)
+        if self.spectra_storage.blackIsSet():
+            self.saveSpectra(
+                "Basic", "Black", path=self.BACKUP_BLACK_FILE_NAME
+            )
+        if self.spectra_storage.whiteIsSet():
+            self.saveSpectra(
+                "Basic", "White", path=self.BACKUP_WHITE_FILE_NAME
+            )
 
         logger.debug("Stopping live display.")
         self.pause_live_display.set()
