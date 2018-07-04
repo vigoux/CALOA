@@ -31,7 +31,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with CALOA.  If not, see <http://www.gnu.org/licenses/>.
 
-2 - Installation
+2. Installation
 
 Necesites admin privileges.
 
@@ -46,10 +46,10 @@ to easily uninstall Python 3.
 Python 2 does not need to be uninstalled.
 Installation can be split in 4 parts.
 
-    0 - Connect the spectrometer and the BNC via USB-to-Serial to the computer
+    0. Connect the spectrometer and the BNC via USB-to-Serial to the computer
         to be used for installation and operating.
 
-    1 - Installing Anaconda Python
+    1. Installing Anaconda Python
 
 Anaconda Python 3.6 environment (env. 0.5 Gb disk space required) was used to write
 the CALOA application, and is used during installation and execution.
@@ -65,19 +65,19 @@ In the end of installation, after VSCode installation is prompted, install it.
 This will need an internet connection, if you do not have one, there is an installer
 along with
 
-    2 - Installing PySerial
+    2. Installing PySerial
 
 PySerial is a module used by Python to communicate with serial ports.
 This module will be installed automatically, as long as you have correctly
 followed previous steps.
 
-    3 - Installing FTDI CDM Drivers
+    3. Installing FTDI CDM Drivers
 
 FTDI CDM Drivers is needed for USB-to-Serial interfacing.
 A new installation window will pop-up, simply follow the steps given by the
 installer.
 
-    4 - Installing CALOA
+    4. Installing CALOA
 
 This is the program that pilots communication with both BNC generator and
 Avantes fiber spectrometers.
@@ -85,9 +85,9 @@ Installation will be done automatically.
 
 If all went right, you can choose to start the application
 
-3 - Using CALOA
+3. Using CALOA
 
-    1 - Starting CALOA
+    1. Starting CALOA
 
 To start CALOA, simply double click on the CALOA short-cut.
 Then a console will run, don't close this console manually, this will cause
@@ -95,16 +95,16 @@ CALOA to crash.
 In this console, some information will be written, please DO NOT interact
 with the console while it is starting, wait for GUI to appear.
 
-    2 - Interface overview
+    2. Interface overview
 
 On the top of the frame, below menu bar, you can choose your "mode" between
 "Normal" and "Advanced".
 
-        1 - Normal mode
+        3. Normal mode
 
 Normal mode interface can be split in 3 parts :
 
-            1 - BNC channel setter
+            1. BNC channel setter
 
 This part of the interface is the lefter one.
 Here we can divide interface in 8 similar labeled boxes. Each one of this boxes
@@ -116,11 +116,11 @@ informations :
     * Pulse phase (floating point number) : delay between trigger and TTL pulse in sec
     * Pulse phase variation (floating point number) : delay variation in sec
 
-            2 - Observation management frame
+            2. Observation management frame
 
 Here again, interface can be split in three parts :
 
-                1 - Experiment management
+                1. Experiment management
 
 In this part, you can fix your experiment parameters :
 
@@ -130,7 +130,7 @@ In this part, you can fix your experiment parameters :
     * Averaging number : Averaging number of the spectrometers.
     * Delay number : number of delays you want to do.
 
-                2 - Interpolation management
+                2. Interpolation management
 
 In this part you can set you interpolation parameters.
 
@@ -138,23 +138,23 @@ In this part you can set you interpolation parameters.
     * Ending wavelength : the wavelength you want the spectra to end with
     * Points number : number of points you want between starting and ending
         wavelengths.
-                3 - Reference channel selector
+                3. Reference channel selector
 Here is the useful part to manage absorbance reference spectrum,
 select here the AvaSpec channel used as reference.
 
-            3 - Scope Display
+            3. Scope Display
 
 Here you can select which scope you want to see, note that absorbance scope will
 not be displayed before you've selected a reference channel.
 
-        2 - Advanced mode
+        2. Advanced mode
 
 This is really not useful to interact with BNC using this mode.
 But if you want some fine tunes of BNC, you should use this interface.
 More informations about how to use and program BNC are given in his own documentation,
 given along this file.
 
-    3 - Starting an observation
+    3. Starting an observation
 
 CALOA is used to perform spectrometry over time using a generator and Avantes
 spectrometers.
