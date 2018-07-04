@@ -499,44 +499,57 @@ class Application(tk.Frame):
     def saveSpectra(self, folder_id, subfolder_id):
         """
         Saves spectra located at folder_id, subfolder_id
+
+        Parameters :
+        - folder_id -- A folder id contained in Spectrum_Storage
+        - subfolder_id -- A subfolder_id contained in folder_id
         """
 
         logger.debug("Starting to save {}-{}".format(folder_id, subfolder_id))
 
+        # Ask to select a save file
         save_path = tkFileDialog.asksaveasfilename(
             title="Saving spectra.",
             defaultextension=".crs")
 
-        if save_path is not None:
-            with open(save_path, "wb") as save_file:
-                pick = Pickler(save_file)
+        if save_path is not None:  # if selected
+            with open(save_path, "wb") as save_file:  # open it
+                pick = Pickler(save_file)  # Create a Pickler
                 pick.dump(
                     self.spectra_storage.  # NOT END OF LINE
                     _hidden_directory[folder_id][subfolder_id]
-                )
+                )  # Save spectra
 
         logger.debug("Saved {}-{}".format(folder_id, subfolder_id))
 
     def loadSpectra(self, folder_id, subfolder_id, display_screen=None):
         """
         Loads spectra.
+
+        Parameters :
+        - folder_id/subfolder_id -- see Application.saveSpectra
+        - display_screen -- If set to a value (str), will display loaded
+        spectra in the live display using
+        Scope_Display.putSpectrasAndUpdate(display_screen, loaded data)
         """
 
         logger.debug("Starting to load {}-{}".format(folder_id, subfolder_id))
 
+        # Askk to select a file
         load_path = tkFileDialog.askopenfilename(
             title="Saving spectra.",
             defaultextension=".crs")
 
-        if load_path is not None:
+        if load_path is not None:  # if selected
             tp_spectra = None
-            with open(load_path, "rb") as load_file:
-                unpick = Unpickler(load_file)
-                tp_spectra = unpick.load()
+            with open(load_path, "rb") as load_file:  # open it
+                unpick = Unpickler(load_file)  # crete an Unpickler
+                tp_spectra = unpick.load()  # Load data
                 self.spectra_storage.\
                     _hidden_directory[folder_id][subfolder_id] = tp_spectra
 
-        if display_screen is not None:
+        if display_screen is not None:  # if a display_screen is set
+            # Display loaded spectra
             self.liveDisplay.putSpectrasAndUpdate(
                 display_screen,
                 tp_spectra
