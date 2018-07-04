@@ -110,11 +110,12 @@ This part of the interface is the lefter one.
 Here we can divide interface in 8 similar labeled boxes. Each one of this boxes
 corresponds to one of the BNC Channels (often named Pulse). A box contains many
 informations :
-  - Pulse Label (text) : the name you want to give to the Pulse.
-  - Pulse state (check box) : whether you want the pulse to be active or not.
-  - Pulse width (floating point number) : width of the real TTL pulse in sec
-  - Pulse phase (floating point number) : delay between trigger and TTL pulse in sec
-  - Pulse phase variation (floating point number) : delay variation in sec
+- Pulse Label (text) : the name you want to give to the Pulse.
+- Pulse state (check box) : whether you want the pulse to be active or not.
+- Pulse width (floating point number) : width of the real TTL pulse in sec
+- Pulse phase (floating point number) : delay between trigger and TTL pulse in
+  sec
+- Pulse phase variation (floating point number) : delay variation in sec
 
 #### Observation management frame
 
@@ -124,11 +125,11 @@ Here again, interface can be split in three parts :
 
 In this part, you can fix your experiment parameters :
 
-    * Total time : total time your observation will take (i.e. the time
-        between two triggers).
-    * Observation time : integration time of the spectrometers.
-    * Averaging number : Averaging number of the spectrometers.
-    * Delay number : number of delays you want to do.
+* Total time : total time your observation will take (i.e. the time
+  between two triggers).
+* Observation time : integration time of the spectrometers.
+* Averaging number : Averaging number of the spectrometers.
+* Delay number : number of delays you want to do.
 
 ##### Interpolation management
 
