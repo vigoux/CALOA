@@ -570,17 +570,22 @@ class Application(tk.Frame):
 
         if path is None:
             # Ask to select a file
-            load_path = tkFileDialog.askopenfilename(
+            path = tkFileDialog.askopenfilename(
                 title="Saving spectra.",
                 defaultextension=".crs")
 
+        tp_spectra = None
+
         if path is not None:  # if selected
-            tp_spectra = None
+
             with open(path, "rb") as load_file:  # open it
                 unpick = Unpickler(load_file)  # crete an Unpickler
                 tp_spectra = unpick.load()  # Load data
                 self.spectra_storage.\
                     _hidden_directory[folder_id][subfolder_id] = tp_spectra
+        else:
+            logger.critical("No file selected.")
+            return None
 
         if display_screen is not None:  # if a display_screen is set
             # Display loaded spectra
