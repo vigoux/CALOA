@@ -16,7 +16,7 @@ Summary :
     5. Gathering saved datas
 
 
-#1. Licence
+# Licence
 
 CALOA is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with CALOA.  If not, see <http://www.gnu.org/licenses/>.
 
-#2. Installation
+# Installation
 
 Requires admin privileges.
 
@@ -46,38 +46,38 @@ to easily uninstall Python 3.
 Python 2 does not need to be uninstalled.
 Installation can be split in 4 parts.
 
-##    0. Connect the spectrometer and the BNC via USB-to-Serial to the computer
+## Connect the spectrometer and the BNC via USB-to-Serial to the computer
         to be used for installation and operating.
 
-##    1. Installing Anaconda Python
+## Installing Python
 
-Anaconda Python 3.6 environment (env. 0.5 Gb disk space required) was used to write
+Python 3.6 environment (env. 0.5 Gb disk space required) was used to write
 the CALOA application, and is used during installation and execution.
-During installation, an Anaconda installer window will pop up.
-Here is a really important step which have to be taken to use CALAO and successfully
-run installation.
-During Anaconda installation, while encountering Advanced Installation Options,
-select "Add Anaconda to the PATH environment variable", if this step is not taken,
-installation will not be complete and CALOA will not be usable.
+During installation, an Python installer window will pop up.
+Here is a really important step which have to be taken to use CALAO and
+successfully run installation.
+During Python installation, while encountering Advanced Installation Options,
+select "Add Python to the PATH environment variable", if this step is not
+taken, installation will not be complete and CALOA will not be usable.
 Appearance of cmd.exe window is is normal, they will be closed afterwards.
 
 In the end of installation, after VSCode installation is prompted, install it.
 This will need an internet connection, if you do not have one, there is an installer
 along with
 
-##    2. Installing PySerial
+## Installing libraries
 
-PySerial is a module used by Python to communicate with serial ports.
-This module will be installed automatically, as long as you have correctly
-followed previous steps.
+Many libraries are used by CALOA to complete its role.
+They will be be installed automatically, as long as, all previous steps has
+been followed correctly.
 
-##    3. Installing FTDI CDM Drivers
+## Installing FTDI CDM Drivers
 
 FTDI CDM Drivers is needed for USB-to-Serial interfacing.
 A new installation window will pop-up, simply follow the steps given by the
 installer.
 
-##    4. Installing CALOA
+## Installing CALOA
 
 This is the program that pilots communication with both BNC generator and
 Avantes fiber spectrometers.
@@ -85,9 +85,9 @@ Installation will be done automatically.
 
 If all went right, you can choose to start the application
 
-#3. Using CALOA
+# Using CALOA
 
-##    1. Starting CALOA
+## Starting CALOA
 
 To start CALOA, simply double click on the CALOA short-cut.
 Then a console will run, don't close this console manually, this will cause
@@ -95,32 +95,32 @@ CALOA to crash.
 In this console, some information will be written, please DO NOT interact
 with the console while it is starting, wait for GUI to appear.
 
-##    2. Interface overview
+## Interface overview
 
 On the top of the frame, below menu bar, you can choose your "mode" between
 "Normal" and "Advanced".
 
-###        1. Normal mode
+### Normal mode
 
 Normal mode interface can be split in 3 parts :
 
-####            1. BNC channel setter
+#### BNC channel setter
 
 This part of the interface is the lefter one.
 Here we can divide interface in 8 similar labeled boxes. Each one of this boxes
 corresponds to one of the BNC Channels (often named Pulse). A box contains many
 informations :
-    * Pulse Label (text) : the name you want to give to the Pulse.
-    * Pulse state (check box) : whether you want the pulse to be active or not.
-    * Pulse width (floating point number) : width of the real TTL pulse in sec
-    * Pulse phase (floating point number) : delay between trigger and TTL pulse in sec
-    * Pulse phase variation (floating point number) : delay variation in sec
+  - Pulse Label (text) : the name you want to give to the Pulse.
+  - Pulse state (check box) : whether you want the pulse to be active or not.
+  - Pulse width (floating point number) : width of the real TTL pulse in sec
+  - Pulse phase (floating point number) : delay between trigger and TTL pulse in sec
+  - Pulse phase variation (floating point number) : delay variation in sec
 
-###            2. Observation management frame
+#### Observation management frame
 
 Here again, interface can be split in three parts :
 
-####                1. Experiment management
+##### Experiment management
 
 In this part, you can fix your experiment parameters :
 
@@ -130,7 +130,7 @@ In this part, you can fix your experiment parameters :
     * Averaging number : Averaging number of the spectrometers.
     * Delay number : number of delays you want to do.
 
-####                2. Interpolation management
+##### Interpolation management
 
 In this part you can set you interpolation parameters.
 
@@ -138,23 +138,24 @@ In this part you can set you interpolation parameters.
     * Ending wavelength : the wavelength you want the spectra to end with
     * Points number : number of points you want between starting and ending
         wavelengths.
-####                3. Reference channel selector
+##### Reference channel selector
 Here is the useful part to manage absorbance reference spectrum,
 select here the AvaSpec channel used as reference.
 
-###            3. Scope Display
+#### Scope Display
 
-Here you can select which scope you want to see, note that absorbance scope will
-not be displayed before you've selected a reference channel.
+Here you can select which scope you want to see, note that absorbance scope
+will not be displayed before you've selected a reference channel.
+It is composed of multiple panes clearly identified.
 
-##        2. Advanced mode
+### Advanced mode
 
 This is really not useful to interact with BNC using this mode.
 But if you want some fine tunes of BNC, you should use this interface.
 More informations about how to use and program BNC are given in his own documentation,
 given along this file.
 
-##    3. Starting an observation
+## Starting an observation
 
 CALOA is used to perform spectrometry over time using a generator and Avantes
 spectrometers.
@@ -188,13 +189,14 @@ the experiment.
 
 After that you can hit "Start experiment" to run the observation. CALOA will
 proceed as such :
-  1 - Set width and delay for each channel
-  2 - Prepare measures on spectrometers
-  3 - Trigger generator (which trigger all instruments in the determined order)
-  4 - Go to Step 3 for a total of <Averaging number> of times.
-  5 - Recover spectra, store them, and display them
-  6 - Increment delay of phase variation for each channel
-  7 - Go to step 3 for a total of <Delay number> of time
+
+1. Set width and delay for each channel
+2. Prepare measures on spectrometers
+3. Trigger generator (which trigger all instruments in the determined order)
+4. Go to Step 3 for a total of <Averaging number> of times.
+5. Recover spectra, store them, and display them
+6. Increment delay of phase variation for each channel
+7. Go to step 3 for a total of <Delay number> of time
 
 After that, you will be asked for a folder where you want to save datas.
 Datas will be saved in a predetermined organization :
