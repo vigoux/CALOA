@@ -199,8 +199,11 @@ class Scope_Display(tk.Frame, Queue):
 
 class Application(tk.Frame):
 
+    #####
     # Useful constants
+    ####
 
+    # Parameters and entries
     SEPARATOR_ID = "[SEPARATOR]"
 
     DISPLAY_KEYS = (
@@ -249,9 +252,18 @@ class Application(tk.Frame):
         ROUT_NR_POINTS: "Display's # of points (integer)"
         }
 
+    # Files
     BACKUP_CONFIG_FILE_NAME = "temporary_cfg.ctcf"
     BACKUP_BLACK_FILE_NAME = "backup_black.crs"
     BACKUP_WHITE_FILE_NAME = "backup_white.crs"
+
+    # Live Display Key names
+    LIVE_SCOPE = "Live scope"
+    LIVE_ABS = "Live abs."
+    BLACK_PANE = "Black"
+    WHITE_PANE = "White"
+    EXP_SCOPE = "Exp. scope"
+    EXP_ABS = "Exp. abs."
 
     def __init__(self, master=None):
         """
@@ -354,7 +366,7 @@ class Application(tk.Frame):
         white_menu.add_command(
             label="Load White",
             command=lambda: self.loadSpectra(
-                "Basic", "White", display_screen="White"
+                "Basic", "White", display_screen=self.WHITE_PANE
             )
         )
         spectra_menu.add_cascade(
@@ -370,7 +382,7 @@ class Application(tk.Frame):
         black_menu.add_command(
             label="Load Black",
             command=lambda: self.loadSpectra(
-                "Basic", "Black", display_screen="Black"
+                "Basic", "Black", display_screen=self.BLACK_PANE
             )
         )
         spectra_menu.add_cascade(
@@ -466,7 +478,9 @@ class Application(tk.Frame):
             # list.copy() is realy important because of the
             # eventual further modification of the list.
             # Send raw spectras.
-            self.liveDisplay.putSpectrasAndUpdate("Scopes", scopes.copy())
+            self.liveDisplay.putSpectrasAndUpdate(
+                self.LIVE_SCOPE, scopes.copy()
+            )
             self.avh.release()
             try:
                 self.after(
@@ -711,11 +725,12 @@ class Application(tk.Frame):
         self.liveDisplay = Scope_Display(
             scope_fen,
             [
-                ("Scopes", Scope_Display.PLOT_TYPE_2D),
-                ("Black", Scope_Display.PLOT_TYPE_2D),
-                ("White", Scope_Display.PLOT_TYPE_2D),
-                ("Experiment raw", Scope_Display.PLOT_TYPE_2D),
-                ("Experiment abs.", Scope_Display.PLOT_TYPE_TIME)
+                (self.LIVE_SCOPE, Scope_Display.PLOT_TYPE_2D),
+                (self.LIVE_ABS, Scope_Display.PLOT_TYPE_2D),
+                (self.BLACK_PANE, Scope_Display.PLOT_TYPE_2D),
+                (self.WHITE_PANE, Scope_Display.PLOT_TYPE_2D),
+                (self.EXP_SCOPE, Scope_Display.PLOT_TYPE_2D),
+                (self.EXP_ABS, Scope_Display.PLOT_TYPE_TIME)
             ]
         )
         self.liveDisplay.pack(fill=tk.BOTH)
@@ -775,7 +790,8 @@ class Application(tk.Frame):
         self.spectra_storage.putBlack(self.avh.getScopes())
         experiment_logger.info("Black set.")
         self.liveDisplay.putSpectrasAndUpdate(
-            "Black", self.spectra_storage.latest_black)
+            self.BLACK_PANE, self.spectra_storage.latest_black
+        )
         self.avh.stopAll()
         self.avh.release()
         self.pause_live_display.clear()
@@ -821,7 +837,8 @@ class Application(tk.Frame):
         self.spectra_storage.putWhite(self.avh.getScopes())
         experiment_logger.info("White set.")
         self.liveDisplay.putSpectrasAndUpdate(
-            "White", self.spectra_storage.latest_white)
+            self.WHITE_PANE, self.spectra_storage.latest_white
+        )
         self.avh.stopAll()
         self.avh.release()
         self.pause_live_display.clear()
@@ -936,7 +953,7 @@ class Application(tk.Frame):
                 self.avh.stopAll()
                 self.spectra_storage.putSpectra(raw_timestamp, n_d, tp_scopes)
                 self.liveDisplay.putSpectrasAndUpdate(
-                    "Experiment raw",
+                    self.EXP_SCOPE,
                     self.spectra_storage[raw_timestamp, n_d, :]
                 )
 
@@ -963,7 +980,7 @@ class Application(tk.Frame):
                 )
 
                 self.liveDisplay.putSpectrasAndUpdate(
-                    "Experiment abs.",
+                    self.EXP_ABS,
                     self.spectra_storage[
                         abs_timestamp, :, first_absorbance_spectrum_name
                     ]
