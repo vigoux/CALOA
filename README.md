@@ -10,10 +10,10 @@ Summary :
     3. [Installing FTDI CDM drivers](README.md#installing-ftdi-cdm-drivers)
     4. [Installing CALOA](README.md#installing-caloa)
 3. [Using CALOA](README.md#using-caloa)
-    1. [Starting CALOA]
-    2. [Interface overview]
-    3. [Starting an observation]
-    4. [Using advanced mode]
+    1. [Starting CALOA](README.md#starting-caloa)
+    2. [Interface overview](README.md#interface-overview)
+    3. [Starting an observation](README.md#starting-an-observation)
+    4. [Using advanced mode](README.md#using-advanced-mode)
 
 # Licence
 
