@@ -645,7 +645,7 @@ class Application(tk.Frame):
                   command=self.set_white).grid(row=1, columnspan=2,
                                                sticky=tk.E+tk.W)
 
-        tk.Button(button_fen, text="Launch experiment",
+        tk.Button(button_fen, text="Start experiment",
                   command=self.experiment).grid(row=2, columnspan=2,
                                                 sticky=tk.E+tk.W)
 
