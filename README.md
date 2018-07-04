@@ -2,13 +2,13 @@
 CALOA project
 Summary :
 
-1. [Licence](README.md#license)
+1. [Licence](README.md#licence)
 2. [Installation](README.md#installation)
-    1. Installing Anaconda Python
+    1. Installing Python
     2. Installing PySerial
     3. Installing FTDI CDM drivers
     4. Installing CALOA
-3. Using CALOA
+3. [Using CALOA](README.md#using-caloa)
     1. Starting CALOA
     2. Interface overview
     3. Starting an observation
