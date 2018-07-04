@@ -6,7 +6,7 @@ Summary :
 2. [Installation](README.md#installation)
     1. [Connect hardware](README.md#connect-the-spectrometer-and-the-bnc-via-usb-to-serial-to-the-computer)
     1. [Installing Python](README.md#installing-python)
-    2. [Installing PySerial](README.md#installing-pyserial)
+    2. [Installing libraries](README.md#installing-libraries)
     3. [Installing FTDI CDM drivers](README.md#installing-ftdi-cdm-drivers)
     4. [Installing CALOA](README.md#installing-caloa)
 3. [Using CALOA](README.md#using-caloa)
