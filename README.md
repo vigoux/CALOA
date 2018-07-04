@@ -4,7 +4,7 @@ Summary :
 
 1. [Licence](README.md#licence)
 2. [Installation](README.md#installation)
-    0. [Connect hardware](README.md#README.md#connect-the-spectrometer-and-the-bnc-via-usb-to-serial-to-the-computer)
+    1. [Connect hardware](README.md#README.md#connect-the-spectrometer-and-the-bnc-via-usb-to-serial-to-the-computer)
     1. [Installing Python](README.md#installing-python)
     2. [Installing PySerial](README.md#installing-pyserial)
     3. [Installing FTDI CDM drivers](README.md#installing-ftdi-cdm-drivers)
