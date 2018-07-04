@@ -2,8 +2,8 @@
 CALOA project
 Summary :
 
-1. Licence
-2. Installation
+1. [Licence](README.md#License)
+2. [Installation](README.md#Installation)
     1. Installing Anaconda Python
     2. Installing PySerial
     3. Installing FTDI CDM drivers
