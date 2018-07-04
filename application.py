@@ -505,7 +505,7 @@ class Application(tk.Frame):
 
         save_path = tkFileDialog.asksaveasfilename(
             title="Saving spectra.",
-            defaultextension=".css")
+            defaultextension=".crs")
 
         if save_path is not None:
             with open(save_path, "wb") as save_file:
@@ -526,7 +526,7 @@ class Application(tk.Frame):
 
         load_path = tkFileDialog.askopenfilename(
             title="Saving spectra.",
-            defaultextension=".css")
+            defaultextension=".crs")
 
         if load_path is not None:
             tp_spectra = None
