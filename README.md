@@ -135,10 +135,10 @@ In this part, you can fix your experiment parameters :
 
 In this part you can set you interpolation parameters.
 
-    * Starting wavelength : the wavelength you want the spectra to start with
-    * Ending wavelength : the wavelength you want the spectra to end with
-    * Points number : number of points you want between starting and ending
-        wavelengths.
+* Starting wavelength : the wavelength you want the spectra to start with
+* Ending wavelength : the wavelength you want the spectra to end with
+* Points number : number of points you want between starting and ending
+  wavelengths.
 ##### Reference channel selector
 Here is the useful part to manage absorbance reference spectrum,
 select here the AvaSpec channel used as reference.
