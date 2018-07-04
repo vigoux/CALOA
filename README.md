@@ -29,7 +29,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with CALOA.  If not, see <http://www.gnu.org/licenses/>.
+along with CALOA.  If not, see [here](http://www.gnu.org/licenses/gpl.html).
 
 # Installation
 
