@@ -200,6 +200,7 @@ proceed as such :
 
 After that, you will be asked for a folder where you want to save datas.
 Datas will be saved in a predetermined organization :
+```
   selected_folder :
     save[TIMESTAMP]:
       raw:
@@ -209,7 +210,7 @@ Datas will be saved in a predetermined organization :
       cosmetic:
         [A FILE FOR EACH CHANNEL]
       config.txt
-
+```
 In each file (except config.txt), datas will be organized in lines as follows :
 LAMBDAS    BLACK    WHITE    [ONE COLUMN FOR EACH DELAY]    ...
 
