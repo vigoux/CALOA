@@ -186,7 +186,7 @@ not, for the sake of time saving other parameters will be skipped.
 
 ### Set black and white
 
-#### By observation@
+#### By observation
 
 You will now need to set Black and White. Your hardware setup needs to be
 set for each of them, for example, after setting your hardware to a
@@ -210,8 +210,12 @@ After that, you can load this files instead of observing.
 If you already observed Black and White spectra and exited the application,
 they will be saved and loaded automatically.
 
+### Select the reference
+
 Now, select a reference channel, it will be used to compute absorbance during
 the experiment.
+
+### Run experiment
 
 After that you can hit "Start experiment" to run the observation. CALOA will
 proceed as such :
@@ -223,6 +227,8 @@ proceed as such :
 5. Recover spectra, store them, and display them
 6. Increment delay of phase variation for each channel
 7. Go to step 3 for a total of <Delay number> of time
+
+### Save observed data
 
 After that, you will be asked for a folder where you want to save datas.
 Datas will be saved in a predetermined organization :
