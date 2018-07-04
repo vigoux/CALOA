@@ -244,6 +244,7 @@ Datas will be saved in a predetermined organization :
       config.txt
 ```
 In each file (except config.txt), datas will be organized in lines as follows :
+
 | LAMBDAS | BLACK | WHITE | Spectrum 1 | ... |
 | --- | --- | --- | --- | --- |
 
