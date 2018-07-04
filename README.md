@@ -161,6 +161,8 @@ given along this file.
 CALOA is used to perform spectrometry over time using a generator and Avantes
 spectrometers.
 
+### Enter experiment parameters
+
 First of all you will have to enter your parameters in the application.
 Enter the total observation time (this is the time between two triggers) in
 the Entry labeled "Total time" in milliseconds.
@@ -173,17 +175,40 @@ number.
 Delay number corresponds to the number of times CALOA will delay all
 instruments.
 
+### Enter generator parameters
+
 You now have to set all parameters for all 8 generator channels.
 In each channel cell, as previously mentionned, you can set 5 parameters.
 Label can be set to whatever value you want, it is used as a human readable
-indentification.
+identification.
 Channel parameters will be send to the generator only if State is enabled, if
 not, for the sake of time saving other parameters will be skipped.
+
+### Set black and white
+
+#### By observation@
 
 You will now need to set Black and White. Your hardware setup needs to be
 set for each of them, for example, after setting your hardware to a
 "Black"-mode, hit "Set Black" button, this will set black spectra. Then
 proceed in the same order to set white.
+
+#### From a file
+
+After observation of black (or white), you can save spectra in files.
+
+To do this :
+
+1. Select, in the menu, "Spectra"
+2. Click on the button corresponding to the spectrum you want to save
+3. Then click on "Save"
+
+You will then be asked to selected a file to save selected spectra.
+
+After that, you can load this files instead of observing.
+
+If you already observed Black and White spectra and exited the application,
+they will be saved and loaded automatically.
 
 Now, select a reference channel, it will be used to compute absorbance during
 the experiment.
