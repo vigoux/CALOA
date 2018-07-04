@@ -4,17 +4,16 @@ Summary :
 
 1. [Licence](README.md#licence)
 2. [Installation](README.md#installation)
-    1. Installing Python
-    2. Installing PySerial
-    3. Installing FTDI CDM drivers
-    4. Installing CALOA
+    0. [Connect hardware](README.md#README.md#connect-the-spectrometer-and-the-bnc-via-usb-to-serial-to-the-computer)
+    1. [Installing Python](README.md#installing-python)
+    2. [Installing PySerial](README.md#installing-pyserial)
+    3. [Installing FTDI CDM drivers](README.md#installing-ftdi-cdm-drivers)
+    4. [Installing CALOA](README.md#installing-caloa)
 3. [Using CALOA](README.md#using-caloa)
-    1. Starting CALOA
-    2. Interface overview
-    3. Starting an observation
-    4. Using advanced mode
-    5. Gathering saved datas
-
+    1. [Starting CALOA]
+    2. [Interface overview]
+    3. [Starting an observation]
+    4. [Using advanced mode]
 
 # Licence
 
@@ -250,3 +249,5 @@ In each file (except config.txt), datas will be organized in lines as follows :
 
 Folder raw will contain raw datas, interp interpolated datas, and cosmetic
 smoothed datas.
+
+## Using advanced mode
