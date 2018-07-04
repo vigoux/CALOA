@@ -35,19 +35,19 @@ along with CALOA.  If not, see <http://www.gnu.org/licenses/>.
 
 Requires admin privileges.
 
-Installation of CALOA is simple but there is some really important steps that have
-to be carefully taken.
-Installation is done by an installer which runs all third-party installers usefull
-to run CALOA.
-If Python 3 is already installed on your computer, it is recommended to uninstall
-it to use Anaconda Python 3 instead. Anaconda provides a wide selection of scientific
-python libraries. An uninstaller is provided with CALOA Installer to allow you
-to easily uninstall Python 3.
+Installation of CALOA is simple but there is some really important steps that
+have to be carefully taken.
+Installation is done by an installer which runs all third-party installers
+useful to run CALOA.
+If Python 3 is already installed on your computer, it is recommended to  
+uninstall it to use Anaconda Python 3 instead. Anaconda provides a wide
+selection of scientific python libraries. An uninstaller is provided with
+CALOA Installer to allow you to easily uninstall Python 3.
 Python 2 does not need to be uninstalled.
 Installation can be split in 4 parts.
 
 ## Connect the spectrometer and the BNC via USB-to-Serial to the computer
-        to be used for installation and operating.
+to be used for installation and operating.
 
 ## Installing Python
 
