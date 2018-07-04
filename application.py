@@ -467,10 +467,13 @@ class Application(tk.Frame):
             self.avh.acquire()
 
             try:
+
                 self.avh.prepareAll(
                     intTime=float(self.config_dict[self.ROUT_INT_TIME].get())
                 )
+
             except Exception:
+
                 self.avh.prepareAll()
 
             scopes = self.avh.startAllAndGetScopes()
@@ -481,15 +484,34 @@ class Application(tk.Frame):
             self.liveDisplay.putSpectrasAndUpdate(
                 self.LIVE_SCOPE, scopes.copy()
             )
+
+            if self.referenceChannel.get() != "":
+
+                # Compute absorbance (live)
+                absorbanceSpectrum = self.get_selected_absorbance(
+                    scopes
+                )
+
+                # Display absorbance
+                self.liveDisplay.putSpectrasAndUpdate(
+                    self.LIVE_ABS, absorbanceSpectrum
+                )
+
             self.avh.release()
+
             try:
+
                 self.after(
                     int(self.config_dict[self.ROUT_PERIOD].get()),
                     self.routine_data_sender
                 )
+
             except Exception:
+
                 self.after(250, self.routine_data_sender)
+
         elif not self.stop_live_display.wait(0):
+
             self.after(1000, self.routine_data_sender)
 
     # Save and load
