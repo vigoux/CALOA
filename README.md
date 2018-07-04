@@ -245,7 +245,7 @@ Datas will be saved in a predetermined organization :
 ```
 In each file (except config.txt), datas will be organized in lines as follows :
 | LAMBDAS | BLACK | WHITE | Spectrum 1 | ... |
-| ------- | ----- | ----- | ---------- | ... |
+| ------- | ----- | ----- | ---------- | --- |
 
 Folder raw will contain raw datas, interp interpolated datas, and cosmetic
 smoothed datas.
