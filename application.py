@@ -1135,15 +1135,25 @@ def report_callback_exception(self, *args):
     logger.critical("Error :", exc_info=err)
     if config.AUTO_BUG_REPORT_ENABLED:
         url = "https://api.github.com/repos/Mambu38/CALOA/issues"
-        err_str = platform.platform()+"\n"
-        err_str += \
-            platform.python_implementation() + "-" + platform.python_version()\
-            + "\n"
-        for line in err:
-            err_str += line
+
+        # open template
+        file = open("AUTO_BUG_REPORT_TEMPLATE", "r")
+        template = ''.join(file.readlines())
+        file.close()
+
+        # complete template
+        formatted = template.format(
+            platform_id=platform.platform(),
+            pyimpl=platform.python_implementation(),
+            pyvers=platform.python_version(),
+            err="\n".join(err)
+        )
+
+        # Create payload to post
         payload = {
+            # see traceback for further informations
             "title": "AUTO BUG REPORT: {}".format(args[1]),
-            "body": "```\n" + err_str + "```",
+            "body": formatted,
             "labels": ["bug", ]
         }
         r = requests.post(
