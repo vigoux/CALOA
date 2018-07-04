@@ -250,6 +250,8 @@ class Application(tk.Frame):
         }
 
     BACKUP_CONFIG_FILE_NAME = "temporary_cfg.ctcf"
+    BACKUP_BLACK_FILE_NAME = "backup_black.crs"
+    BACKUP_WHITE_FILE_NAME = "backup_white.crs"
 
     def __init__(self, master=None):
         """
@@ -261,15 +263,16 @@ class Application(tk.Frame):
 
         super().__init__(master)
 
+        logger.debug("Initializing data structures.")
+        self.spectra_storage = spectro.Spectrum_Storage()
         self.config_dict = dict([])
         self.experiment_on = False
 
-        # Initialize all data structures
-        self.spectra_storage = spectro.Spectrum_Storage()
+        logger.debug("Opening connections.")
         self._bnc = BNC.BNC(P_dispUpdate=False)
         self.avh = spectro.AvaSpec_Handler()
 
-        # Create screen and menu
+        logger.debug("Creating screen.")
         self.createScreen()
         self.initMenu()
 
@@ -277,11 +280,35 @@ class Application(tk.Frame):
         self.focus_set()
         self.pack()
 
+        logger.debug("Loading config file.")
         try:  # to open preceding config file
             with open(self.BACKUP_CONFIG_FILE_NAME, "rb") as file:
                 self._rawLoadConfig(file)
         except Exception as e:  # File not found
             logger.info("Impossible to open config file.", exc_info=e)
+
+        logger.debug("Loading B/W files.")
+        if os.path.exists(self.BACKUP_BLACK_FILE_NAME):
+            self.loadSpectra(
+                "Basic",
+                "Black",
+                path=self.BACKUP_BLACK_FILE_NAME,
+                display_screen="Black"
+            )
+            logger.debug("Black spectra loaded.")
+        else:
+            logger.info("No black spectra found.")
+
+        if os.path.exists(self.BACKUP_WHITE_FILE_NAME):
+            self.loadSpectra(
+                "Basic",
+                "Black",
+                path=self.BACKUP_WHITE_FILE_NAME,
+                display_screen="White"
+            )
+            logger.debug("White spectra loaded.")
+        else:
+            logger.info("No white spectra found.")
 
     def createScreen(self):
         """Creates and draw main app screen."""
@@ -326,7 +353,9 @@ class Application(tk.Frame):
         )
         white_menu.add_command(
             label="Load White",
-            command=lambda: self.loadSpectra("Basic", "White", "White")
+            command=lambda: self.loadSpectra(
+                "Basic", "White", display_screen="White"
+            )
         )
         spectra_menu.add_cascade(
             label="White",
@@ -340,7 +369,9 @@ class Application(tk.Frame):
         )
         black_menu.add_command(
             label="Load Black",
-            command=lambda: self.loadSpectra("Basic", "Black", "Black")
+            command=lambda: self.loadSpectra(
+                "Basic", "Black", display_screen="Black"
+            )
         )
         spectra_menu.add_cascade(
             label="Black",
@@ -496,7 +527,7 @@ class Application(tk.Frame):
         with open(saveFileName, "wb") as saveFile:
             self._rawSaveConfig(saveFile)
 
-    def saveSpectra(self, folder_id, subfolder_id):
+    def saveSpectra(self, folder_id, subfolder_id, path=None):
         """
         Saves spectra located at folder_id, subfolder_id
 
@@ -507,13 +538,14 @@ class Application(tk.Frame):
 
         logger.debug("Starting to save {}-{}".format(folder_id, subfolder_id))
 
-        # Ask to select a save file
-        save_path = tkFileDialog.asksaveasfilename(
-            title="Saving spectra.",
-            defaultextension=".crs")
+        if path is None:
+            # Ask to select a save file
+            path = tkFileDialog.asksaveasfilename(
+                title="Saving spectra.",
+                defaultextension=".crs")
 
-        if save_path is not None:  # if selected
-            with open(save_path, "wb") as save_file:  # open it
+        if path is not None:  # if selected
+            with open(path, "wb") as save_file:  # open it
                 pick = Pickler(save_file)  # Create a Pickler
                 pick.dump(
                     self.spectra_storage.  # NOT END OF LINE
@@ -522,7 +554,8 @@ class Application(tk.Frame):
 
         logger.debug("Saved {}-{}".format(folder_id, subfolder_id))
 
-    def loadSpectra(self, folder_id, subfolder_id, display_screen=None):
+    def loadSpectra(self, folder_id, subfolder_id, path=None,
+                    display_screen=None):
         """
         Loads spectra.
 
@@ -535,14 +568,15 @@ class Application(tk.Frame):
 
         logger.debug("Starting to load {}-{}".format(folder_id, subfolder_id))
 
-        # Askk to select a file
-        load_path = tkFileDialog.askopenfilename(
-            title="Saving spectra.",
-            defaultextension=".crs")
+        if path is None:
+            # Ask to select a file
+            load_path = tkFileDialog.askopenfilename(
+                title="Saving spectra.",
+                defaultextension=".crs")
 
-        if load_path is not None:  # if selected
+        if path is not None:  # if selected
             tp_spectra = None
-            with open(load_path, "rb") as load_file:  # open it
+            with open(path, "rb") as load_file:  # open it
                 unpick = Unpickler(load_file)  # crete an Unpickler
                 tp_spectra = unpick.load()  # Load data
                 self.spectra_storage.\
@@ -1071,13 +1105,27 @@ class Application(tk.Frame):
             file.close()
 
     def goodbye_app(self):
-        with open(self.BACKUP_CONFIG_FILE_NAME, "wb") as saveFile:
-            self._rawSaveConfig(saveFile)
-        self._bnc._bnc_handler._con.close()
+        logger.info("Exiting CALOA.")
+
+        logger.debug("Saving config.")
+        with open(self.BACKUP_CONFIG_FILE_NAME, "wb") as configFile:
+
+            self._rawSaveConfig(configFile)
+
+        logger.debug("Saving B/W spectra.")
+        self.saveSpectra("Basic", "Black", path=self.BACKUP_BLACK_FILE_NAME)
+        self.saveSpectra("Basic", "White", path=self.BACKUP_WHITE_FILE_NAME)
+
+        logger.debug("Stopping live display.")
         self.pause_live_display.set()
         self.stop_live_display.set()
         self.experiment_on = True
+
+        logger.debug("Closing connections.")
+        self._bnc._bnc_handler._con.close()
         self.avh._done()
+
+        logger.debug("Exit")
         self.quit()
 
 
