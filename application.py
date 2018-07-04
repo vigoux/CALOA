@@ -305,20 +305,18 @@ class Application(tk.Frame):
                 "Basic",
                 "Black",
                 path=self.BACKUP_BLACK_FILE_NAME,
-                display_screen="Black"
+                display_screen=self.BLACK_PANE
             )
-            logger.debug("Black spectra loaded.")
         else:
             logger.info("No black spectra found.")
 
         if os.path.exists(self.BACKUP_WHITE_FILE_NAME):
             self.loadSpectra(
                 "Basic",
-                "Black",
+                "White",
                 path=self.BACKUP_WHITE_FILE_NAME,
-                display_screen="White"
+                display_screen=self.WHITE_PANE
             )
-            logger.debug("White spectra loaded.")
         else:
             logger.info("No white spectra found.")
 
