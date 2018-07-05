@@ -243,12 +243,13 @@ class Application(tk.Frame):
         ROUT_START_LAM, ROUT_END_LAM, ROUT_NR_POINTS) = PARAMETERS_KEYS
 
     PARAMETERS_TEXTS = {
-        ROUT_PERIOD: "Display's period (>500 ms)",
-        ROUT_INT_TIME: "Display's integration time (in ms)",
-        ROUT_INTERP_INT: "Display's smoothing window width (3 - 51 data pts)",
-        ROUT_START_LAM: "Display's starting wavelength (in nm)",
-        ROUT_END_LAM: "Display's ending wavelength (in nm)",
-        ROUT_NR_POINTS: "Display's # of points (integer)"
+        ROUT_PERIOD: "Live display's period (>500 ms)",
+        ROUT_INT_TIME: "Live display's integration time (in ms)",
+        ROUT_INTERP_INT:
+            "Live display's smoothing window width (3 - 51 data pts)",
+        ROUT_START_LAM: "Live display's starting wavelength (in nm)",
+        ROUT_END_LAM: "Live display's ending wavelength (in nm)",
+        ROUT_NR_POINTS: "Live display's # of points (integer)"
         }
 
     # Files
