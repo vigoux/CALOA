@@ -268,7 +268,6 @@ CALOA updates (or releases) can be split in two categories with diverse
 characteristics and consequences on CALOA. Thes characteristics are summed up
 in the hereinbelow table :
 
-|                 | Release                ||
 | Characteristics | Stable    | Pre-Release |
 | --------------- | :-------: | :---------: |
 | Stability       | High      |         Low |
