@@ -583,6 +583,8 @@ class AvaSpec_Handler:
         Meas.m_Trigger.m_Source = 0
         Meas.m_Trigger.m_SourceType = 0
 
+        AVS_DLL.AVS_PrepareMeasure.errcheck = self.errcheck
+
         AVS_DLL.AVS_PrepareMeasure(device, ctypes.byref(Meas))
 
     def startMeasure(self, device, nmsr):
