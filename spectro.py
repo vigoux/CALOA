@@ -574,15 +574,17 @@ class AvaSpec_Handler:
 
         # Init c_MeasConfigType to pass it to AVS_PrepareMeasure.
         Meas = c_MeasConfigType()
-        Meas.m_StartPixel = 0
-        Meas.m_StopPixel = numPix.value - 1  # Last pixel.
-        Meas.m_IntegrationTime = intTime
-        Meas.m_IntegrationDelay = 0
-        Meas.m_NrAverages = nrAverages if triggerred else 1
+        Meas.m_StartPixel = ctypes.c_ushort(0)
+        Meas.m_StopPixel = ctypes.c_ushort(numPix.value - 1)  # Last pixel.
+        Meas.m_IntegrationTime = ctypes.c_float(intTime)
+        Meas.m_IntegrationDelay = ctypes.c_uint(0)
+        Meas.m_NrAverages = ctypes.c_uint(nrAverages if triggerred else 1)
         # Trigger configuration.
-        Meas.m_Trigger.m_Mode = ctypes.c_ubyte(int(triggerred))
-        Meas.m_Trigger.m_Source = 0
-        Meas.m_Trigger.m_SourceType = 0
+        tp_Trigger = c_TriggerType()
+        tp_Trigger.m_Mode = ctypes.c_ubyte(int(triggerred))
+        tp_Trigger.m_Source = 0
+        tp_Trigger.m_SourceType = 0
+        Meas.m_Trigger = tp_Trigger
 
         AVS_DLL.AVS_PrepareMeasure.errcheck = self._check_error
 
