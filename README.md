@@ -13,7 +13,7 @@ Summary :
     1. [Starting CALOA](README.md#starting-caloa)
     2. [Interface overview](README.md#interface-overview)
     3. [Starting an observation](README.md#starting-an-observation)
-    4. [Using advanced mode](README.md#using-advanced-mode)
+    4. [Updates](README.md#updates)
 
 # Licence
 
@@ -206,8 +206,8 @@ You will then be asked to selected a file to save selected spectra.
 
 After that, you can load this files instead of observing.
 
-If you already observed Black and White spectra and exited the application,
-they will be saved and loaded automatically.
+If you have already observed Black and White spectra and exited the
+application, they will be saved and loaded automatically.
 
 ### Select the reference
 
@@ -231,6 +231,7 @@ proceed as such :
 
 After that, you will be asked for a folder where you want to save datas.
 Datas will be saved in a predetermined organization :
+
 ```
   selected_folder :
   |-save[TIMESTAMP] :
@@ -252,6 +253,7 @@ Datas will be saved in a predetermined organization :
     |
     |-config.txt
 ```
+
 In each file (except config.txt), datas will be organized in lines as follows :
 
 | LAMBDAS | BLACK | WHITE | Spectrum 1 | Spectrum 2 | ... |
@@ -260,4 +262,14 @@ In each file (except config.txt), datas will be organized in lines as follows :
 Folder raw will contain raw datas, interp interpolated datas, and cosmetic
 smoothed datas.
 
-## Using advanced mode
+## Updates
+
+CALOA updates (or releases) can be split in two categories with diverse
+characteristics and consequences on CALOA. Thes characteristics are summed up
+in the hereinbelow table :
+|               | Release             ||
+Characteristics | Stable | Pre-Release |
+| ------------- | :----: | :---------: |
+| Stability | High | Low |
+| Bug report | Optionnal | Forced |
+| Change rate | Low | High |
