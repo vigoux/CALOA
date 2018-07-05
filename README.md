@@ -233,19 +233,19 @@ After that, you will be asked for a folder where you want to save datas.
 Datas will be saved in a predetermined organization :
 ```
   selected_folder :
-  |-save[TIMESTAMP]:
+  |-save[TIMESTAMP] :
     |
-    |-raw:
+    |-raw :
     | |
     | |- [A FILE FOR EACH CHANNEL]
     | |- ...
     |
-    |-interp:
+    |-interp :
     | |
     | |- [A FILE FOR EACH CHANNEL]
     | |- ...
     |
-    |-cosmetic:
+    |-cosmetic :
     | |
     | |- [A FILE FOR EACH CHANNEL]
     | |- ...
