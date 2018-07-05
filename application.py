@@ -778,9 +778,12 @@ class Application(tk.Frame):
         self.pause_live_display.set()
         self.avh.acquire()
         experiment_logger.info("Starting to set black")
-        p_T_tot = float(self.config_dict[self.T_TOT_ID].get())
-        p_T = float(self.config_dict[self.INT_T_ID].get())
-        p_N_c = int(self.config_dict[self.N_C_ID].get())
+        try:
+            p_T_tot = float(self.config_dict[self.T_TOT_ID].get())
+            p_T = float(self.config_dict[self.INT_T_ID].get())
+            p_N_c = int(self.config_dict[self.N_C_ID].get())
+        except ValueError as e:
+            raise UserWarning(e.args[0])  # e.args[0] is the message
 
         self._bnc.setmode("SINGLE")
         self._bnc.settrig("TRIG")
@@ -822,9 +825,12 @@ class Application(tk.Frame):
         self.pause_live_display.set()
         self.avh.acquire()
         experiment_logger.info("Starting to set white")
-        p_T_tot = float(self.config_dict[self.T_TOT_ID].get())
-        p_T = float(self.config_dict[self.INT_T_ID].get())
-        p_N_c = int(self.config_dict[self.N_C_ID].get())
+        try:
+            p_T_tot = float(self.config_dict[self.T_TOT_ID].get())
+            p_T = float(self.config_dict[self.INT_T_ID].get())
+            p_N_c = int(self.config_dict[self.N_C_ID].get())
+        except ValueError as e:
+            raise UserWarning(e.args[0])  # e.args[0] is the message
 
         self._bnc.setmode("SINGLE")
         self._bnc.settrig("TRIG")
@@ -878,11 +884,13 @@ class Application(tk.Frame):
         self.pause_live_display.set()
         self.avh.acquire()
         abort = False
-
-        p_T_tot = float(self.config_dict[self.T_TOT_ID].get())
-        p_T = float(self.config_dict[self.INT_T_ID].get())
-        p_N_c = int(self.config_dict[self.N_C_ID].get())
-        p_N_d = int(self.config_dict[self.N_D_ID].get())
+        try:
+            p_T_tot = float(self.config_dict[self.T_TOT_ID].get())
+            p_T = float(self.config_dict[self.INT_T_ID].get())
+            p_N_c = int(self.config_dict[self.N_C_ID].get())
+            p_N_d = int(self.config_dict[self.N_D_ID].get())
+        except ValueError as e:
+            raise UserWarning(e.args[0])  # e.args[0] is the error message
 
         n_d = 1
 
@@ -906,12 +914,12 @@ class Application(tk.Frame):
         self.avh.prepareAll(p_T, True, p_N_c)
 
         if not self.spectra_storage.blackIsSet():
-            experiment_logger.warning("Black not set, aborting.")
+            raise UserWarning("Black not set, aborting.")
             abort = True
             self.experiment_on = False
 
         if not self.spectra_storage.whiteIsSet():
-            experiment_logger.warning("White not set, aborting.")
+            raise UserWarning("White not set, aborting.")
             self.experiment_on = False
             abort = True
 
@@ -927,7 +935,7 @@ class Application(tk.Frame):
                 tp_reference
             )
         else:
-            experiment_logger.warning(
+            raise UserWarning(
                 "No reference channel selected, aborting."
             )
             self.experiment_on = False
@@ -1177,11 +1185,12 @@ class Application(tk.Frame):
         self.quit()
 
 
-def report_callback_exception(self, *args):
-    err = traceback.format_exception(*args)
-    tMsg.showerror("Error", args[1])  # This is exception message
+def report_callback_exception(self, exc, val, tb):
+    err = traceback.format_exception(exc, val, tb)
+    tMsg.showerror("Error", val)  # This is exception message
     logger.critical("Error :", exc_info=err)
-    if config.AUTO_BUG_REPORT_ENABLED:
+    if (config.AUTO_BUG_REPORT_ENABLED or config.DEVELOPER_MODE_ENABLED)\
+        and not issubclass(exc, Warning):
         url = "https://api.github.com/repos/Mambu38/CALOA/issues"
 
         # open template
@@ -1200,7 +1209,7 @@ def report_callback_exception(self, *args):
         # Create payload to post
         payload = {
             # see traceback for further informations
-            "title": "AUTO BUG REPORT: {}".format(args[1]),
+            "title": "AUTO BUG REPORT: {}".format(val),
             "body": formatted,
             "labels": ["bug", ]
         }
