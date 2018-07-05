@@ -233,14 +233,24 @@ After that, you will be asked for a folder where you want to save datas.
 Datas will be saved in a predetermined organization :
 ```
   selected_folder :
-    save[TIMESTAMP]:
-      raw:
-        [A FILE FOR EACH CHANNEL]
-      interp:
-        [A FILE FOR EACH CHANNEL]
-      cosmetic:
-        [A FILE FOR EACH CHANNEL]
-      config.txt
+  |-save[TIMESTAMP]:
+    |
+    |-raw:
+    | |
+    | |- [A FILE FOR EACH CHANNEL]
+    | |- ...
+    |
+    |-interp:
+    | |
+    | |- [A FILE FOR EACH CHANNEL]
+    | |- ...
+    |
+    |-cosmetic:
+    | |
+    | |- [A FILE FOR EACH CHANNEL]
+    | |- ...
+    |
+    |-config.txt
 ```
 In each file (except config.txt), datas will be organized in lines as follows :
 
