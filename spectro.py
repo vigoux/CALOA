@@ -438,7 +438,6 @@ class AvaSpec_Handler:
         """
 
         if result < 0:
-            print(c_AVA_Exceptions(result))
             raise c_AVA_Exceptions(result)
         return arguments
 
@@ -583,8 +582,8 @@ class AvaSpec_Handler:
         # Trigger configuration.
         tp_Trigger = c_TriggerType()
         tp_Trigger.m_Mode = ctypes.c_ubyte(int(triggerred))
-        tp_Trigger.m_Source = 0
-        tp_Trigger.m_SourceType = 0
+        tp_Trigger.m_Source = ctypes.c_byte(0)
+        tp_Trigger.m_SourceType = ctypes.c_byte(0)
         Meas.m_Trigger = tp_Trigger
 
         AVS_DLL.AVS_PrepareMeasure.errcheck = self._check_error
