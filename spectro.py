@@ -577,6 +577,7 @@ class AvaSpec_Handler:
         Meas.m_StartPixel = 0
         Meas.m_StopPixel = numPix.value - 1  # Last pixel.
         Meas.m_IntegrationTime = intTime
+        Meas.m_IntegrationDelay = 0
         Meas.m_NrAverages = nrAverages if triggerred else 1
         # Trigger configuration.
         Meas.m_Trigger.m_Mode = ctypes.c_ubyte(int(triggerred))
@@ -600,9 +601,15 @@ class AvaSpec_Handler:
         - nmsr -- number of measure to be made.
         """
 
-        logger_ASH.debug("Starting measurment on {}.".format(device))
         calback_event = self.devList[device][1]
         calback_event.clear()
+        logger_ASH.debug(
+            "Starting measurment on {} current state : {}.".format(
+                device,
+                calback_event.wait(0)
+            )
+        )
+        AVS_DLL.AVS_MeasureCallback.errcheck = self._check_error
         AVS_DLL.AVS_MeasureCallback(device, calback_event.c_callback, nmsr)
 
     def waitMeasurmentReady(self, device):
