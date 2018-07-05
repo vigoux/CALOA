@@ -1187,10 +1187,13 @@ class Application(tk.Frame):
 
 def report_callback_exception(self, exc, val, tb):
     err = traceback.format_exception(exc, val, tb)
-    tMsg.showerror("Error", val)  # This is exception message
+    tMsg.showerror(
+        "An error happened",
+        val
+    )  # This is exception message
     logger.critical("Error :", exc_info=err)
     if (config.AUTO_BUG_REPORT_ENABLED or config.DEVELOPER_MODE_ENABLED)\
-        and not issubclass(exc, Warning):
+            and not issubclass(exc, Warning):
         url = "https://api.github.com/repos/Mambu38/CALOA/issues"
 
         # open template
