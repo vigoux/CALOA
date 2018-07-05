@@ -265,11 +265,21 @@ smoothed datas.
 ## Updates
 
 CALOA updates (or releases) can be split in two categories with diverse
-characteristics and consequences on CALOA. Thes characteristics are summed up
+characteristics and consequences on CALOA. These characteristics are summed up
 in the hereinbelow table :
 
 | Characteristics | Stable    | Pre-Release |
 | --------------- | :-------: | :---------: |
-| Stability       | High      |         Low |
+| Stability       | High      | Low         |
 | Bug report      | Optionnal | Forced      |
 | Change rate     | Low       | High        |
+
+To custom your update management, you will have to open the config file named
+"config.py" in a raw text editor (like Notepad). This file is located in the
+installation folder. To find it, just search for "CALOA" in the file explorer.
+
+After opening this file, you will see many variable names of the form
+MAJ_WORD = (True or False), each of these MAJ_WORD corresponds to a degree of
+modification of the application. For each of them, a quick help is written
+above and a proper documentation is written to know how to do. But for short,
+to enable a functionality write `True` after the "=" to disable it, write `False`. *Be carfull case is important*.
