@@ -438,6 +438,7 @@ class AvaSpec_Handler:
         """
 
         if result < 0:
+            print(c_AVA_Exceptions(result))
             raise c_AVA_Exceptions(result)
         return arguments
 
