@@ -178,8 +178,7 @@ class Scope_Display(tk.Frame, Queue):
 
                 values = list(tp_instruction[1].keys())
 
-                # colormap = plt.get_cmap("plasma")
-                colormap = plt.get_cmap("YlOrRd")
+                colormap = plt.get_cmap(config.COLORMAP_NAME)
 
                 cNorm = colors.Normalize(vmin=values[0], vmax=values[-1])
 

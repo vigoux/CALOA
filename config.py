@@ -46,3 +46,7 @@ AUTO_UPDATE_ENABLED = True
 # you collide with will give precious informations about the bug and will
 # increase the patch rate.
 DEVELOPER_MODE_ENABLED = True
+
+# To find some other colormap ideas :
+# https://matplotlib.org/examples/color/colormaps_reference.html
+COLORMAP_NAME = "seismic"
