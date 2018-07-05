@@ -579,7 +579,7 @@ class AvaSpec_Handler:
         Meas.m_IntegrationTime = intTime
         Meas.m_NrAverages = nrAverages if triggerred else 1
         # Trigger configuration.
-        Meas.m_Trigger.m_Mode = int(triggerred)
+        Meas.m_Trigger.m_Mode = ctypes.c_ubyte(int(triggerred))
         Meas.m_Trigger.m_Source = 0
         Meas.m_Trigger.m_SourceType = 0
 
