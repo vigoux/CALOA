@@ -913,7 +913,7 @@ class Application(tk.Frame):
 
         self.avh.prepareAll(
             intTime=p_T,
-            triggered=True,
+            triggerred=True,
             nrAverages=p_N_c)
 
         if not self.spectra_storage.blackIsSet():
