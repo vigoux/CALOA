@@ -680,7 +680,7 @@ class AvaSpec_Handler:
         """
         AVS_DLL.AVS_StopMeasure(device)
 
-    def prepareAll(self, intTime=10, triggered=False, nrAverages=1):
+    def prepareAll(self, intTime=10, triggerred=False, nrAverages=1):
         """
         Prepare all spectrometers using given parameters using
         self.prepareMeasure for all devices.
@@ -690,7 +690,11 @@ class AvaSpec_Handler:
         """
 
         for device in self.devList:
-            self.prepareMeasure(device, intTime, triggered, nrAverages)
+            self.prepareMeasure(
+                device,
+                intTime=intTime,
+                triggerred=triggerred,
+                nrAverages=nrAverages)
 
     def startAll(self, nmsr):
         """

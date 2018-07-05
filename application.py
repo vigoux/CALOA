@@ -911,7 +911,10 @@ class Application(tk.Frame):
                         + " uses {}ms but {}ms were allocated.".format(
                             total_time_used, p_T_tot))
 
-        self.avh.prepareAll(p_T, True, p_N_c)
+        self.avh.prepareAll(
+            intTime=p_T,
+            triggered=True,
+            nrAverages=p_N_c)
 
         if not self.spectra_storage.blackIsSet():
             raise UserWarning("Black not set, aborting.")
