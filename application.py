@@ -951,7 +951,7 @@ class Application(tk.Frame):
 
                 n_c = 1
                 self._bnc.run()
-                self.avh.startAll(1)
+                self.avh.startAll(p_N_c)
 
                 while n_c <= p_N_c and self.experiment_on:
 
