@@ -467,12 +467,17 @@ class Application(tk.Frame):
             try:
 
                 self.avh.prepareAll(
-                    intTime=float(self.config_dict[self.ROUT_INT_TIME].get())
+                    intTime=float(self.config_dict[self.ROUT_INT_TIME].get()),
+                    triggerred=False,
+                    nrAverages=1
                 )
 
             except Exception:
 
-                self.avh.prepareAll()
+                self.avh.prepareAll(
+                    triggerred=False,
+                    nrAverages=1
+                )
 
             scopes = self.avh.startAllAndGetScopes()
 
