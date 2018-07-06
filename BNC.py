@@ -182,6 +182,7 @@ class BNC_Handler():
         time.sleep(waiting_time)  # After observation we need to wait a little
 
         tp_ans = self._read_buffer()  # Read answer.
+        logger_handler.debug("Answer received : {}".format(tp_ans))
 
         assert(len(tp_ans) > 0)  # If tp_ans is empty, thus there is a problem
 
