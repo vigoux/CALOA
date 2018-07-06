@@ -941,7 +941,8 @@ class Application(tk.Frame):
         self.avh.prepareAll(
             intTime=p_T,
             triggerred=True,
-            nrAverages=p_N_c)
+            nrAverages=p_N_c
+        )
 
         experiment_logger.info("Starting observation.")
         if not abort:
@@ -950,7 +951,7 @@ class Application(tk.Frame):
 
                 n_c = 1
                 self._bnc.run()
-                self.avh.startAll(p_N_c)
+                self.avh.startAll(1)
 
                 while n_c <= p_N_c and self.experiment_on:
 
