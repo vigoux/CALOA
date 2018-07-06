@@ -407,7 +407,6 @@ class Callback_Measurment(Event, Queue):
             AVS_DLL.AVS_GetLambda(Avh_val, ctypes.byref(lambdaList))
 
             tp_spectrum = Spectrum(list(lambdaList), list(spect))
-            print(max(list(spect)))
             self.put(tp_spectrum)
 
         else:
@@ -812,7 +811,6 @@ class AvaSpec_Handler:
 
 # %% Spectrum Object used for an easier handling of spectras
 
-
 class Spectrum:
 
     """
@@ -1048,6 +1046,11 @@ class Spectrum:
         """
         Divides self and spectrum.
         """
+        if isinstance(spectrum, (int, float)) and spectrum != 0:
+            return Spectrum(
+                self.lambdas,
+                [actual/spectrum for actual in self.values]
+            )
 
         smoothed = self._smoothed or spectrum._smoothed
 
@@ -1095,6 +1098,12 @@ class Spectrum:
 
         return self + spectrum
 
+    def __itruediv__(self, spectrum):
+        """
+        Incremental version on self.__truediv__
+        """
+
+        return self/spectrum
 # %% Spectrum_Storage class, useful for further improvements on
 # spectrum handling
 
