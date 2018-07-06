@@ -604,18 +604,18 @@ class AvaSpec_Handler:
         Meas.m_StartPixel = ctypes.c_ushort(0)
         Meas.m_StopPixel = ctypes.c_ushort(numPix.value - 1)  # Last pixel.
         Meas.m_IntegrationTime = ctypes.c_float(intTime)
-        Meas.m_IntegrationDelay = ctypes.c_uint(0)
+        Meas.m_IntegrationDelay = ctypes.c_uint(-21)
         Meas.m_NrAverages = ctypes.c_uint(nrAverages if triggerred else 1)
 
         # dynamic dark correction
         Meas.m_CorDynDark.m_Enable = 0
-        Meas.m_CorDynDark.m_ForgetPercentage = 0
+        Meas.m_CorDynDark.m_ForgetPercentage = 100
 
         # Smoothig configuration
         Meas.m_Smoothing.m_SmoothPix = 1
         Meas.m_Smoothing.m_SmoothModel = 0
 
-        Meas.m_SaturationDetection = 0
+        Meas.m_SaturationDetection = 1
 
         # Trigger configuration.
         Meas.m_Trigger.m_Mode = ctypes.c_ubyte(1 if triggerred else 0)
@@ -626,7 +626,7 @@ class AvaSpec_Handler:
         Meas.m_Control.m_StrobeControl = 0
         Meas.m_Control.m_LaserDelay = 0
         Meas.m_Control.m_LaserWidth = 0
-        Meas.m_Control.m_LaserWaveLength = 0
+        Meas.m_Control.m_LaserWaveLength = 0.0
         Meas.m_Control.m_StoreToRam = 0
 
         AVS_DLL.AVS_PrepareMeasure.errcheck = self._check_error
