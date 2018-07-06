@@ -612,7 +612,7 @@ class AvaSpec_Handler:
         Meas.m_CorDynDark.m_ForgetPercentage = 0
 
         # Smoothig configuration
-        Meas.m_Smoothing.m_SmoothPix = 0
+        Meas.m_Smoothing.m_SmoothPix = 1
         Meas.m_Smoothing.m_SmoothModel = 0
 
         Meas.m_SaturationDetection = 0
