@@ -28,7 +28,8 @@ from scipy import linspace
 from scipy.interpolate import CubicSpline
 from scipy.signal import savgol_filter
 import math
-from threading import Event, Lock, Queue
+from threading import Event, Lock
+from queue import Queue
 import time
 
 abp = os.path.abspath("as5216x64.dll")
