@@ -47,6 +47,7 @@ AUTO_UPDATE_ENABLED = True
 # increase the patch rate.
 DEVELOPER_MODE_ENABLED = True
 
+# Enter here the name (between quotes) of the colormap you want to use 
 # To find some other colormap ideas :
 # https://matplotlib.org/examples/color/colormaps_reference.html
 COLORMAP_NAME = "seismic"
