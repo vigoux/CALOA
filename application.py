@@ -768,16 +768,6 @@ class Application(tk.Frame):
 
         self.experiment_on = False
 
-    # IDEA: N/B introduce possibility to im/export ascii from/to disk id:35
-    # Mambu38
-    # 39092278+Mambu38@users.noreply.github.com
-    # https://github.com/Mambu38/CALOA/issues/46
-
-    # IDEA: In the end, write N/B as default, to be red at next start. id:34
-    # Mambu38
-    # 39092278+Mambu38@users.noreply.github.com
-    # https://github.com/Mambu38/CALOA/issues/45
-
     def set_black(self):
         self.processing_text["text"] = "Preparing black-setting..."
         self.pause_live_display.set()
@@ -944,7 +934,7 @@ class Application(tk.Frame):
         self.avh.prepareAll(
             intTime=p_T,
             triggerred=True,
-            nrAverages=p_N_c
+            nrAverages=1
         )
 
         experiment_logger.info("Starting observation.")
@@ -961,10 +951,11 @@ class Application(tk.Frame):
                     self.processing_text["text"] = "Processing experiment :\n"\
                         + "\tAverage : {}/{}\n".format(n_c, p_N_c)\
                         + "\tDelay : {}/{}".format(n_d, p_N_d)
+                    self.update()
+
                     self.avh.startAll(1)
                     self._bnc.sendtrig()
                     self.after(int(p_T_tot))
-                    self.update()
 
                     n_c += 1
 
@@ -991,13 +982,10 @@ class Application(tk.Frame):
                 self._bnc.stop()
                 n_d += 1
 
-                for pulse in self._bnc:
-                        if pulse[BNC.STATE] == "1":
-                            pulse[BNC.DELAY] = \
-                                float(pulse.experimentTuple[BNC.DELAY].get()) \
-                                + n_d * \
-                                float(pulse.experimentTuple[BNC.dPHASE].get())
-                # tp_scopes = self.avh.getScopes()
+                # Correct error caused by adding spectra
+                for key in tp_scopes:
+                    tp_scopes[key] /= p_N_c
+
                 self.avh.stopAll()
                 self.spectra_storage.putSpectra(raw_timestamp, n_d, tp_scopes)
                 self.liveDisplay.putSpectrasAndUpdate(
@@ -1058,6 +1046,14 @@ class Application(tk.Frame):
                     ]
                 )
 
+                for pulse in self._bnc:
+                        if pulse[BNC.STATE] == "1":
+                            pulse[BNC.DELAY] = \
+                                float(pulse.experimentTuple[BNC.DELAY].get()) \
+                                + n_d * \
+                                float(pulse.experimentTuple[BNC.dPHASE].get())
+
+                del tp_scopes
             if not self.experiment_on:
                 experiment_logger.info("Experiment stopped.")
                 tMsg.showinfo("Experiment stopped",
