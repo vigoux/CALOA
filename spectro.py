@@ -407,7 +407,7 @@ class Callback_Measurment(Event, Queue):
             AVS_DLL.AVS_GetLambda(Avh_val, ctypes.byref(lambdaList))
 
             tp_spectrum = Spectrum(list(lambdaList), list(spect))
-            print(tp_spectrum)
+            print(tp_spectrum, timeStamp.value)
             self.put((Avh_val, tp_spectrum))
 
         else:
