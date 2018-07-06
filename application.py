@@ -776,7 +776,6 @@ class Application(tk.Frame):
     def set_black(self):
         self.processing_text["text"] = "Preparing black-setting..."
         self.pause_live_display.set()
-        self.avh.acquire()
         experiment_logger.info("Starting to set black")
         try:
             p_T_tot = float(self.config_dict[self.T_TOT_ID].get())
@@ -787,7 +786,7 @@ class Application(tk.Frame):
 
         self._bnc.setmode("SINGLE")
         self._bnc.settrig("TRIG")
-
+        self.avh.acquire()
         self.avh.prepareAll(p_T, True, p_N_c)
         for pulse in self._bnc:
             pulse[BNC.DELAY] = pulse.experimentTuple[BNC.DELAY].get()
@@ -823,7 +822,6 @@ class Application(tk.Frame):
     def set_white(self):
         self.processing_text["text"] = "Preparing white-setting..."
         self.pause_live_display.set()
-        self.avh.acquire()
         experiment_logger.info("Starting to set white")
         try:
             p_T_tot = float(self.config_dict[self.T_TOT_ID].get())
@@ -834,7 +832,7 @@ class Application(tk.Frame):
 
         self._bnc.setmode("SINGLE")
         self._bnc.settrig("TRIG")
-
+        self.avh.acquire()
         self.avh.prepareAll(p_T, True, p_N_c)
         for pulse in self._bnc:
             pulse[BNC.DELAY] = pulse.experimentTuple[BNC.DELAY].get()
@@ -951,7 +949,7 @@ class Application(tk.Frame):
 
                 n_c = 1
                 self._bnc.run()
-                self.avh.startAll(1)
+                self.avh.startAll(p_N_c)
 
                 while n_c <= p_N_c and self.experiment_on:
 
