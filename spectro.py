@@ -604,7 +604,7 @@ class AvaSpec_Handler:
         Meas.m_StartPixel = ctypes.c_ushort(0)
         Meas.m_StopPixel = ctypes.c_ushort(numPix.value - 1)  # Last pixel.
         Meas.m_IntegrationTime = ctypes.c_float(intTime)
-        Meas.m_IntegrationDelay = ctypes.c_uint(-21)
+        Meas.m_IntegrationDelay = ctypes.c_uint(0)
         Meas.m_NrAverages = ctypes.c_uint(nrAverages if triggerred else 1)
 
         # dynamic dark correction
