@@ -407,7 +407,7 @@ class Callback_Measurment(Event, Queue):
             AVS_DLL.AVS_GetLambda(Avh_val, ctypes.byref(lambdaList))
 
             tp_spectrum = Spectrum(list(lambdaList), list(spect))
-            print(tp_spectrum, timeStamp.value)
+            print(tp_spectrum)
             self.put((Avh_val, tp_spectrum))
 
         else:
@@ -607,8 +607,8 @@ class AvaSpec_Handler:
 
         # Trigger configuration.
         tp_Trigger = c_TriggerType()
-        tp_Trigger.m_Mode = ctypes.c_ubyte(int(triggerred))
-        tp_Trigger.m_Source = ctypes.c_ubyte(0)
+        tp_Trigger.m_Mode = ctypes.c_ubyte(1 if triggerred else 0)
+        tp_Trigger.m_Source = ctypes.c_ubyte(1)
         tp_Trigger.m_SourceType = ctypes.c_ubyte(0)
         Meas.m_Trigger = tp_Trigger
 
