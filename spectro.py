@@ -546,8 +546,10 @@ class AvaSpec_Handler:
                 begin = AvsDevList[0].m_aSerialId[:-4]
                 dev.m_aSerialId = begin + dev.m_aSerialId
                 dev.m_aUserFriendlyId = begin + dev.m_aUserFriendlyId
-            devDict[AVS_DLL.AVS_Activate(ctypes.byref(dev))] = \
+            avs_handle = AVS_DLL.AVS_Activate(ctypes.byref(dev))
+            devDict[avs_handle] = \
                 (bytes.decode(dev.m_aUserFriendlyId), Callback_Measurment())
+            AVS_DLL.AVS_SetSyncMode(avs_handle, 0)
         return devDict
 
     def acquire(self):
@@ -608,7 +610,7 @@ class AvaSpec_Handler:
         # Trigger configuration.
         tp_Trigger = c_TriggerType()
         tp_Trigger.m_Mode = ctypes.c_ubyte(1 if triggerred else 0)
-        tp_Trigger.m_Source = ctypes.c_ubyte(1)
+        tp_Trigger.m_Source = ctypes.c_ubyte(0)
         tp_Trigger.m_SourceType = ctypes.c_ubyte(0)
         Meas.m_Trigger = tp_Trigger
 
