@@ -579,12 +579,19 @@ class AvaSpec_Handler:
         Meas.m_IntegrationTime = ctypes.c_float(intTime)
         Meas.m_IntegrationDelay = ctypes.c_uint(0)
         Meas.m_NrAverages = ctypes.c_uint(nrAverages if triggerred else 1)
+
         # Trigger configuration.
         tp_Trigger = c_TriggerType()
         tp_Trigger.m_Mode = ctypes.c_ubyte(int(triggerred))
         tp_Trigger.m_Source = ctypes.c_ubyte(0)
         tp_Trigger.m_SourceType = ctypes.c_ubyte(0)
         Meas.m_Trigger = tp_Trigger
+
+        # Smoothig configuration
+        tp_Smoothing = c_SmoothingType()
+        Meas.m_Smoothing = tp_Smoothing
+
+        # 
 
         AVS_DLL.AVS_PrepareMeasure.errcheck = self._check_error
 
