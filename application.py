@@ -882,7 +882,6 @@ class Application(tk.Frame):
         experiment_logger.info("Starting experiment.")
         self.experiment_on = True
         self.pause_live_display.set()
-        self.avh.acquire()
         abort = False
         try:
             p_T_tot = float(self.config_dict[self.T_TOT_ID].get())
@@ -911,20 +910,15 @@ class Application(tk.Frame):
                         + " uses {}ms but {}ms were allocated.".format(
                             total_time_used, p_T_tot))
 
-        self.avh.prepareAll(
-            intTime=p_T,
-            triggerred=True,
-            nrAverages=p_N_c)
-
         if not self.spectra_storage.blackIsSet():
-            raise UserWarning("Black not set, aborting.")
             abort = True
             self.experiment_on = False
+            raise UserWarning("Black not set, aborting.")
 
         if not self.spectra_storage.whiteIsSet():
-            raise UserWarning("White not set, aborting.")
             self.experiment_on = False
             abort = True
+            raise UserWarning("White not set, aborting.")
 
         # Here we correct black from reference spectra.
         tp_reference = dict([])
@@ -938,11 +932,16 @@ class Application(tk.Frame):
                 tp_reference
             )
         else:
+            self.experiment_on = False
+            abort = True
             raise UserWarning(
                 "No reference channel selected, aborting."
             )
-            self.experiment_on = False
-            abort = True
+        self.avh.acquire()
+        self.avh.prepareAll(
+            intTime=p_T,
+            triggerred=True,
+            nrAverages=p_N_c)
 
         experiment_logger.info("Starting observation.")
         if not abort:
