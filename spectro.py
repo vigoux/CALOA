@@ -615,6 +615,10 @@ class AvaSpec_Handler:
         Meas.m_Smoothing.m_SmoothPix = 1
         Meas.m_Smoothing.m_SmoothModel = 0
 
+        # It seems that this parameter controls wether or not the spec is
+        # hardware-triggered or not.
+        # I actually don't know the reason of such an error, but it might
+        # be that the dll version is not optimal.
         Meas.m_SaturationDetection = int(triggerred)
 
         # Trigger configuration.
