@@ -974,12 +974,20 @@ class Application(tk.Frame):
                                                                     n_d,
                                                                     p_N_d))
                     self.avh.waitAll()
+                    spectra = self.avh.getScopes()
+
+                    for key in spectra:
+                        if spectra[key].isSaturated():
+                            tMsg.showwarning(
+                                "Saturation detected",
+                                "Warning, {} is sturated.".format(key)
+                            )
+
                     if tp_scopes is None:
-                        tp_scopes = self.avh.getScopes()
+                        tp_scopes = spectra
                     else:
-                        to_add = self.avh.getScopes()
                         for key in tp_scopes:
-                            tp_scopes[key] += to_add[key]
+                            tp_scopes[key] += spectra[key]
                 self._bnc.stop()
                 n_d += 1
 
