@@ -954,14 +954,14 @@ class Application(tk.Frame):
 
                 n_c = 1
                 self._bnc.run()
-                self.avh.startAll(p_N_c)
+                tp_scopes = None
 
                 while n_c <= p_N_c and self.experiment_on:
 
                     self.processing_text["text"] = "Processing experiment :\n"\
                         + "\tAverage : {}/{}\n".format(n_c, p_N_c)\
                         + "\tDelay : {}/{}".format(n_d, p_N_d)
-
+                    self.avh.startAll(1)
                     self._bnc.sendtrig()
                     self.after(int(p_T_tot))
                     self.update()
@@ -973,7 +973,13 @@ class Application(tk.Frame):
                                                                     p_N_c,
                                                                     n_d,
                                                                     p_N_d))
-                self.avh.waitAll()
+                    self.avh.waitAll()
+                    if tp_scopes is None:
+                        tp_scopes = self.avh.getScopes()
+                    else:
+                        to_add = self.avh.getScopes()
+                        for key in tp_scopes:
+                            tp_scopes[key] += to_add[key]
                 self._bnc.stop()
                 n_d += 1
 
@@ -983,7 +989,7 @@ class Application(tk.Frame):
                                 float(pulse.experimentTuple[BNC.DELAY].get()) \
                                 + n_d * \
                                 float(pulse.experimentTuple[BNC.dPHASE].get())
-                tp_scopes = self.avh.getScopes()
+                # tp_scopes = self.avh.getScopes()
                 self.avh.stopAll()
                 self.spectra_storage.putSpectra(raw_timestamp, n_d, tp_scopes)
                 self.liveDisplay.putSpectrasAndUpdate(

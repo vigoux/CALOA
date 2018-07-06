@@ -408,7 +408,7 @@ class Callback_Measurment(Event, Queue):
 
             tp_spectrum = Spectrum(list(lambdaList), list(spect))
             print(max(list(spect)))
-            self.put((Avh_val, tp_spectrum))
+            self.put(tp_spectrum)
 
         else:
             raise c_AVA_Exceptions(int_val)
@@ -622,7 +622,7 @@ class AvaSpec_Handler:
         Meas.m_SaturationDetection = int(triggerred)
 
         # Trigger configuration.
-        Meas.m_Trigger.m_Mode = ctypes.c_ubyte(1 if triggerred else 0)
+        Meas.m_Trigger.m_Mode = ctypes.c_ubyte(0)
         Meas.m_Trigger.m_Source = ctypes.c_ubyte(0)
         Meas.m_Trigger.m_SourceType = ctypes.c_ubyte(0)
 
@@ -692,29 +692,9 @@ class AvaSpec_Handler:
 
         logger_ASH.debug("Gathering {} scopes.".format(device))
 
-        # Get the number of pixels.
-        numPix = ctypes.c_short()
-        AVS_DLL.AVS_GetNumPixels(device, ctypes.byref(numPix))
+        id, callback = self.devList[device]
 
-        # Prepare data structures and get pixel values.
-        spect = (ctypes.c_double * numPix.value)()
-        timeStamp = ctypes.c_uint()
-        AVS_DLL.AVS_GetScopeData(
-            device,
-            ctypes.byref(timeStamp),
-            ctypes.byref(spect)
-        )
-
-        # Get lambdas for all pixels.
-        lambdaList = (ctypes.c_double * numPix.value)()
-        AVS_DLL.AVS_GetLambda(device, ctypes.byref(lambdaList))
-
-        logger_ASH.debug("{} scopes gathered.".format(device))
-
-        # Clear Callback_Measurment for further observations
-        self.devList[device][1].clear()
-
-        return self.devList[device][0], Spectrum(list(lambdaList), list(spect))
+        return id, callback.get()
 
     def stopMeasure(self, device):
         """
