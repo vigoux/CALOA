@@ -282,4 +282,5 @@ After opening this file, you will see many variable names of the form
 MAJ_WORD = (True or False), each of these MAJ_WORD corresponds to a degree of
 modification of the application. For each of them, a quick help is written
 above and a proper documentation is written to know how to do. But for short,
-to enable a functionality write `True` after the "=" to disable it, write `False`. *Be carfull case is important*.
+to enable a functionality write `True` after the `=` to disable it, write
+`False`. *Be carefull case is important*.
