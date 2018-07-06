@@ -28,7 +28,7 @@ from scipy import linspace
 from scipy.interpolate import CubicSpline
 from scipy.signal import savgol_filter
 import math
-from threading import Event, Lock
+from threading import Event, Lock, Queue
 import time
 
 abp = os.path.abspath("as5216x64.dll")
@@ -349,7 +349,7 @@ class c_DeviceConfigType(ctypes.Structure):  # VERIFIED
 # %% CallBack Function Object for a better handling of measurments
 
 
-class Callback_Measurment(Event):
+class Callback_Measurment(Event, Queue):
 
     """
     Class used as a callback by AVS_MeasureCallback to notify when a
@@ -362,6 +362,7 @@ class Callback_Measurment(Event):
         self.c_callback is the real C-like callback function.
         """
         Event.__init__(self)
+        Queue.__init__(self)
         self.c_callback = \
             ctypes.WINFUNCTYPE(ctypes.c_void_p, ctypes.POINTER(ctypes.c_int),
                                ctypes.POINTER(ctypes.c_int))(self.Callbackfunc)
@@ -384,7 +385,30 @@ class Callback_Measurment(Event):
         Avh_val = Avh_Pointer.contents.value
         if int_val >= 0:  # Check if any error happened.
             logger_ASH.debug("{} measurments Ready.".format(Avh_val))
+
             self.set()  # Set the flag to True.
+
+            # Get the number of pixels.
+            numPix = ctypes.c_short()
+            AVS_DLL.AVS_GetNumPixels(Avh_val, ctypes.byref(numPix))
+
+            # Prepare data structures and get pixel values.
+            spect = (ctypes.c_double * numPix.value)()
+            timeStamp = ctypes.c_uint()
+            AVS_DLL.AVS_GetScopeData(
+                Avh_val,
+                ctypes.byref(timeStamp),
+                ctypes.byref(spect)
+            )
+
+            # Get lambdas for all pixels.
+            lambdaList = (ctypes.c_double * numPix.value)()
+            AVS_DLL.AVS_GetLambda(Avh_val, ctypes.byref(lambdaList))
+
+            tp_spectrum = Spectrum(list(lambdaList), list(spect))
+            print(tp_spectrum)
+            self.put((Avh_val, tp_spectrum))
+
         else:
             raise c_AVA_Exceptions(int_val)
 
@@ -590,8 +614,6 @@ class AvaSpec_Handler:
         # Smoothig configuration
         tp_Smoothing = c_SmoothingType()
         Meas.m_Smoothing = tp_Smoothing
-
-        # 
 
         AVS_DLL.AVS_PrepareMeasure.errcheck = self._check_error
 
