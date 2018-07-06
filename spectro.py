@@ -607,16 +607,27 @@ class AvaSpec_Handler:
         Meas.m_IntegrationDelay = ctypes.c_uint(0)
         Meas.m_NrAverages = ctypes.c_uint(nrAverages if triggerred else 1)
 
-        # Trigger configuration.
-        tp_Trigger = c_TriggerType()
-        tp_Trigger.m_Mode = ctypes.c_ubyte(1 if triggerred else 0)
-        tp_Trigger.m_Source = ctypes.c_ubyte(0)
-        tp_Trigger.m_SourceType = ctypes.c_ubyte(0)
-        Meas.m_Trigger = tp_Trigger
+        # dynamic dark correction
+        Meas.m_CorDynDark.m_Enable = 0
+        Meas.m_CorDynDark.m_ForgetPercentage = 0
 
         # Smoothig configuration
-        tp_Smoothing = c_SmoothingType()
-        Meas.m_Smoothing = tp_Smoothing
+        Meas.m_Smoothing.m_SmoothPix = 0
+        Meas.m_Smoothing.m_SmoothModel = 0
+
+        Meas.m_SaturationDetection = 0
+
+        # Trigger configuration.
+        Meas.m_Trigger.m_Mode = ctypes.c_ubyte(1 if triggerred else 0)
+        Meas.m_Trigger.m_Source = ctypes.c_ubyte(0)
+        Meas.m_Trigger.m_SourceType = ctypes.c_ubyte(0)
+
+        # Control configuration
+        Meas.m_Control.m_StrobeControl = 0
+        Meas.m_Control.m_LaserDelay = 0
+        Meas.m_Control.m_LaserWidth = 0
+        Meas.m_Control.m_LaserWaveLength = 0
+        Meas.m_Control.m_StoreToRam = 0
 
         AVS_DLL.AVS_PrepareMeasure.errcheck = self._check_error
 
