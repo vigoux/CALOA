@@ -1382,7 +1382,7 @@ class Application(tk.Frame):
         with open(save_dir + os.sep + "time_table.txt", "w") as file:
             heading = ""
             for pulse in self._bnc:
-                heading += "{: ^16s}".format(
+                heading += "{: ^25s}".format(
                     "{} : {}".format(
                         str(pulse),
                         pulse.experimentTuple[BNC.LABEL].get()
@@ -1393,13 +1393,13 @@ class Application(tk.Frame):
                 tp_line = ""
                 for pulse in self._bnc:
                     if pulse.experimentTuple[BNC.PHASE_BASE].get() == "1":
-                        tp_line += "    {:=+012.5F}".format(
+                        tp_line += "             {:=+012.5F}".format(
                             float(pulse.experimentTuple[BNC.DELAY].get())
                             + i *
                             float(pulse.experimentTuple[BNC.dPHASE].get())
                         )
                     else:
-                        tp_line += "    {:=+012.5F}".format(
+                        tp_line += "             {:=+012.5F}".format(
                             float(pulse.experimentTuple[BNC.DELAY].get())
                             + (float(
                                 pulse.experimentTuple[BNC.PHASE_BASE].get()
