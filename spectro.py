@@ -45,7 +45,7 @@ AVS_DLL = ctypes.WinDLL(abp)
 #####
 
 AVS_SERIAL_LEN = 10
-AVS_SATURATION_VALUE = 65535
+AVS_SATURATION_VALUE = 16383
 
 #####
 # Exception
