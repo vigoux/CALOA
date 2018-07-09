@@ -262,7 +262,8 @@ class Pulse():
                                 STATE: None,
                                 WIDTH: None,
                                 DELAY: None,
-                                dPHASE: None}
+                                dPHASE: None,
+                                PHASE_BASE: None}
 
         logger_pulse.info("P{} initialized.".format(P_number))
 
