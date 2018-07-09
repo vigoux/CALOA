@@ -823,11 +823,10 @@ class Application(tk.Frame):
         self._bnc.settrig("TRIG")
 
         self.avh.acquire()
-        self.avh.prepareAll(p_T, True, p_N_c)
+        self.avh.prepareAll(p_T, True)
 
         for pulse in self._bnc:
 
-            pulse[BNC.DELAY] = pulse.experimentTuple[BNC.DELAY].get()
             pulse[BNC.WIDTH] = pulse.experimentTuple[BNC.WIDTH].get()
             pulse[BNC.STATE] = pulse.experimentTuple[BNC.STATE].get()
 
@@ -913,9 +912,8 @@ class Application(tk.Frame):
         self._bnc.setmode("SINGLE")
         self._bnc.settrig("TRIG")
         self.avh.acquire()
-        self.avh.prepareAll(p_T, True, p_N_c)
+        self.avh.prepareAll(p_T, True)
         for pulse in self._bnc:
-            pulse[BNC.DELAY] = pulse.experimentTuple[BNC.DELAY].get()
             pulse[BNC.WIDTH] = pulse.experimentTuple[BNC.WIDTH].get()
             pulse[BNC.STATE] = pulse.experimentTuple[BNC.STATE].get()
 
