@@ -1389,7 +1389,7 @@ class Application(tk.Frame):
                     )
                 )
             file.write(heading + "\n")
-            for i in range(len(self[folder_id, :, :])):
+            for i in range(len(self.spectra_storage[folder_id, :, :])):
                 tp_line = ""
                 for pulse in self._bnc:
                     if pulse.experimentTuple[BNC.PHASE_BASE].get() == "1":
