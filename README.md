@@ -109,12 +109,13 @@ This part of the interface is the lefter one.
 Here we can divide interface in 8 similar labeled boxes. Each one of this boxes
 corresponds to one of the BNC Channels (often named Pulse). A box contains many
 informations :
-- Pulse Label (text) : the name you want to give to the Pulse.
 - Pulse state (check box) : whether you want the pulse to be active or not.
+- Pulse Label (text) : the name you want to give to the Pulse.
 - Pulse width (floating point number) : width of the real TTL pulse in sec
 - Pulse phase (floating point number) : delay between trigger and TTL pulse in
   sec
 - Pulse phase variation (floating point number) : delay variation in sec
+- Pulse phase base (floating point number) : delay increment base
 
 #### Observation management frame
 
@@ -227,6 +228,9 @@ proceed as such :
 6. Increment delay of phase variation for each channel
 7. Go to step 3 for a total of <Delay number> of time
 
+Step 6 can be fine tuned, using *Phase Base* parameter. If this entry is set
+to 1, incrementation of delay will be done linearly, if a number is entered,
+this will be used to compute an exponential increment thet is : (base)^i * (phase variation) instead of i * (phase variation).
 ### Save observed data
 
 After that, you will be asked for a folder where you want to save datas.
