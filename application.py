@@ -1228,11 +1228,18 @@ class Application(tk.Frame):
             # Delay instruments
             for pulse in self._bnc:
                     if pulse[BNC.STATE] == "1":
-                        pulse[BNC.DELAY] = \
-                            float(pulse.experimentTuple[BNC.DELAY].get()) \
-                            + n_d * \
-                            float(pulse.experimentTuple[BNC.dPHASE].get())
-
+                        if pulse.experimentTuple[BNC.PHASE_BASE].get() == "1":
+                            pulse[BNC.DELAY] = \
+                                float(pulse.experimentTuple[BNC.DELAY].get()) \
+                                + n_d * \
+                                float(pulse.experimentTuple[BNC.dPHASE].get())
+                        else:
+                            pulse[BNC.DELAY] = \
+                                float(pulse.experimentTuple[BNC.DELAY].get()) \
+                                + (float(
+                                    pulse.experimentTuple[BNC.PHASE_BASE].get()
+                                ) ** n_d) * \
+                                float(pulse.experimentTuple[BNC.dPHASE].get())
             del tp_scopes
 
         # END OF DELAY LOOP
