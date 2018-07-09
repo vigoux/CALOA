@@ -1379,6 +1379,33 @@ class Application(tk.Frame):
                     )
             file.close()
 
+        with open(save_dir + os.sep + "time_table.txt", "w") as file:
+            heading = ""
+            for pulse in self._bnc:
+                heading += "{: ^16s}".format(
+                    "{} : {}".format(str(pulse), pulse[BNC.LABEL].get())
+                )
+            file.writeline(heading + "\n")
+            for i in range(len(self[folder_id, :, :])):
+                tp_line = ""
+                for pulse in self._bnc:
+                    if pulse.experimentTuple[BNC.PHASE_BASE].get() == "1":
+                        tp_line += "    {:=+012.5F}".format(
+                            float(pulse.experimentTuple[BNC.DELAY].get())
+                            + i *
+                            float(pulse.experimentTuple[BNC.dPHASE].get())
+                        )
+                    else:
+                        tp_line += "    {:=+012.5F}".format(
+                            float(pulse.experimentTuple[BNC.DELAY].get())
+                            + (float(
+                                pulse.experimentTuple[BNC.PHASE_BASE].get()
+                            ) ** i) *
+                            float(pulse.experimentTuple[BNC.dPHASE].get())
+                        )
+                file.write(tp_line + "\n")
+            file.close()
+
     def goodbye_app(self):
         logger.info("Exiting CALOA.")
 
