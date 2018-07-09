@@ -233,8 +233,7 @@ COMMAND_DICT = {"STATE": (":STAT", "bool"),
 STATE, WIDTH, DELAY, SYNC, POL, AMP, MODE, BC, PC, OC, WC, GATE =\
      tuple(COMMAND_DICT)
 
-LABEL, dPHASE = "LABEL", "dPHASE"
-
+LABEL, dPHASE, PHASE_BASE = "LABEL", "dPHASE", "PHASE_BASE"
 
 class Pulse():
     """Useful class to manage BNC's channels."""
@@ -412,15 +411,15 @@ class Pulse():
                  textvariable=self.experimentTuple[LABEL]).grid(row=0,
                                                                 column=0)
 
-        tk.Label(master_frame, text="Activate : ").grid(row=1, column=0,
-                                                        sticky=tk.W)
+        # tk.Label(master_frame, text="Activate : ").grid(row=1, column=0,
+        #                                                 sticky=tk.W)
         if self.experimentTuple[STATE] is None:
             self.experimentTuple[STATE] = tk.StringVar()
             self.experimentTuple[STATE].set(int(self[STATE]))
         tk.Checkbutton(master_frame,
-                       variable=self.experimentTuple[STATE]).grid(row=1,
+                       variable=self.experimentTuple[STATE]).grid(row=0,
                                                                   column=1,
-                                                                  sticky=tk.W)
+                                                                  sticky=tk.E)
 
         tk.Label(master_frame, text="Width (in s) : ").grid(row=2, column=0,
                                                             sticky=tk.W)
@@ -452,6 +451,21 @@ class Pulse():
                  textvariable=self.experimentTuple[dPHASE]).grid(row=4,
                                                                  column=1,
                                                                  sticky=tk.W)
+
+        tk.Label(master_frame,
+                 text="Phase Variation (in s) : ").grid(row=4, column=0,
+                                                        sticky=tk.W)
+        if self.experimentTuple[PHASE_BASE] is None:
+            self.experimentTuple[PHASE_BASE] = tk.StringVar()
+            self.experimentTuple[PHASE_BASE].set("0")
+        tk.Entry(
+            master_frame,
+            textvariable=self.experimentTuple[PHASE_BASE]
+        ).grid(
+            row=5,
+            column=1,
+            sticky=tk.W
+        )
 
         return master_frame
 
