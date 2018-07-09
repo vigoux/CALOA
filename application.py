@@ -159,8 +159,8 @@ class Scope_Display(tk.Frame, Queue):
 
         # If developer mode is enabled, we push the new spectrum to
         # debug display.
-        if config.DEVELOPER_MODE_ENABLED and frame_id != self.DEBUG_DISPLAY:
-            self.put((self.DEBUG_DISPLAY, spectras))
+        # if config.DEVELOPER_MODE_ENABLED and frame_id != self.DEBUG_DISPLAY:
+        #     self.put((self.DEBUG_DISPLAY, spectras))
 
         self.event_generate(self.SCOPE_UPDATE_SEQUENCE)
 
@@ -852,7 +852,9 @@ class Application(tk.Frame):
             self._bnc.sendtrig()  # Send trigger to BNC
 
             # Wait appropriate time
-            self.after(estimated_end_time_in_ms - int(time.time()*1E3))
+            self.after(
+                int(estimated_end_time_in_ms - int(time.time()*1E3))
+            )
 
             n_black += 1
 
@@ -938,7 +940,9 @@ class Application(tk.Frame):
             self._bnc.sendtrig()  # Send trigger to BNC
 
             # Wait appropriate time
-            self.after(estimated_end_time_in_ms - int(time.time()*1E3))
+            self.after(
+                int(estimated_end_time_in_ms - int(time.time()*1E3))
+            )
 
             n_white += 1
 
@@ -1116,7 +1120,9 @@ class Application(tk.Frame):
                 self._bnc.sendtrig()  # Send trigger to BNC
 
                 # Wait appropriate time
-                self.after(estimated_end_time_in_ms - int(time.time()*1E3))
+                self.after(
+                    int(estimated_end_time_in_ms - int(time.time()*1E3))
+                )
 
                 n_c += 1
 
