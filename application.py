@@ -886,7 +886,8 @@ class Application(tk.Frame):
 
         self._bnc.stop()
 
-        tp_scopes /= p_N_c  # Correct averaging
+        for spectrum in tp_scopes.values():
+            spectrum /= p_N_c  # Correct averaging
 
         self.spectra_storage.putBlack(tp_scopes)  # Put in spectrum storage
         experiment_logger.info("Black set.")
@@ -971,7 +972,8 @@ class Application(tk.Frame):
             else:
                 tp_scopes = spectra
 
-        tp_scopes /= p_N_c
+        for spectrum in tp_scopes.values():
+            spectrum /= p_N_c
 
         self._bnc.stop()
         self.spectra_storage.putWhite(tp_scopes)
