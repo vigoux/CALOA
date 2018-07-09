@@ -454,7 +454,7 @@ class Pulse():
                                                                  sticky=tk.W)
 
         tk.Label(master_frame,
-                 text="Phase Variation (in s) : ").grid(row=4, column=0,
+                 text="P. Base (1 for linear) : ").grid(row=5, column=0,
                                                         sticky=tk.W)
         if self.experimentTuple[PHASE_BASE] is None:
             self.experimentTuple[PHASE_BASE] = tk.StringVar()
