@@ -919,7 +919,6 @@ class Application(tk.Frame):
             pulse[BNC.STATE] = pulse.experimentTuple[BNC.STATE].get()
 
         self._bnc.run()
-        self.avh.startAll(p_N_c)
         n_white = 0
 
         tp_scopes = None
