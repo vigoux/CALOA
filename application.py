@@ -1383,7 +1383,10 @@ class Application(tk.Frame):
             heading = ""
             for pulse in self._bnc:
                 heading += "{: ^16s}".format(
-                    "{} : {}".format(str(pulse), pulse[BNC.LABEL].get())
+                    "{} : {}".format(
+                        str(pulse),
+                        pulse.experimentTuple[BNC.LABEL].get()
+                    )
                 )
             file.writeline(heading + "\n")
             for i in range(len(self[folder_id, :, :])):
