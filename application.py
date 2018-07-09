@@ -1446,7 +1446,7 @@ def report_callback_exception(self, exc, val, tb):
     app.stop_experiment()
     app.pause_live_display.clear()
     app.stop_live_display.clear()
-    app.avh.release()
+    # app.avh.release()
 
 def root_goodbye():
     global root
