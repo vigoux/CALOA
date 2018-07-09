@@ -1388,7 +1388,7 @@ class Application(tk.Frame):
                         pulse.experimentTuple[BNC.LABEL].get()
                     )
                 )
-            file.writeline(heading + "\n")
+            file.write(heading + "\n")
             for i in range(len(self[folder_id, :, :])):
                 tp_line = ""
                 for pulse in self._bnc:
