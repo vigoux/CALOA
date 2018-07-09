@@ -458,7 +458,7 @@ class Pulse():
                                                         sticky=tk.W)
         if self.experimentTuple[PHASE_BASE] is None:
             self.experimentTuple[PHASE_BASE] = tk.StringVar()
-            self.experimentTuple[PHASE_BASE].set("0")
+            self.experimentTuple[PHASE_BASE].set("1")
         tk.Entry(
             master_frame,
             textvariable=self.experimentTuple[PHASE_BASE]
