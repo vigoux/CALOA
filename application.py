@@ -886,7 +886,7 @@ class Application(tk.Frame):
         self._bnc.stop()
 
         for key in tp_scopes:
-            tp_scopes[key] /= p_N_c  # Correct averaging
+            tp_scopes[key] = tp_scopes[key] / p_N_c  # Correct averaging
 
         self.spectra_storage.putBlack(tp_scopes)  # Put in spectrum storage
         experiment_logger.info("Black set.")
@@ -971,7 +971,7 @@ class Application(tk.Frame):
                 tp_scopes = spectra
 
         for key in tp_scopes:
-            tp_scopes[key] /= p_N_c
+            tp_scopes[key] = tp_scopes[key] / p_N_c
 
         self._bnc.stop()
         self.spectra_storage.putWhite(tp_scopes)
@@ -1159,7 +1159,7 @@ class Application(tk.Frame):
 
             # Correct error caused by adding spectra
             for key in tp_scopes:
-                tp_scopes[key] /= p_N_c
+                tp_scopes[key] = tp_scopes[key] / p_N_c
 
             # Store Spectrum, and display it
             self.spectra_storage.putSpectra(raw_timestamp, n_d, tp_scopes)
