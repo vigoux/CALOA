@@ -45,9 +45,12 @@ AUTO_UPDATE_ENABLED = True
 # feature CALOA may be unstable, but by enabling this feature, each bug
 # you collide with will give precious informations about the bug and will
 # increase the patch rate.
+# Furthermore, enabling this mode will give you an access to a new pane
+# in scope display calle "Debug", enabling you to see all spectra sent to
+# scope display.
 DEVELOPER_MODE_ENABLED = True
 
-# Enter here the name (between quotes) of the colormap you want to use 
+# Enter here the name (between quotes) of the colormap you want to use
 # To find some other colormap ideas :
 # https://matplotlib.org/examples/color/colormaps_reference.html
 COLORMAP_NAME = "seismic"

@@ -66,6 +66,8 @@ class Scope_Display(tk.Frame, Queue):
     PLOT_TYPE_2D = "2D"
     PLOT_TYPE_TIME = "Time"
 
+    DEBUG_DISPLAY = "DEBUG"
+
     def __init__(self, master, nameList):
         """
         Initializes self.
@@ -111,6 +113,28 @@ class Scope_Display(tk.Frame, Queue):
             canvas.get_tk_widget().pack(fill=tk.BOTH)  # Pack the canvas
 
             self.panelsDict[name[0]] = plot, canvas, name[1]
+
+        # If developer mode is enabled, we create the debug display
+        # to allow us to display all spectra sent to the scope display
+        if config.DEVELOPER_MODE_ENABLED:
+                figure = Figure(figsize=(6, 5.5), dpi=100)  # The scope figure
+
+                plot = figure.add_subplot(111)
+
+                frame = tk.Frame(self.globalPwnd)
+
+                # Get the tkinter canvas
+                canvas = FigureCanvasTkAgg(figure,
+                                           master=frame)
+
+                # Add the canvas to global NoteBook
+                self.globalPwnd.add(frame, text=self.DEBUG_DISPLAY)
+
+                canvas.get_tk_widget().pack(fill=tk.BOTH)  # Pack the canvas
+
+                self.panelsDict[self.DEBUG_DISPLAY] =\
+                    plot, canvas, self.PLOT_TYPE_2D
+
         self.bind(self.SCOPE_UPDATE_SEQUENCE, self.reactUpdate)
 
         self.globalPwnd.pack(fill=tk.BOTH)  # Pack the Global Notebook
@@ -126,8 +150,18 @@ class Scope_Display(tk.Frame, Queue):
         - if display is a 3D live display, the list of spectra to display
           as given by Spectrum_Storage[folder_id, :, channel_id] :
             [(subfolder_id, spectrum), ...]
+
+        If developer mode is enabled and a spectrum is sent to scope display
+        with a frame id not equal to self.DEBUG_DISPLAY, this spectrum will be
+        sent to debug display too.
         """
         self.put((frame_id, spectras))
+
+        # If developer mode is enabled, we push the new spectrum to
+        # debug display.
+        if config.DEVELOPER_MODE_ENABLED and frame_id != self.DEBUG_DISPLAY:
+            self.put((self.DEBUG_DISPLAY, spectras))
+
         self.event_generate(self.SCOPE_UPDATE_SEQUENCE)
 
     def reactUpdate(self, event):
@@ -135,7 +169,7 @@ class Scope_Display(tk.Frame, Queue):
         This method is called whenever a new instruction is received.
         """
 
-        try:
+        try:  # This block asserts that we don't get too far in Queue
 
             tp_instruction = self.get()
 
@@ -769,47 +803,95 @@ class Application(tk.Frame):
         self.experiment_on = False
 
     def set_black(self):
+
+        # Inform user that blakc is going to be set
         self.processing_text["text"] = "Preparing black-setting..."
         self.pause_live_display.set()
         experiment_logger.info("Starting to set black")
+
+        # Gather informations about experiment parameters
         try:
+
             p_T_tot = float(self.config_dict[self.T_TOT_ID].get())
             p_T = float(self.config_dict[self.INT_T_ID].get())
             p_N_c = int(self.config_dict[self.N_C_ID].get())
         except ValueError as e:
+
             raise UserWarning(e.args[0])  # e.args[0] is the message
 
         self._bnc.setmode("SINGLE")
         self._bnc.settrig("TRIG")
+
         self.avh.acquire()
         self.avh.prepareAll(p_T, True, p_N_c)
+
         for pulse in self._bnc:
+
             pulse[BNC.DELAY] = pulse.experimentTuple[BNC.DELAY].get()
             pulse[BNC.WIDTH] = pulse.experimentTuple[BNC.WIDTH].get()
             pulse[BNC.STATE] = pulse.experimentTuple[BNC.STATE].get()
+
         self._bnc.run()
-        self.avh.startAll(p_N_c)
         n_black = 0
 
+        tp_scopes = None
+
         while n_black < p_N_c:
-            self.processing_text["text"] = "Processing black :\n"\
-                + "\tAverage : {}/{}".format(n_black, p_N_c)
-            self.update()
-            self._bnc.sendtrig()
-            self.after(int(p_T_tot))
+
+            # Inform user
+            self.processing_text["text"] = "Processing experiment :\n"\
+                + "\tAverage : {}/{}\n".format(n_black, p_N_c)
             self.update()
 
+            # Get current time in milliseconds and compute estimated
+            # end time for experiment
+            start_time_in_ms = int(time.time()*1E3)
+            estimated_end_time_in_ms = start_time_in_ms + p_T_tot
+
+            self.avh.startAll(1)  # Start avaspec
+            self._bnc.sendtrig()  # Send trigger to BNC
+
+            # Wait appropriate time
+            self.after(estimated_end_time_in_ms - int(time.time()*1E3))
+
             n_black += 1
-            experiment_logger.debug("Done black {}/{}".format(n_black,
-                                                              p_N_c))
-        self.avh.waitAll()
+
+            self.avh.waitAll()
+            spectra = self.avh.getScopes()
+
+            # If one spectrum is saturated, we inform user of it
+            # Feature asked in #81
+            for key in spectra:
+                if spectra[key].isSaturated():
+                    tMsg.showwarning(
+                        "Saturation detected",
+                        "Warning, {} is saturated.".format(key)
+                    )
+
+            if config.DEVELOPER_MODE_ENABLED:
+
+                self.liveDisplay.putSpectrasAndUpdate(
+                    Scope_Display.DEBUG_DISPLAY, spectra
+                )
+
+            # if this is the first observation, tp_scopes is None
+            # and thus we initialize it, else, we increment each spectrum
+            if tp_scopes:
+                for key in tp_scopes:
+                    tp_scopes[key] += spectra[key]
+            else:
+                tp_scopes = spectra
+
         self._bnc.stop()
-        self.spectra_storage.putBlack(self.avh.getScopes())
+
+        tp_scopes /= p_N_c  # Correct averaging
+
+        self.spectra_storage.putBlack(tp_scopes)  # Put in spectrum storage
         experiment_logger.info("Black set.")
+
         self.liveDisplay.putSpectrasAndUpdate(
             self.BLACK_PANE, self.spectra_storage.latest_black
         )
-        self.avh.stopAll()
         self.avh.release()
         self.pause_live_display.clear()
         self.processing_text["text"] = "No running experiment..."
@@ -838,22 +920,58 @@ class Application(tk.Frame):
         self.avh.startAll(p_N_c)
         n_white = 0
 
+        tp_scopes = None
+
         while n_white < p_N_c:
 
+            # Inform user
             self.processing_text["text"] = "Processing white :\n"\
-                + "\tAverage : {}/{}".format(n_white, p_N_c)
+                + "\tAverage : {}/{}\n".format(n_white, p_N_c)
             self.update()
 
-            self._bnc.sendtrig()
-            self.after(int(p_T_tot))
-            self.update()
+            # Get current time in milliseconds and compute estimated
+            # end time for experiment
+            start_time_in_ms = int(time.time()*1E3)
+            estimated_end_time_in_ms = start_time_in_ms + p_T_tot
+
+            self.avh.startAll(1)  # Start avaspec
+            self._bnc.sendtrig()  # Send trigger to BNC
+
+            # Wait appropriate time
+            self.after(estimated_end_time_in_ms - int(time.time()*1E3))
 
             n_white += 1
-            experiment_logger.debug("Done white {}/{}".format(n_white,
-                                                              p_N_c))
-        self.avh.waitAll()
+
+            self.avh.waitAll()
+            spectra = self.avh.getScopes()
+
+            # If one spectrum is saturated, we inform user of it
+            # Feature asked in #81
+            for key in spectra:
+                if spectra[key].isSaturated():
+                    tMsg.showwarning(
+                        "Saturation detected",
+                        "Warning, {} is saturated.".format(key)
+                    )
+
+            if config.DEVELOPER_MODE_ENABLED:
+
+                self.liveDisplay.putSpectrasAndUpdate(
+                    Scope_Display.DEBUG_DISPLAY, spectra
+                )
+
+            # if this is the first observation, tp_scopes is None
+            # and thus we initialize it, else, we increment each spectrum
+            if tp_scopes:
+                for key in tp_scopes:
+                    tp_scopes[key] += spectra[key]
+            else:
+                tp_scopes = spectra
+
+        tp_scopes /= p_N_c
+
         self._bnc.stop()
-        self.spectra_storage.putWhite(self.avh.getScopes())
+        self.spectra_storage.putWhite(tp_scopes)
         experiment_logger.info("White set.")
         self.liveDisplay.putSpectrasAndUpdate(
             self.WHITE_PANE, self.spectra_storage.latest_white
@@ -869,48 +987,45 @@ class Application(tk.Frame):
             format(time=time.localtime())
 
     def experiment(self):
+
+        #####
+        # PREPARATION PART
+        #####
+
+        # Prepare and inform user that experiment is Running
         self.processing_text["text"] = "Preparing experiment..."
+        experiment_logger.info("Preparint experiment.")
+
+        # Prepare data-structures
         raw_timestamp = self.spectra_storage.createStorageUnit(end="RAW")
         abs_timestamp = self.spectra_storage.createStorageUnit(end="ABS")
-        experiment_logger.info("Starting experiment.")
+
+        # Stop pending operations
         self.experiment_on = True
         self.pause_live_display.set()
-        abort = False
+
+        # ASSERTION PART
+
+        # Chek if parameters are set
         try:
+
             p_T_tot = float(self.config_dict[self.T_TOT_ID].get())
             p_T = float(self.config_dict[self.INT_T_ID].get())
             p_N_c = int(self.config_dict[self.N_C_ID].get())
             p_N_d = int(self.config_dict[self.N_D_ID].get())
+
         except ValueError as e:
+
             raise UserWarning(e.args[0])  # e.args[0] is the error message
 
-        n_d = 1
-
-        self._bnc.setmode("SINGLE")
-        self._bnc.settrig("TRIG")
-
-        for pulse in self._bnc:
-            pulse[BNC.STATE] = pulse.experimentTuple[BNC.STATE].get()
-            if pulse[BNC.STATE] == "1":
-                pulse[BNC.DELAY] = pulse.experimentTuple[BNC.DELAY].get()
-                pulse[BNC.WIDTH] = pulse.experimentTuple[BNC.WIDTH].get()
-                total_time_used = p_N_d*float(
-                    pulse.experimentTuple[BNC.dPHASE].get())
-                if total_time_used >= p_T:
-                    raise AssertionError(
-                        "Experiment time to short. Pulse nr {}".
-                        format(pulse.number)
-                        + " uses {}ms but {}ms were allocated.".format(
-                            total_time_used, p_T_tot))
-
+        # Check if black is set
         if not self.spectra_storage.blackIsSet():
-            abort = True
-            self.experiment_on = False
+
             raise UserWarning("Black not set, aborting.")
 
+        # Check is white is set
         if not self.spectra_storage.whiteIsSet():
-            self.experiment_on = False
-            abort = True
+
             raise UserWarning("White not set, aborting.")
 
         # Here we correct black from reference spectra.
@@ -920,151 +1035,209 @@ class Application(tk.Frame):
                 self.spectra_storage.latest_white[key]\
                 - self.spectra_storage.latest_black[key]
 
+        # Check is a reference channel is set, if not, raise a Warning
+        # else, compute the machine absorbance for further spectrum correction
         if self.referenceChannel.get() != "":
             correction_spectrum = self.get_selected_absorbance(
                 tp_reference
             )
         else:
-            self.experiment_on = False
-            abort = True
+
             raise UserWarning(
                 "No reference channel selected, aborting."
             )
-        self.avh.acquire()
+        # PREPARE BNC
+        self._bnc.setmode("SINGLE")
+        self._bnc.settrig("TRIG")
+
+        for pulse in self._bnc:
+
+            pulse[BNC.STATE] = pulse.experimentTuple[BNC.STATE].get()
+            if pulse[BNC.STATE] == "1":
+
+                pulse[BNC.DELAY] = pulse.experimentTuple[BNC.DELAY].get()
+                pulse[BNC.WIDTH] = pulse.experimentTuple[BNC.WIDTH].get()
+                total_time_used = p_N_d*float(
+                    pulse.experimentTuple[BNC.dPHASE].get())
+
+                if total_time_used >= p_T:
+                    raise UserWarning(
+                        "Experiment time to short. Pulse nr {}".
+                        format(pulse.number)
+                        + " uses {}ms but {}ms were allocated.".format(
+                            total_time_used, p_T_tot)
+                    )
+
+        # PREPARE AVASPEC
+        self.avh.acquire()  # Acquire to prevent thread overlap on Avaspec
         self.avh.prepareAll(
             intTime=p_T,
             triggerred=True,
-            nrAverages=1
         )
 
+        #####
+        # OBSERVATION PART
+        #####
+
         experiment_logger.info("Starting observation.")
-        if not abort:
 
-            while n_d <= p_N_d and self.experiment_on:
+        # START OF BOXCAR METHOD - DELAY LOOP
 
-                n_c = 1
-                self._bnc.run()
-                tp_scopes = None
+        n_d = 1
 
-                while n_c <= p_N_c and self.experiment_on:
+        while n_d <= p_N_d and self.experiment_on:
 
-                    self.processing_text["text"] = "Processing experiment :\n"\
-                        + "\tAverage : {}/{}\n".format(n_c, p_N_c)\
-                        + "\tDelay : {}/{}".format(n_d, p_N_d)
-                    self.update()
+            self._bnc.run()
+            tp_scopes = None
 
-                    self.avh.startAll(1)
-                    self._bnc.sendtrig()
-                    self.after(int(p_T_tot))
+            # AVERAGING LOOP
 
-                    n_c += 1
+            n_c = 1
 
-                    experiment_logger.\
-                        debug("Done experiment {}/{}, {}/{}".format(n_c,
-                                                                    p_N_c,
-                                                                    n_d,
-                                                                    p_N_d))
-                    self.avh.waitAll()
-                    spectra = self.avh.getScopes()
+            while n_c <= p_N_c and self.experiment_on:
 
-                    for key in spectra:
-                        if spectra[key].isSaturated():
-                            tMsg.showwarning(
-                                "Saturation detected",
-                                "Warning, {} is sturated.".format(key)
-                            )
-
-                    if tp_scopes is None:
-                        tp_scopes = spectra
-                    else:
-                        for key in tp_scopes:
-                            tp_scopes[key] += spectra[key]
-                self._bnc.stop()
-                n_d += 1
-
-                # Correct error caused by adding spectra
-                for key in tp_scopes:
-                    tp_scopes[key] /= p_N_c
-
-                self.avh.stopAll()
-                self.spectra_storage.putSpectra(raw_timestamp, n_d, tp_scopes)
-                self.liveDisplay.putSpectrasAndUpdate(
-                    self.EXP_SCOPE,
-                    self.spectra_storage[raw_timestamp, n_d, :]
-                )
-
-                black_corrected_scopes = dict([])
-
-                for id, spectrum in tp_scopes.items():
-                    black_corrected_scopes[id] = \
-                        spectrum - self.spectra_storage.latest_black[id]
-
-                tp_absorbance = self.get_selected_absorbance(
-                    black_corrected_scopes
+                # Inform user
+                self.processing_text["text"] = "Processing experiment :\n"\
+                    + "\tAverage : {}/{}\n".format(n_c, p_N_c)\
+                    + "\tDelay : {}/{}".format(n_d, p_N_d)
+                self.update()
+                experiment_logger.debug(
+                    "Done experiment {}/{}, {}/{}".format(
+                            n_c, p_N_c, n_d, p_N_d
+                        )
                     )
 
-                first_absorbance_spectrum_name = list(tp_absorbance.keys())[0]
+                # Get current time in milliseconds and compute estimated
+                # end time for experiment
+                start_time_in_ms = int(time.time()*1E3)
+                estimated_end_time_in_ms = start_time_in_ms + p_T_tot
 
-                corrected_absorbance = dict([])
-                try:
+                self.avh.startAll(1)  # Start avaspec
+                self._bnc.sendtrig()  # Send trigger to BNC
 
-                    for key in tp_absorbance:
-                        corrected_absorbance[key] = (
-                                tp_absorbance[key]
-                                - correction_spectrum[key]
-                            ).getInterpolated(
-                                startingLamb=float(
-                                    self.config_dict[
-                                        self.STARTLAM_ID
-                                    ].get()
-                                ),
-                                endingLamb=float(
-                                    self.config_dict[
-                                        self.ENDLAM_ID
-                                    ].get()
-                                ),
-                                nrPoints=int(
-                                    self.config_dict[
-                                        self.NRPTS_ID
-                                    ].get()
-                                )
+                # Wait appropriate time
+                self.after(estimated_end_time_in_ms - int(time.time()*1E3))
+
+                n_c += 1
+
+                self.avh.waitAll()
+                spectra = self.avh.getScopes()
+
+                # If one spectrum is saturated, we inform user of it
+                # Feature asked in #81
+                for key in spectra:
+                    if spectra[key].isSaturated():
+                        tMsg.showwarning(
+                            "Saturation detected",
+                            "Warning, {} is saturated.".format(key)
+                        )
+
+                if config.DEVELOPER_MODE_ENABLED:
+
+                    self.liveDisplay.putSpectrasAndUpdate(
+                        Scope_Display.DEBUG_DISPLAY, spectra
+                    )
+
+                # if this is the first observation, tp_scopes is None
+                # and thus we initialize it, else, we increment each spectrum
+                if tp_scopes:
+                    for key in tp_scopes:
+                        tp_scopes[key] += spectra[key]
+                else:
+                    tp_scopes = spectra
+
+            # END OF AVERAGING LOOP
+
+            self._bnc.stop()
+            self.avh.stopAll()
+            n_d += 1
+
+            # Correct error caused by adding spectra
+            for key in tp_scopes:
+                tp_scopes[key] /= p_N_c
+
+            # Store Spectrum, and display it
+            self.spectra_storage.putSpectra(raw_timestamp, n_d, tp_scopes)
+            self.liveDisplay.putSpectrasAndUpdate(
+                self.EXP_SCOPE,
+                self.spectra_storage[raw_timestamp, n_d, :]
+            )
+
+            black_corrected_scopes = dict([])
+
+            # Correct raw spectra, ie substract black
+            for id, spectrum in tp_scopes.items():
+                black_corrected_scopes[id] = \
+                    spectrum - self.spectra_storage.latest_black[id]
+
+            # Compute absorbance
+            tp_absorbance = self.get_selected_absorbance(
+                black_corrected_scopes
+            )
+
+            # Exctract the first one (actually, only the first is used)
+            first_absorbance_spectrum_name = list(tp_absorbance.keys())[0]
+
+            corrected_absorbance = dict([])
+            try:
+
+                for key in tp_absorbance:
+                    corrected_absorbance[key] = (
+                            tp_absorbance[key]
+                            - correction_spectrum[key]
+                        ).getInterpolated(
+                            startingLamb=float(
+                                self.config_dict[
+                                    self.STARTLAM_ID
+                                ].get()
+                            ),
+                            endingLamb=float(
+                                self.config_dict[
+                                    self.ENDLAM_ID
+                                ].get()
+                            ),
+                            nrPoints=int(
+                                self.config_dict[
+                                    self.NRPTS_ID
+                                ].get()
                             )
-                except Exception:
+                        )
+            except Exception:
 
-                    for key in tp_absorbance:
-                        corrected_absorbance[key] = \
-                            tp_absorbance[key]-correction_spectrum[key]
+                for key in tp_absorbance:
+                    corrected_absorbance[key] = \
+                        tp_absorbance[key]-correction_spectrum[key]
 
-                self.spectra_storage.putSpectra(
-                    abs_timestamp, n_d, corrected_absorbance
-                )
+            # Store corrected absorbance spectra and display them
+            self.spectra_storage.putSpectra(
+                abs_timestamp, n_d, corrected_absorbance
+            )
 
-                self.liveDisplay.putSpectrasAndUpdate(
-                    self.EXP_ABS,
-                    self.spectra_storage[
-                        abs_timestamp, :, first_absorbance_spectrum_name
-                    ]
-                )
+            self.liveDisplay.putSpectrasAndUpdate(
+                self.EXP_ABS,
+                self.spectra_storage[
+                    abs_timestamp, :, first_absorbance_spectrum_name
+                ]
+            )
 
-                for pulse in self._bnc:
-                        if pulse[BNC.STATE] == "1":
-                            pulse[BNC.DELAY] = \
-                                float(pulse.experimentTuple[BNC.DELAY].get()) \
-                                + n_d * \
-                                float(pulse.experimentTuple[BNC.dPHASE].get())
+            # Delay instruments
+            for pulse in self._bnc:
+                    if pulse[BNC.STATE] == "1":
+                        pulse[BNC.DELAY] = \
+                            float(pulse.experimentTuple[BNC.DELAY].get()) \
+                            + n_d * \
+                            float(pulse.experimentTuple[BNC.dPHASE].get())
 
-                del tp_scopes
-            if not self.experiment_on:
-                experiment_logger.info("Experiment stopped.")
-                tMsg.showinfo("Experiment stopped",
-                              "n_c = {} , n_d = {}".format(n_c, n_d))
-            else:
-                experiment_logger.info("Experiment finished.")
+            del tp_scopes
 
+        # END OF DELAY LOOP
+        if not self.experiment_on:
+            experiment_logger.info("Experiment stopped.")
+            tMsg.showinfo("Experiment stopped",
+                          "n_c = {} , n_d = {}".format(n_c, n_d))
         else:
-            experiment_logger.warning("Experiment aborted.")
-            abort = True
-            self.experiment_on = False
+            experiment_logger.info("Experiment finished.")
+
         self.treatSpectras(raw_timestamp)
         self.avh.release()
         self.pause_live_display.clear()
@@ -1263,6 +1436,11 @@ def report_callback_exception(self, exc, val, tb):
         )
         logger.info("Bug report sent, received {}".format(r.headers["Status"]))
 
+    # Reset App, to be used further.
+    app.stop_experiment()
+    app.pause_live_display.clear()
+    app.stop_live_display.clear()
+    app.avh.release()
 
 def root_goodbye():
     global root
