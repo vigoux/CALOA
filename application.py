@@ -864,10 +864,10 @@ class Application(tk.Frame):
             # Feature asked in #81
             for key in spectra:
                 if spectra[key].isSaturated():
-                    tMsg.showwarning(
-                        "Saturation detected",
-                        "Warning, {} is saturated.".format(key)
+                    self.processing_text["text"] += (
+                        "\nWarning, {} is saturated.".format(key)
                     )
+                    self.update()
 
             if config.DEVELOPER_MODE_ENABLED:
 
@@ -951,10 +951,10 @@ class Application(tk.Frame):
             # Feature asked in #81
             for key in spectra:
                 if spectra[key].isSaturated():
-                    tMsg.showwarning(
-                        "Saturation detected",
-                        "Warning, {} is saturated.".format(key)
+                    self.processing_text["text"] += (
+                        "\nWarning, {} is saturated.".format(key)
                     )
+                    self.update()
 
             if config.DEVELOPER_MODE_ENABLED:
 
@@ -1132,10 +1132,10 @@ class Application(tk.Frame):
                 # Feature asked in #81
                 for key in spectra:
                     if spectra[key].isSaturated():
-                        tMsg.showwarning(
-                            "Saturation detected",
-                            "Warning, {} is saturated.".format(key)
+                        self.processing_text["text"] += (
+                            "\nWarning, {} is saturated.".format(key)
                         )
+                        self.update()
 
                 if config.DEVELOPER_MODE_ENABLED:
 
