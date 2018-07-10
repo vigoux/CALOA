@@ -3,6 +3,14 @@
 """
 This module is used as a config file to enable/disable some functionnalities.
 
+By modifying this file you can custom CALOA fundamental comportment.
+Warning : each update will reset this file, and you will have to modified it
+again.
+
+All constants defined here shall be set either to True or to False.
+
+
+
 Copyright (C) 2018  Thomas Vigouroux
 
 This file is part of CALOA.
@@ -19,14 +27,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with CALOA.  If not, see <http://www.gnu.org/licenses/>.
-"""
-
-"""
-By modifying this file you can custom CALOA fundamental comportment.
-Warning : each update will reset this file, and you will have to modified it
-again.
-
-All constants defined here shall be set either to True or to False.
 """
 
 # if AUTO_BUG_REPORT_ENABLED is set to True CALOA will send a bug report
@@ -53,4 +53,4 @@ DEVELOPER_MODE_ENABLED = True
 # Enter here the name (between quotes) of the colormap you want to use
 # To find some other colormap ideas :
 # https://matplotlib.org/examples/color/colormaps_reference.html
-COLORMAP_NAME = "seismic"
+COLORMAP_NAME = "Spectral"
