@@ -256,6 +256,7 @@ Datas will be saved in a predetermined organization :
     | |- ...
     |
     |-config.txt
+    |- time_table.txt
 ```
 
 In each file (except config.txt), datas will be organized in lines as follows :
@@ -265,6 +266,11 @@ In each file (except config.txt), datas will be organized in lines as follows :
 
 Folder raw will contain raw datas, interp interpolated datas, and cosmetic
 smoothed datas.
+
+`config.txt` contains an explicit and exhaustive list of all entered
+parameters.
+
+`time_table.txt` contains a table of delays for each generator channel.
 
 ## Updates
 
