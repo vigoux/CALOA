@@ -166,9 +166,8 @@ spectrometers.
 First of all you will have to enter your parameters in the application.
 Enter the total observation time (this is the time between two triggers) in
 the Entry labeled "Total time" in milliseconds.
-Then enter the integration time of the spectrometers, be careful,
-if you use multiple spectrometers, some tests showed that a minimum integration
-time of 15 ms is needed.
+Then enter the integration time of the spectrometers, be careful, a minimal
+integration time of 1.1 ms is needed.
 Then enter the number of averages and number of delays.
 Averaging number corresponds to the number of averages for a single delay
 number.
