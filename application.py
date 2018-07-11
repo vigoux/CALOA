@@ -436,6 +436,11 @@ class Application(tk.Frame):
 
         menubar.add_command(label="Preferences...",
                             command=self.display_preference_menu)
+
+        menubar.add_command(
+            label="?",
+            command= self.displayHelp
+        )
         self.master.config(menu=menubar)
 
     def display_preference_menu(self):
