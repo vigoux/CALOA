@@ -52,6 +52,9 @@ import requests
 import json
 import platform
 
+# Used to open caloa documentation
+import webbrowser
+
 logger = logging.getLogger(__name__)
 experiment_logger = logging.getLogger(__name__+".experiment")
 
@@ -326,6 +329,10 @@ class Application(tk.Frame):
         self.focus_set()
         self.pack()
 
+        if os.path.exists("VERSION_INFO"):
+            with open("VERSION_INFO", "r") as file:
+                self._version = file.read_all()
+
         logger.debug("Loading config file.")
         try:  # to open preceding config file
             with open(self.BACKUP_CONFIG_FILE_NAME, "rb") as file:
@@ -443,6 +450,38 @@ class Application(tk.Frame):
                 ).grid(row=i, column=0, sticky=tk.W)
             tk.Entry(config_pane,
                      textvariable=self.config_dict[key]).grid(row=i, column=1)
+
+    def displayHelp(self):
+        """
+        Open a popup showing a help frame.
+        """
+        help_frame = tk.Toplevel()
+        help_frame.title("Help")
+
+        # CALOA version
+        tk.Label(
+            help_frame, text="CALOA {}".format(self._version)
+        ).grid(row=0)
+
+        # Copyright
+        tk.Label(
+            help_frame,
+            text="Copyright (C) 2018  Thomas Vigouroux"
+        ).grid(row=10)
+
+        # Open documentation button.
+        # the <commmand> part of this button is the combination of two
+        # StackOverflow questions :
+        # https://stackoverflow.com/questions/6920302/how-to-pass-arguments-to-a-button-command-in-tkinter
+        # https://stackoverflow.com/questions/4302027/how-to-open-a-url-in-python
+        tk.Button(
+            help_frame,
+            text="Open documentation.",
+            command=lambda : webbrowser.open(
+                "https://github.com/Mambu38/CALOA/blob/master/README.md"
+            )
+        ).grid(row=20, sticky=tk.W+tk.E)
+
 
     def updateScreen(self):
         """Easier way to update the screen."""
