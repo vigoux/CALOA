@@ -562,8 +562,29 @@ class Application(tk.Frame):
             # list.copy() is realy important because of the
             # eventual further modification of the list.
             # Send raw spectras.
+
+            interpolated_scopes = dict([])
+            for key in scopes:
+                interpolated_scopes[key] =\
+                    scopes[key].getInterpolated(
+                        startingLamb=float(self.config_dict[
+                            self.ROUT_START_LAM
+                        ].get()),
+                        endingLamb=float(self.config_dict[
+                            self.ROUT_END_LAM
+                        ].get()),
+                        nrPoints=int(self.config_dict[
+                            self.ROUT_NR_POINTS
+                        ].get()),
+                        smoothing=True,
+                        windowSize=int(self.config_dict[
+                            self.ROUT_INTERP_INT
+                        ].get()),
+                        polDegree=5
+                    )
+
             self.liveDisplay.putSpectrasAndUpdate(
-                self.LIVE_SCOPE, scopes.copy()
+                self.LIVE_SCOPE, interpolated_scopes.copy()
             )
 
             if self.referenceChannel.get() != "":
@@ -784,20 +805,20 @@ class Application(tk.Frame):
                 tk.Label(sub_fen,
                          text=self.DISPLAY_TEXTS[key]).grid(row=i, column=0,
                                                             sticky=tk.W)
-                self.config_dict[key] = tk.StringVar()
+                self.config_dict[key] = tk.StringVar(value="0")
                 tk.Entry(sub_fen,
                          textvariable=self.config_dict[key]).\
                     grid(row=i, column=1)
         sub_fen.grid(row=3, rowspan=len(self.DISPLAY_KEYS), columnspan=2)
 
         for key in self.PARAMETERS_KEYS:
-            self.config_dict[key] = tk.StringVar()
+            self.config_dict[key] = tk.StringVar(value="0")
 
         tk.Label(button_fen,
                  text="Reference channel").\
             grid(row=90, column=0, rowspan=self.avh._nr_spec_connected)
 
-        self.referenceChannel = tk.StringVar()
+        self.referenceChannel = tk.StringVar(value="0")
         for i, avsHandle in enumerate(self.avh.devList):
             tk.Radiobutton(button_fen,
                            text=self.avh.devList[avsHandle][0],
