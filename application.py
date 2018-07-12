@@ -289,7 +289,7 @@ class Application(tk.Frame):
         ROUT_PERIOD: "Live display's period (>500 ms)",
         ROUT_INT_TIME: "Live display's integration time (in ms)",
         ROUT_INTERP_INT:
-            "Live display's smoothing window width (3 - 51 data pts)",
+            "Live display's smoothing window width (7 - 51 data pts)",
         ROUT_START_LAM: "Live display's starting wavelength (in nm)",
         ROUT_END_LAM: "Live display's ending wavelength (in nm)",
         ROUT_NR_POINTS: "Live display's # of points (integer)"
@@ -337,7 +337,12 @@ class Application(tk.Frame):
 
         if os.path.exists("VERSION_INFO"):
             with open("VERSION_INFO", "r") as file:
-                self._version = file.read_all()
+                self._version = " ".join(
+                    (
+                        file.read().strip("\n"),
+                        "(DEV)" if config.DEVELOPER_MODE_ENABLED else None
+                    )
+                )
 
         logger.debug("Loading config file.")
         try:  # to open preceding config file
@@ -600,19 +605,40 @@ class Application(tk.Frame):
             if self.referenceChannel.get() != "":
 
                 # Compute absorbance (live)
-                absorbanceSpectrum = self.get_selected_absorbance(
-                    scopes
-                )
-
-                # Display absorbance
-                self.liveDisplay.putSpectrasAndUpdate(
-                    self.LIVE_ABS, absorbanceSpectrum
-                )
+                try:
+                    absorbanceSpectrum = self.get_selected_absorbance(
+                        scopes
+                    )
+                    # Display absorbance
+                    to_disp_abs = dict([])
+                    for key in absorbanceSpectrum:
+                        to_disp_abs[key] =\
+                            absorbanceSpectrum[key].getInterpolated(
+                                startingLamb=float(self.config_dict[
+                                    self.ROUT_START_LAM
+                                ].get()),
+                                endingLamb=float(self.config_dict[
+                                    self.ROUT_END_LAM
+                                ].get()),
+                                nrPoints=int(self.config_dict[
+                                    self.ROUT_NR_POINTS
+                                ].get()),
+                                smoothing=True,
+                                windowSize=int(self.config_dict[
+                                    self.ROUT_INTERP_INT
+                                ].get()),
+                                polDegree=5
+                            )
+                    self.liveDisplay.putSpectrasAndUpdate(
+                        self.LIVE_ABS, to_disp_abs
+                    )
+                except Exception:
+                    pass
 
             self.avh.release()
 
             try:
-
+                assert(int(self.config_dict[self.ROUT_PERIOD].get()) > 10)
                 self.after(
                     int(self.config_dict[self.ROUT_PERIOD].get()),
                     self.routine_data_sender

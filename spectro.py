@@ -936,16 +936,22 @@ class Spectrum:
         # If startingLamb and endingLamb are not correctly set, we raise
         # an error.
         if startingLamb < self.lambdas[0] or endingLamb > self.lambdas[-1]\
-                or startingLamb > endingLamb:
-            raise RuntimeError(
-                "{} - {} is not ".format(
-                    startingLamb, endingLamb
-                )
-                + "contained in spectrum range "
-                + "(wich is {} - {})".format(
-                    self.lambdas[0], self.lambdas[-1]
-                )
-            )
+                or startingLamb > endingLamb or polDegree >= windowSize:
+            
+            startingLamb = self.lambdas[0]
+            endingLamb = self.lambdas[-1]
+            nrPoints = len(self.lambdas)
+            polDegree = 5
+            windowSize = 51
+            #raise RuntimeError(
+            #    "{} - {} is not ".format(
+            #        startingLamb, endingLamb
+            #    )
+            #    + "contained in spectrum range "
+            #    + "(wich is {} - {})".format(
+            #        self.lambdas[0], self.lambdas[-1]
+            #    )
+            #)
 
         # We make a set of wavelengths equally spaced using numpy.linspace
         lamb_space = linspace(startingLamb, endingLamb, nrPoints)
