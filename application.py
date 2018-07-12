@@ -64,6 +64,9 @@ main_lock = RLock()
 
 
 class Scope_Display(tk.Frame, Queue):
+    """
+    Live scope display (right panel in normal mode)
+    """
 
     SCOPE_UPDATE_SEQUENCE = "<<SCOPEUPDATE>>"
     PLOT_TYPE_2D = "2D"
@@ -234,6 +237,9 @@ class Scope_Display(tk.Frame, Queue):
 
 
 class Application(tk.Frame):
+    """
+    GUI and pilot of the application.
+    """
 
     #####
     # Useful constants
