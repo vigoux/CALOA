@@ -337,7 +337,12 @@ class Application(tk.Frame):
 
         if os.path.exists("VERSION_INFO"):
             with open("VERSION_INFO", "r") as file:
-                self._version = file.read().strip("\n")
+                self._version = " ".join(
+                    (
+                        file.read().strip("\n"),
+                        "(DEV)" if config.DEVELOPER_MODE_ENABLED else None
+                    )
+                )
 
         logger.debug("Loading config file.")
         try:  # to open preceding config file
