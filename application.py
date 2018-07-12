@@ -289,7 +289,7 @@ class Application(tk.Frame):
         ROUT_PERIOD: "Live display's period (>500 ms)",
         ROUT_INT_TIME: "Live display's integration time (in ms)",
         ROUT_INTERP_INT:
-            "Live display's smoothing window width (3 - 51 data pts)",
+            "Live display's smoothing window width (7 - 51 data pts)",
         ROUT_START_LAM: "Live display's starting wavelength (in nm)",
         ROUT_END_LAM: "Live display's ending wavelength (in nm)",
         ROUT_NR_POINTS: "Live display's # of points (integer)"
