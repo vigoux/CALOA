@@ -31,7 +31,7 @@ from re import search
 update_logger = logger_init.logging.getLogger(__name__)
 
 dont_take_unused = r"(logs|__pycache__|"\
-                     + "\.gitignore|\.github|\.gitattibutes|\.imdone)"
+                     + "\.gitignore|\.github|\.gitattibutes|\.imdone|docs)"
 
 if config.AUTO_UPDATE_ENABLED:
 
