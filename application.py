@@ -439,7 +439,7 @@ class Application(tk.Frame):
 
         menubar.add_command(
             label="?",
-            command= self.displayHelp
+            command=self.displayHelp
         )
         self.master.config(menu=menubar)
 
@@ -486,7 +486,6 @@ class Application(tk.Frame):
                 "https://github.com/Mambu38/CALOA/blob/master/README.md"
             )
         ).grid(row=20, sticky=tk.W+tk.E)
-
 
     def updateScreen(self):
         """Easier way to update the screen."""
