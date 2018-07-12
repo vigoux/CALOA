@@ -508,7 +508,9 @@ class AvaSpec_Handler:
         - dict -- key are AVS_Handles ands values are tuples as follows :
             ((str)m_aUserFriendlyId, a Callback_Measurment object)
         """
-        nrDev = AVS_DLL.AVS_GetNrOfDevices()
+        nrDev = AVS_DLL.AVS_GetNrOfDevices()  # Deprecated
+        # nrDev = AVS_DLL.AVS_UpdateUSBDevices()  # Newer
+
         if nrDev != self._nr_spec_connected:
             raise RuntimeError(
                 "An unknown error happened. Number of devices changed."
