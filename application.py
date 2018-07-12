@@ -733,6 +733,26 @@ class Application(tk.Frame):
 
         logger.debug("Loaded {}-{}".format(folder_id, subfolder_id))
 
+    def saveSpectrumStorage(self):
+        """
+        Saves spectrum storage into a selected file.
+        """
+
+        # Select a file name
+        save_path = tkFileDialog.asksaveasfilename(
+            title="Save all spectra.",
+            defaultextension=".csf"
+        )
+
+        if save_path != "":  # If selected
+            with open(save_path, "wb") as save_file:
+                pick = Pickler(save_file)  # Create a Pickler
+                pick.dump(self.spectra_storage)  # Dump spectra_storage
+                save_file.close()  # For safety reasons, close file
+        else:  # If not selected raise a warning to the user
+            raise UserWarning(
+                "Invalid file path."
+            )
     # TODO: Enhance advanced frame aspect id:32
     # Mambu38
     # 39092278+Mambu38@users.noreply.github.com
