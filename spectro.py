@@ -1348,3 +1348,9 @@ class Spectrum_Storage:
     def isExperimentReady(self):
 
         return self.blackIsSet() and self.whiteIsSet()
+
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, saved):
+        self.__dict__ = saved
