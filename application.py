@@ -600,14 +600,16 @@ class Application(tk.Frame):
             if self.referenceChannel.get() != "":
 
                 # Compute absorbance (live)
-                absorbanceSpectrum = self.get_selected_absorbance(
-                    scopes
-                )
-
-                # Display absorbance
-                self.liveDisplay.putSpectrasAndUpdate(
-                    self.LIVE_ABS, absorbanceSpectrum
-                )
+                try:
+                    absorbanceSpectrum = self.get_selected_absorbance(
+                        scopes
+                    )
+                    # Display absorbance
+                    self.liveDisplay.putSpectrasAndUpdate(
+                        self.LIVE_ABS, absorbanceSpectrum
+                    )
+                except Exception:
+                    pass
 
             self.avh.release()
 
