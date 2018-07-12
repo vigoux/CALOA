@@ -26,8 +26,10 @@ from os.path import abspath, join
 FORMAT_FILE = "[{levelname:_^7.5}] - {asctime} -" + \
               " {name:^24.20} {lineno:6d} - {message}"
 FORMAT_CONSOLE = "{message}"
+
 fmter_file = logging.Formatter(FORMAT_FILE, style="{")
 fmter_console = logging.Formatter(FORMAT_CONSOLE, style="{")
+
 filehandler = RotatingFileHandler(join(abspath("logs"), "app_log.txt"),
                                   mode="a",
                                   maxBytes=1E32,

@@ -813,6 +813,7 @@ class AvaSpec_Handler:
 
 # %% Spectrum Object used for an easier handling of spectras
 
+
 class Spectrum:
 
     """
