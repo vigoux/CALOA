@@ -25,13 +25,45 @@ along with CALOA.  If not, see <http://www.gnu.org/licenses/>.
 
 
 import serial
-import utils
 import time
 import re
 import logger_init
 import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.messagebox as tMsg
+import sys
+import glob
+
+# %% Serial port Sniffer
+
+
+def serial_ports():
+    """ Lists serial port names
+
+        :raises EnvironmentError:
+            On unsupported or unknown platforms
+        :returns:
+            A list of the serial ports available on the system
+    """
+    if sys.platform.startswith('win'):
+        ports = ['COM%s' % (i + 1) for i in range(256)]
+    elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+        # this excludes your current terminal "/dev/tty"
+        ports = glob.glob('/dev/tty[A-Za-z]*')
+    elif sys.platform.startswith('darwin'):
+        ports = glob.glob('/dev/tty.*')
+    else:
+        raise EnvironmentError('Unsupported platform')
+
+    result = []
+    for port in ports:
+        try:
+            s = serial.Serial(port)  # Tries to open a connection
+            s.close()
+            result.append(port)  # If connection is possible to port is usable
+        except (OSError, serial.SerialException):
+            pass
+    return result
 
 # %% BNC Exceptions
 
@@ -90,7 +122,7 @@ class BNC_Handler():
 
         if port is None:  # Port is not given
 
-            portlist = utils.serial_ports()  # Search for usable ports
+            portlist = serial_ports()  # Search for usable ports
 
             for port in portlist:  # For each, try to connect with BNC
 
@@ -234,6 +266,7 @@ STATE, WIDTH, DELAY, SYNC, POL, AMP, MODE, BC, PC, OC, WC, GATE =\
      tuple(COMMAND_DICT)
 
 LABEL, dPHASE, PHASE_BASE = "LABEL", "dPHASE", "PHASE_BASE"
+
 
 class Pulse():
     """Useful class to manage BNC's channels."""
