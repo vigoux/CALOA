@@ -614,7 +614,7 @@ class Application(tk.Frame):
             self.avh.release()
 
             try:
-
+                assert(int(self.config_dict[self.ROUT_PERIOD].get()) > 10)
                 self.after(
                     int(self.config_dict[self.ROUT_PERIOD].get()),
                     self.routine_data_sender
