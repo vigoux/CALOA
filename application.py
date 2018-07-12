@@ -630,7 +630,7 @@ class Application(tk.Frame):
                                 polDegree=5
                             )
                     self.liveDisplay.putSpectrasAndUpdate(
-                        self.LIVE_ABS, absorbanceSpectrum
+                        self.LIVE_ABS, to_disp_abs
                     )
                 except Exception:
                     pass
