@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License
 along with CALOA.  If not, see <http://www.gnu.org/licenses/>.
 """
 import logger_init
+import config
 
 import requests
 from io import BytesIO
@@ -29,73 +30,112 @@ from re import search
 
 update_logger = logger_init.logging.getLogger(__name__)
 
-dont_take_unuseful = r"(logs|__pycache__|"\
+dont_take_unused = r"(logs|__pycache__|"\
                      + "\.gitignore|\.github|\.gitattibutes|\.imdone)"
 
-# Opening and getting current version number.
-try:
-    vers_file = open("VERSION_INFO", "r")
-    vers_id = vers_file.readlines()[0]
-except FileNotFoundError as err_file:
-    update_logger.warning("VERSION_INFO file not found.", exc_info=err_file)
-    vers_id = ""
-except IndexError as ind_err:
-    update_logger.warning("VERSION_INFO is empty.", exc_info=ind_err)
-    vers_id = ""
-    vers_file.close()
-else:
-    vers_file.close()
+if config.AUTO_UPDATE_ENABLED:
 
-update_logger.debug("Current version : {}".format(vers_id))
+    # Opening and getting current version number.
+    try:
 
-# Getting latest release informations
-try:
-    latest_release_str = \
-        requests.\
-        get("https://api.github.com/repos/Mambu38/CALOA/releases/latest").\
-        content.decode()
-except Exception:
-    raise RuntimeError("Unable to find a connection. Aborting update.")
+        vers_file = open("VERSION_INFO", "r")
+        vers_id = vers_file.readlines()[0]
 
-dict_latest_release = \
-    literal_eval(latest_release_str.
-                 replace("true", "True").
-                 replace("false", "False").
-                 replace("null", "None"))
+    except FileNotFoundError as err_file:
 
-updated_version_nbr = dict_latest_release["tag_name"]
+        update_logger.warning(
+            "VERSION_INFO file not found.",
+            exc_info=err_file
+        )
+        vers_id = ""
 
-# Downloading and install
+    except IndexError as ind_err:
 
-if updated_version_nbr != vers_id:
+        update_logger.warning("VERSION_INFO is empty.", exc_info=ind_err)
+        vers_id = ""
+        vers_file.close()
 
-    update_logger.info("Software version is outdated, updating...")
+    else:
 
-    zipped = requests.get(dict_latest_release["zipball_url"])  # download zip
-    update_logger.info("ZipFile downloaded.")
+        vers_file.close()
 
-    unzipped = ZipFile(BytesIO(zipped.content))  # Unzip dowloaded file
-    update_logger.info("ZipFile unzipped.")
+    update_logger.debug("Current version : {}".format(vers_id))
 
-    for file_name in unzipped.namelist():
-        splitted_file_name = file_name.split("/")
-        if not (search(dont_take_unuseful, file_name)
-                or splitted_file_name[-1] == ""):  # Exclude unused files
-            update_logger.debug("Updating file {}".format(file_name))
+    # Getting latest release informations
+    if config.DEVELOPER_MODE_ENABLED:
 
-            # Open new and old files
+        download_url = \
+            "https://api.github.com/repos/Mambu38/CALOA/releases"
 
-            with unzipped.open(file_name, "r") as upd_file,\
-                    open(splitted_file_name[-1], "wb") as old_file:
+    else:
 
-                for line in upd_file.readlines():
-                    old_file.write(line)  # Write each new line  in old file
-            update_logger.debug("{} updated.".format(file_name))
+        download_url = \
+            "https://api.github.com/repos/Mambu38/CALOA/releases/latest"
 
-    with open("VERSION_INFO", "w") as vers_file:
+    try:
 
-        vers_file.write(updated_version_nbr)  # Update version number
+        latest_release_str = requests.get(download_url).content.decode()
 
-    update_logger.info("Software updated to {}.".format(updated_version_nbr))
-else:
-    update_logger.info("Your software is up-to-date : {}.".format(vers_id))
+    except Exception:
+
+        raise RuntimeError("Unable to find a connection. Aborting update.")
+
+    dict_latest_release = literal_eval(
+        latest_release_str.replace(
+            "true", "True"
+        ).replace(
+            "false", "False"
+        ).replace("null", "None"))
+
+    if config.DEVELOPER_MODE_ENABLED:
+        updated_version_nbr = dict_latest_release[0]["tag_name"]
+        dict_latest_release = dict_latest_release[0]
+    else:
+        updated_version_nbr = dict_latest_release["tag_name"]
+
+    # Download and install
+
+    if updated_version_nbr != vers_id:
+
+        update_logger.info("Software version is outdated, updating...")
+
+        # download zip
+        zipped = requests.get(dict_latest_release["zipball_url"])
+        update_logger.info("ZipFile downloaded.")
+
+        unzipped = ZipFile(BytesIO(zipped.content))  # Unzip dowloaded file
+        update_logger.info("ZipFile unzipped.")
+
+        for file_name in unzipped.namelist():
+
+            splitted_file_name = file_name.split("/")
+
+            if not (search(dont_take_unused, file_name)
+                    or splitted_file_name[-1] == ""):  # Exclude unused files
+
+                update_logger.debug("Updating file {}".format(file_name))
+
+                # Open new and old files
+
+                with unzipped.open(file_name, "r") as upd_file,\
+                        open(splitted_file_name[-1], "wb") as old_file:
+
+                    for line in upd_file.readlines():
+
+                        # Write each new line  in old file
+                        old_file.write(line)
+
+                update_logger.debug("{} updated.".format(file_name))
+
+        with open("VERSION_INFO", "w") as vers_file:
+
+            vers_file.write(updated_version_nbr)  # Update version number
+
+        update_logger.info(
+            "Software updated to {}.".format(updated_version_nbr)
+        )
+
+    else:
+        update_logger.info(
+            "Your software is up-to-date : {}.".format(vers_id)
+        )
