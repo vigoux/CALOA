@@ -482,7 +482,7 @@ class Application(tk.Frame):
         tk.Button(
             help_frame,
             text="Open documentation.",
-            command=lambda : webbrowser.open(
+            command=lambda: webbrowser.open(
                 "https://github.com/Mambu38/CALOA/blob/master/README.md"
             )
         ).grid(row=20, sticky=tk.W+tk.E)
@@ -1549,6 +1549,7 @@ def report_callback_exception(self, exc, val, tb):
     app.pause_live_display.clear()
     app.stop_live_display.clear()
     # app.avh.release()
+
 
 def root_goodbye():
     global root
