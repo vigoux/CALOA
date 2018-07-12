@@ -1067,6 +1067,7 @@ class Application(tk.Frame):
         # Prepare data-structures
         raw_timestamp = self.spectra_storage.createStorageUnit(end="RAW")
         abs_timestamp = self.spectra_storage.createStorageUnit(end="ABS")
+        interp_timestamp = self.spectra_storage.createStorageUnit(end="INT")
 
         # Stop pending operations
         self.experiment_on = True
@@ -1249,27 +1250,24 @@ class Application(tk.Frame):
             first_absorbance_spectrum_name = list(tp_absorbance.keys())[0]
 
             corrected_absorbance = dict([])
+            absorbance_to_display = dict([])
             try:
 
                 for key in tp_absorbance:
                     corrected_absorbance[key] = (
                             tp_absorbance[key]
                             - correction_spectrum[key]
-                        ).getInterpolated(
+                        )
+                    absorbance_to_display[key] =\
+                        corrected_absorbance[key].getInterpolated(
                             startingLamb=float(
-                                self.config_dict[
-                                    self.STARTLAM_ID
-                                ].get()
+                                self.config_dict[self.STARTLAM_ID].get()
                             ),
                             endingLamb=float(
-                                self.config_dict[
-                                    self.ENDLAM_ID
-                                ].get()
+                                self.config_dict[self.ENDLAM_ID].get()
                             ),
                             nrPoints=int(
-                                self.config_dict[
-                                    self.NRPTS_ID
-                                ].get()
+                                self.config_dict[self.NRPTS_ID].get()
                             )
                         )
             except Exception:
@@ -1283,10 +1281,14 @@ class Application(tk.Frame):
                 abs_timestamp, n_d, corrected_absorbance
             )
 
+            self.spectra_storage.putSpectra(
+                interp_timestamp, n_d, absorbance_to_display
+            )
+
             self.liveDisplay.putSpectrasAndUpdate(
                 self.EXP_ABS,
                 self.spectra_storage[
-                    abs_timestamp, :, first_absorbance_spectrum_name
+                    interp_timestamp, :, first_absorbance_spectrum_name
                 ]
             )
 
