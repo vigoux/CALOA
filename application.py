@@ -605,6 +605,25 @@ class Application(tk.Frame):
                         scopes
                     )
                     # Display absorbance
+                    to_disp_abs = dict([])
+                    for key in absorbanceSpectrum:
+                        to_disp_abs[key] =\
+                            absorbanceSpectrum[key].getInterpolated(
+                                startingLamb=float(self.config_dict[
+                                    self.ROUT_START_LAM
+                                ].get()),
+                                endingLamb=float(self.config_dict[
+                                    self.ROUT_END_LAM
+                                ].get()),
+                                nrPoints=int(self.config_dict[
+                                    self.ROUT_NR_POINTS
+                                ].get()),
+                                smoothing=True,
+                                windowSize=int(self.config_dict[
+                                    self.ROUT_INTERP_INT
+                                ].get()),
+                                polDegree=5
+                            )
                     self.liveDisplay.putSpectrasAndUpdate(
                         self.LIVE_ABS, absorbanceSpectrum
                     )
