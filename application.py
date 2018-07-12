@@ -429,6 +429,11 @@ class Application(tk.Frame):
             menu=black_menu
         )
 
+        spectra_menu.add_command(
+            label="Save all spectra",
+            command=self.saveSpectrumStorage
+        )
+
         menubar.add_cascade(
             label="Spectra",
             menu=spectra_menu
