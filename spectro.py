@@ -535,6 +535,10 @@ class AvaSpec_Handler:
 
         for i, dev in enumerate(AvsDevList):
 
+            logger_ASH.debug(
+                "Connecting with {}".format(dev.m_aUserFriendlyId)
+            )
+
             # As defined above, AvsDevList is an array of c_AvsIdentityType
             # thus we initialize each AvaSpec.
             # Some tests showed that DLL may be "lazy".
@@ -543,11 +547,29 @@ class AvaSpec_Handler:
             # Further tests are needed to determine if this event happens for
             # every AvaSpec or only for Double-Channel ones.
 
-            if i != 0:  # We patch beforehand identified problem.
-                begin = AvsDevList[0].m_aSerialId[:-4]
+            # We patch beforehand identified problem.
+            if i != 0 and len(dev.m_aSerialId) != 9:
+
+                logger_ASH.debug(
+                    "Wrong ID detected : {}".format(dev.m_aSerialId)
+                )
+                begin = AvsDevList[i-1].m_aSerialId[:-4]
                 dev.m_aSerialId = begin + dev.m_aSerialId
                 dev.m_aUserFriendlyId = begin + dev.m_aUserFriendlyId
-            avs_handle = AVS_DLL.AVS_Activate(ctypes.byref(dev))
+
+                logger_ASH.debug(
+                    "Attempted to fix it : {}".format(dev.m_aSerialId)
+                )
+
+                avs_handle = AVS_DLL.AVS_Activate(ctypes.byref(dev))
+            else:
+                avs_handle = AVS_DLL.AVS_Activate(ctypes.byref(dev))
+
+            logger_ASH.debug(
+                "Connected with {} with handle {}".format(
+                    dev.m_aUserFriendlyId, avs_handle
+                )
+            )
             devDict[avs_handle] = \
                 (bytes.decode(dev.m_aUserFriendlyId), Callback_Measurment())
             AVS_DLL.AVS_SetSyncMode(avs_handle, 0)
@@ -937,7 +959,7 @@ class Spectrum:
         # an error.
         if startingLamb < self.lambdas[0] or endingLamb > self.lambdas[-1]\
                 or startingLamb > endingLamb or polDegree >= windowSize:
-            
+
             startingLamb = self.lambdas[0]
             endingLamb = self.lambdas[-1]
             nrPoints = len(self.lambdas)
