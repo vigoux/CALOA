@@ -305,6 +305,7 @@ class Application(tk.Frame):
     LIVE_ABS = "Live abs."
     BLACK_PANE = "Black"
     WHITE_PANE = "White"
+    HARD_ABS_PANE = "Machine abs."
     EXP_SCOPE = "Exp. scope"
     EXP_ABS = "Exp. abs."
 
@@ -909,6 +910,7 @@ class Application(tk.Frame):
                 (self.LIVE_ABS, Scope_Display.PLOT_TYPE_2D),
                 (self.BLACK_PANE, Scope_Display.PLOT_TYPE_2D),
                 (self.WHITE_PANE, Scope_Display.PLOT_TYPE_2D),
+                (self.HARD_ABS_PANE, Scope_Display.PLOT_TYPE_2D),
                 (self.EXP_SCOPE, Scope_Display.PLOT_TYPE_2D),
                 (self.EXP_ABS, Scope_Display.PLOT_TYPE_TIME)
             ]
@@ -1165,6 +1167,10 @@ class Application(tk.Frame):
         if self.referenceChannel.get() != "":
             correction_spectrum = self.get_selected_absorbance(
                 tp_reference
+            )
+            self.liveDisplay.putSpectrasAndUpdate(
+                self.HARD_ABS_PANE,
+                correction_spectrum
             )
         else:
 
