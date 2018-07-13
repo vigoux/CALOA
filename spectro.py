@@ -975,6 +975,9 @@ class Spectrum:
             #    )
             #)
 
+        if windowSize % 2 == 0:
+            windowSize -= 1
+
         # We make a set of wavelengths equally spaced using numpy.linspace
         lamb_space = linspace(startingLamb, endingLamb, nrPoints)
 
