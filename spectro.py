@@ -517,8 +517,8 @@ class AvaSpec_Handler:
                 "An unknown error happened. Number of devices changed."
             )
 
-        #
         ReqSize = ctypes.c_uint(nrDev * ctypes.sizeof(avaspec.AvsIdentityType))
+        print(ReqSize)
         AvsDevList = (avaspec.AvsIdentityType * nrDev)()
 
         avaspec.AVS_GetList.errcheck = self._check_error  # Init errcheck
