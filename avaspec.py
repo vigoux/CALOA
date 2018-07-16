@@ -2,12 +2,15 @@
 import ctypes
 import ctypes.wintypes
 import struct
-import globals
 from PyQt5.QtCore import *
 
 AVS_SERIAL_LEN = 10
 USER_ID_LEN = 64
 WM_MEAS_READY = 0x8001
+
+dev_handle = 0
+pixels = 4096
+spectraldata = [0.0] * 4096
 
 class AvsIdentityType(ctypes.Structure):
   _pack_ = 1
