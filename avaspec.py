@@ -115,11 +115,11 @@ def AVS_Init(x):
     ret = AVS_Init(x)
     return ret
 
-def AVS_GetNrOfDevices():
+def AVS_UpdateUSBDevices():
     lib = ctypes.WinDLL("avaspecx64.dll")
     prototype = ctypes.WINFUNCTYPE(ctypes.c_int)
-    AVS_GetNrOfDevices = prototype(("AVS_GetNrOfDevices", lib),)
-    ret = AVS_GetNrOfDevices()
+    AVS_UpdateUSBDevices = prototype(("AVS_UpdateUSBDevices", lib),)
+    ret = AVS_UpdateUSBDevices()
     return ret
 
 def AVS_GetList(listsize, requiredsize, IDlist):
