@@ -41,7 +41,7 @@ class DeviceConfigType(ctypes.Structure):
   _fields_ = [("m_Len", ctypes.c_uint16),
               ("m_ConfigVersion", ctypes.c_uint16),
               ("m_aUserFriendlyId", ctypes.c_char * USER_ID_LEN),
-              ("m_Detector_m_SensorType", ctypes.c_uint8),                      
+              ("m_Detector_m_SensorType", ctypes.c_uint8),
               ("m_Detector_m_NrPixels", ctypes.c_uint16),
               ("m_Detector_m_aFit", ctypes.c_float * 5),
               ("m_Detector_m_NLEnable", ctypes.c_bool),
@@ -58,7 +58,7 @@ class DeviceConfigType(ctypes.Structure):
               ("m_Irradiance_m_IntensityCalib_m_CalInttime", ctypes.c_float),
               ("m_Irradiance_m_IntensityCalib_m_aCalibConvers", ctypes.c_float * 4096),
               ("m_Irradiance_m_CalibrationType", ctypes.c_uint8),
-              ("m_Irradiance_m_FiberDiameter", ctypes.c_uint32),  
+              ("m_Irradiance_m_FiberDiameter", ctypes.c_uint32),
               ("m_Reflectance_m_Smoothing_m_SmoothPix", ctypes.c_uint16),
               ("m_Reflectance_m_Smoothing_m_SmoothModel", ctypes.c_uint8),
               ("m_Reflectance_m_CalInttime", ctypes.c_float),
@@ -70,7 +70,7 @@ class DeviceConfigType(ctypes.Structure):
               ("m_StandAlone_m_Meas_m_IntegrationTime", ctypes.c_float),
               ("m_StandAlone_m_Meas_m_IntegrationDelay", ctypes.c_uint32),
               ("m_StandAlone_m_Meas_m_NrAverages", ctypes.c_uint32),
-              ("m_StandAlone_m_Meas_m_CorDynDark_m_Enable", ctypes.c_uint8), 
+              ("m_StandAlone_m_Meas_m_CorDynDark_m_Enable", ctypes.c_uint8),
               ("m_StandAlone_m_Meas_m_CorDynDark_m_ForgetPercentage", ctypes.c_uint8),
               ("m_StandAlone_m_Meas_m_Smoothing_m_SmoothPix", ctypes.c_uint16),
               ("m_StandAlone_m_Meas_m_Smoothing_m_SmoothModel", ctypes.c_uint8),
@@ -97,10 +97,10 @@ class DeviceConfigType(ctypes.Structure):
               ("m_ProcessControl_m_DigitalHigh", ctypes.c_float * 10),
               ("m_EthernetSettings_m_IpAddr", ctypes.c_uint32),
               ("m_EthernetSettings_m_NetMask", ctypes.c_uint32),
-              ("m_EthernetSettings_m_Gateway", ctypes.c_uint32), 
-              ("m_EthernetSettings_m_DhcpEnabled", ctypes.c_uint8), 
+              ("m_EthernetSettings_m_Gateway", ctypes.c_uint32),
+              ("m_EthernetSettings_m_DhcpEnabled", ctypes.c_uint8),
               ("m_EthernetSettings_m_TcpPort", ctypes.c_uint16),
-              ("m_EthernetSettings_m_LinkStatus", ctypes.c_uint8),  
+              ("m_EthernetSettings_m_LinkStatus", ctypes.c_uint8),
               ("m_Reserved", ctypes.c_uint8 * 9720),
               ("m_OemData", ctypes.c_uint8 * 4096)]
 
@@ -109,8 +109,8 @@ def AVS_Init(x):
     prototype = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_int)
     paramflags = (1, "port",),
     AVS_Init = prototype(("AVS_Init", lib), paramflags)
-    ret = AVS_Init(x) 
-    return ret 
+    ret = AVS_Init(x)
+    return ret
 
 def AVS_GetNrOfDevices():
     lib = ctypes.WinDLL("avaspecx64.dll")
@@ -176,7 +176,7 @@ def AVS_PrepareMeasure(handle, measconf):
         data[x] = temp[x]
         x += 1
     prototype = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_int, ctypes.c_byte * 41)
-    paramflags = (1, "handle",), (1, "measconf",),  
+    paramflags = (1, "handle",), (1, "measconf",),
     AVS_PrepareMeasure = prototype(("AVS_PrepareMeasure", lib), paramflags)
     ret = AVS_PrepareMeasure(handle, data)
     return ret
@@ -186,7 +186,7 @@ def AVS_Measure(handle, windowhandle, nummeas):
     prototype = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_int, ctypes.wintypes.HWND, ctypes.c_uint16)
     paramflags = (1, "handle",), (1, "windowhandle",), (1, "nummeas"),
     AVS_Measure = prototype(("AVS_Measure", lib), paramflags)
-    ret = AVS_Measure(handle, windowhandle, nummeas) 
+    ret = AVS_Measure(handle, windowhandle, nummeas)
     return ret
 
 class callbackclass(QObject):
@@ -200,13 +200,13 @@ class callbackclass(QObject):
 # We have not succeeded in getting the callback to execute without problem
 # please use AVS_Measure instead using Windows messaging or polling
 
-def AVS_MeasureCallback(handle, adres, nummeas):
+def AVS_MeasureCallback(handle, func, nummeas):
     CBTYPE = ctypes.CFUNCTYPE(None, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int))
     lib = ctypes.WinDLL("avaspecx64.dll")
     prototype = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_int, CBTYPE, ctypes.c_uint16)
     paramflags = (1, "handle",), (1, "adres",), (1, "nummeas"),
     AVS_MeasureCallback = prototype(("AVS_MeasureCallback", lib), paramflags)
-    ret = AVS_MeasureCallback(handle, CBTYPE(callbackclass.callback), nummeas)  # CRASHES python
+    ret = AVS_MeasureCallback(handle, func, nummeas)  # CRASHES python
 
 def AVS_StopMeasure(handle):
     lib = ctypes.WinDLL("avaspecx64.dll")
@@ -223,7 +223,7 @@ def AVS_PollScan(handle):
     AVS_PollScan = prototype(("AVS_PollScan", lib), paramflags)
     ret = AVS_PollScan(handle)
     return ret
-    
+
 def AVS_GetScopeData(handle, timelabel, spectrum):
     lib = ctypes.WinDLL("avaspecx64.dll")
     prototype = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_int, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_double * 4096))
@@ -250,7 +250,7 @@ def AVS_SetParameter(handle, deviceconfig):
                        "HBf4096fBI" +              # Irradiance
                        "HBf4096f" +                # Reflectance
                        "4096f" +                   # SpectrumCorrect
-                       "?HHfIIBBHBBBBBHIIfHH12B" + # StandAlone 
+                       "?HHfIIBBHBBBBBHIIfHH12B" + # StandAlone
                        "5f5f5f" +                  # Temperature
                        "?f2f" +                    # TecControl
                        "2f2f10f10f " +             # ProcessControl
@@ -289,7 +289,7 @@ def AVS_SetParameter(handle, deviceconfig):
                        deviceconfig.m_StandAlone_m_Meas_m_IntegrationTime,
                        deviceconfig.m_StandAlone_m_Meas_m_IntegrationDelay,
                        deviceconfig.m_StandAlone_m_Meas_m_NrAverages,
-                       deviceconfig.m_StandAlone_m_Meas_m_CorDynDark_m_Enable, 
+                       deviceconfig.m_StandAlone_m_Meas_m_CorDynDark_m_Enable,
                        deviceconfig.m_StandAlone_m_Meas_m_CorDynDark_m_ForgetPercentage,
                        deviceconfig.m_StandAlone_m_Meas_m_Smoothing_m_SmoothPix,
                        deviceconfig.m_StandAlone_m_Meas_m_Smoothing_m_SmoothModel,
@@ -327,7 +327,7 @@ def AVS_SetParameter(handle, deviceconfig):
         data[x] = temp[x]
         x += 1
     prototype = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_int, ctypes.c_byte * 63484)
-    paramflags = (1, "handle",), (1, "deviceconfig",),  
+    paramflags = (1, "handle",), (1, "deviceconfig",),
     AVS_SetParameter = prototype(("AVS_SetParameter", lib), paramflags)
     ret = AVS_SetParameter(handle, data)
     return ret

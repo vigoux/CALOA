@@ -21,8 +21,8 @@ You should have received a copy of the GNU General Public License
 along with CALOA.  If not, see <http://www.gnu.org/licenses/>.
 """
 import ctypes
-import os
-import enum
+# import os
+# import enum
 import logger_init
 from scipy import linspace
 from scipy.interpolate import CubicSpline
@@ -31,22 +31,23 @@ import math
 from threading import Event, Lock
 from queue import Queue
 import time
+import avaspec
 
-abp = os.path.abspath("as5216x64.dll")
-AVS_DLL = ctypes.WinDLL(abp)
-
-
-# %% DLL Wrapper part
-# This part is only the python transcription of AvaSpec Manual structure
-# definition.
-
+# abp = os.path.abspath("as5216x64.dll")
+# AVS_DLL = ctypes.WinDLL(abp)
+#
+#
+# # %% DLL Wrapper part
+# # This part is only the python transcription of AvaSpec Manual structure
+# # definition.
+#
 #####
 # Constants
 #####
 
 AVS_SERIAL_LEN = 10
 AVS_SATURATION_VALUE = 16383
-
+#
 #####
 # Exception
 #####
@@ -160,192 +161,192 @@ class c_AVA_Exceptions(Exception):
 
         return "\n".join(self.AVA_EXCEPTION_CODES[self.code_nbr])
 
-
-#####
-# Struct definition
-#####
-
-class c_AvsIdentityType(ctypes.Structure):  # VERIFIED
-
-    _fields_ = [("m_aSerialId", ctypes.c_char * 10),  # NOT SURE
-                ("m_aUserFriendlyId", ctypes.c_char * 64),
-                ("m_Status", ctypes.c_int)]  # c_DeviceStatus
-
-
-class c_BroadcastAnswerType(ctypes.Structure):  # VERIFIED
-
-    _fields_ = [("InterfaceType", ctypes.c_ubyte),
-                ("serial", ctypes.c_ubyte * AVS_SERIAL_LEN),
-                ("port", ctypes.c_ushort),
-                ("status", ctypes.c_ubyte),
-                ("RemoteHostIp", ctypes.c_uint),
-                ("LocalIp", ctypes.c_uint),  # NOT SURE
-                ("reserved", ctypes.c_ubyte * 4)]
-
-
-class c_ControlSettingsType(ctypes.Structure):  # VERIFIED
-
-    _fields_ = [("m_StrobeControl", ctypes.c_ushort),
-                ("m_LaserDelay", ctypes.c_uint),
-                ("m_LaserWidth", ctypes.c_uint),
-                ("m_LaserWaveLength", ctypes.c_float),
-                ("m_StoreToRam", ctypes.c_ushort)]
-
-
-class c_DarkCorrectionType(ctypes.Structure):  # VERIFIED
-
-    _fields_ = [("m_Enable", ctypes.c_ubyte),
-                ("m_ForgetPercentage", ctypes.c_ubyte)]
-
-
-class c_DeviceStatus(enum.Enum):  # VERIFIED
-    UNKNOWN = 0
-    USB_AVAILABLE = 1
-    USB_IN_USE_BY_APPLICATION = 2
-    USB_IN_USE_BY_OTHER = 3
-    ETH_AVAILABLE = 4
-    ETH_IN_USE_BY_APPLICATION = 5
-    ETH_IN_USE_BY_OTHER = 6
-    ETH_ALREADY_IN_USE_USB = 7
-
-
-class c_DetectorType(ctypes.Structure):  # VERIFIED
-
-    _fields_ = [("m_SensorType", ctypes.c_ubyte),  # SensorType
-                ("m_NrPixels", ctypes.c_ushort),
-                ("m_aFit", ctypes.c_float * 5),
-                ("m_NLEnable", ctypes.c_bool),
-                ("m_aNLCorrect", ctypes.c_double * 8),
-                ("m_aLowNLCounts", ctypes.c_double),
-                ("m_aHighNLCounts", ctypes.c_double),
-                ("m_Gain", ctypes.c_float * 2),
-                ("m_Reserved", ctypes.c_float),
-                ("m_Offset", ctypes.c_float * 2),
-                ("m_ExtOffset", ctypes.c_float),
-                ("m_DefectivePixels", ctypes.c_ushort * 30)]
-
-
-class c_DynamicStorageType(ctypes.Structure):  # VERIFIED
-
-    _fields_ = [("m_Nmsr", ctypes.c_int32),
-                ("m_Reserved", ctypes.c_uint8 * 8)]
-
-
-class c_EthernetSettingsType(ctypes.Structure):  # VERIFIED
-
-    _fields_ = [("m_IpAddr", ctypes.c_uint),
-                ("m_NetMask", ctypes.c_uint),
-                ("m_Gateway", ctypes.c_uint),
-                ("m_DhcpEnabled", ctypes.c_ubyte),
-                ("m_TcpPort", ctypes.c_ushort),
-                ("m_LinkStatus", ctypes.c_ubyte)]
-
-
-class c_InterfaceType(enum.Enum):  # VERIFIED
-    RS232 = 0
-    USB5216 = 1
-    USBMINI = 2
-    USB7010 = 3
-    ETH7010 = 4
-
-
-class c_ProcessControlType(ctypes.Structure):  # VERIFIED
-
-    _fields_ = [("m_AnalogLow", ctypes.c_float * 2),
-                ("m_AnalogHigh", ctypes.c_float * 2),
-                ("m_DigitalLow", ctypes.c_float * 10),
-                ("m_DigitalHigh", ctypes.c_float * 10)]
-
-
-# SensorType
-
-class c_SmoothingType(ctypes.Structure):  # VERIFIED
-
-    _fields_ = [("m_SmoothPix", ctypes.c_ushort),
-                ("m_SmoothModel", ctypes.c_ubyte)]
-
-
-class c_SpectrumCalibrationType(ctypes.Structure):  # VERIFIED
-
-    _fields_ = [("m_Smoothing", c_SmoothingType),
-                ("m_CalInttime", ctypes.c_float),  # NOT SURE
-                ("m_aCalibConvers", ctypes.c_float * 4096)]
-
-
-class c_SpectrumCorrectionType(ctypes.Structure):  # VERIFIED
-
-    _fields_ = [("m_aSpectrumCorrect", ctypes.c_float * 4096)]
-
-
-class c_IrradianceType(ctypes.Structure):  # VERIFIED
-
-    _fields_ = [("m_IntensityCalib", c_SpectrumCalibrationType),
-                ("m_CalibrationType", ctypes.c_ubyte),
-                ("m_FiberDiameter", ctypes.c_uint)]
-
-
-class c_TecControlType(ctypes.Structure):  # VERIFIED
-
-    _fields_ = [("m_Enable", ctypes.c_bool),
-                ("m_Setpoint", ctypes.c_float),
-                ("m_aFit", ctypes.c_float * 2)]
-
-
-class c_TempSensorType(ctypes.Structure):  # VERIFIED
-
-    _fields_ = [("m_aFit", ctypes.c_float * 5)]
-
-
-class c_TimeStampType(ctypes.Structure):  # VERIFIED
-
-    _fields_ = [("m_Date", ctypes.c_ushort),
-                ("m_Time", ctypes.c_ushort)]
-
-
-class c_TriggerType(ctypes.Structure):  # VERIFIED
-
-    _fields_ = [("m_Mode", ctypes.c_ubyte),
-                ("m_Source", ctypes.c_ubyte),
-                ("m_SourceType", ctypes.c_ubyte)]
-
-
-class c_MeasConfigType(ctypes.Structure):  # VERIFIED
-
-    _fields_ = [("m_StartPixel", ctypes.c_ushort),
-                ("m_StopPixel", ctypes.c_ushort),
-                ("m_IntegrationTime", ctypes.c_float),
-                ("m_IntegrationDelay", ctypes.c_uint),
-                ("m_NrAverages", ctypes.c_uint),
-                ("m_CorDynDark", c_DarkCorrectionType),
-                ("m_Smoothing", c_SmoothingType),
-                ("m_SaturationDetection", ctypes.c_ubyte),
-                ("m_Trigger", c_TriggerType),
-                ("m_Control", c_ControlSettingsType)]
-
-
-class c_StandaloneType(ctypes.Structure):  # VERIFIED
-
-    _fields_ = [("m_Enable", ctypes.c_bool),
-                ("m_Meas", c_MeasConfigType),
-                ("m_Nmsr", ctypes.c_short)]
-
-
-class c_DeviceConfigType(ctypes.Structure):  # VERIFIED
-
-    _fields_ = [("m_Len", ctypes.c_ushort),
-                ("m_ConfigVersion", ctypes.c_ushort),
-                ("m_aUserFriendlyId", ctypes.c_char * 64),
-                ("m_Detector", c_DetectorType),
-                ("m_Irradiance", c_IrradianceType),
-                ("m_Reflectance", c_SpectrumCalibrationType),
-                ("m_SpectrumCorrect", c_SpectrumCorrectionType),
-                ("m_StandAlone", c_StandaloneType),
-                ("m_DynamicStorage", c_DynamicStorageType),
-                ("m_Temperature", c_TempSensorType * 3),
-                ("m_TecControl", c_TecControlType),
-                ("m_ProcessControl", c_ProcessControlType),
-                ("m_EthernetSettings", c_EthernetSettingsType),
-                ("m_aReserved", ctypes.c_ubyte * 13816)]
+#
+# #####
+# # Struct definition
+# #####
+#
+# class c_AvsIdentityType(ctypes.Structure):  # VERIFIED
+#
+#     _fields_ = [("m_aSerialId", ctypes.c_char * 10),  # NOT SURE
+#                 ("m_aUserFriendlyId", ctypes.c_char * 64),
+#                 ("m_Status", ctypes.c_int)]  # c_DeviceStatus
+#
+#
+# class c_BroadcastAnswerType(ctypes.Structure):  # VERIFIED
+#
+#     _fields_ = [("InterfaceType", ctypes.c_ubyte),
+#                 ("serial", ctypes.c_ubyte * AVS_SERIAL_LEN),
+#                 ("port", ctypes.c_ushort),
+#                 ("status", ctypes.c_ubyte),
+#                 ("RemoteHostIp", ctypes.c_uint),
+#                 ("LocalIp", ctypes.c_uint),  # NOT SURE
+#                 ("reserved", ctypes.c_ubyte * 4)]
+#
+#
+# class c_ControlSettingsType(ctypes.Structure):  # VERIFIED
+#
+#     _fields_ = [("m_StrobeControl", ctypes.c_ushort),
+#                 ("m_LaserDelay", ctypes.c_uint),
+#                 ("m_LaserWidth", ctypes.c_uint),
+#                 ("m_LaserWaveLength", ctypes.c_float),
+#                 ("m_StoreToRam", ctypes.c_ushort)]
+#
+#
+# class c_DarkCorrectionType(ctypes.Structure):  # VERIFIED
+#
+#     _fields_ = [("m_Enable", ctypes.c_ubyte),
+#                 ("m_ForgetPercentage", ctypes.c_ubyte)]
+#
+#
+# class c_DeviceStatus(enum.Enum):  # VERIFIED
+#     UNKNOWN = 0
+#     USB_AVAILABLE = 1
+#     USB_IN_USE_BY_APPLICATION = 2
+#     USB_IN_USE_BY_OTHER = 3
+#     ETH_AVAILABLE = 4
+#     ETH_IN_USE_BY_APPLICATION = 5
+#     ETH_IN_USE_BY_OTHER = 6
+#     ETH_ALREADY_IN_USE_USB = 7
+#
+#
+# class c_DetectorType(ctypes.Structure):  # VERIFIED
+#
+#     _fields_ = [("m_SensorType", ctypes.c_ubyte),  # SensorType
+#                 ("m_NrPixels", ctypes.c_ushort),
+#                 ("m_aFit", ctypes.c_float * 5),
+#                 ("m_NLEnable", ctypes.c_bool),
+#                 ("m_aNLCorrect", ctypes.c_double * 8),
+#                 ("m_aLowNLCounts", ctypes.c_double),
+#                 ("m_aHighNLCounts", ctypes.c_double),
+#                 ("m_Gain", ctypes.c_float * 2),
+#                 ("m_Reserved", ctypes.c_float),
+#                 ("m_Offset", ctypes.c_float * 2),
+#                 ("m_ExtOffset", ctypes.c_float),
+#                 ("m_DefectivePixels", ctypes.c_ushort * 30)]
+#
+#
+# class c_DynamicStorageType(ctypes.Structure):  # VERIFIED
+#
+#     _fields_ = [("m_Nmsr", ctypes.c_int32),
+#                 ("m_Reserved", ctypes.c_uint8 * 8)]
+#
+#
+# class c_EthernetSettingsType(ctypes.Structure):  # VERIFIED
+#
+#     _fields_ = [("m_IpAddr", ctypes.c_uint),
+#                 ("m_NetMask", ctypes.c_uint),
+#                 ("m_Gateway", ctypes.c_uint),
+#                 ("m_DhcpEnabled", ctypes.c_ubyte),
+#                 ("m_TcpPort", ctypes.c_ushort),
+#                 ("m_LinkStatus", ctypes.c_ubyte)]
+#
+#
+# class c_InterfaceType(enum.Enum):  # VERIFIED
+#     RS232 = 0
+#     USB5216 = 1
+#     USBMINI = 2
+#     USB7010 = 3
+#     ETH7010 = 4
+#
+#
+# class c_ProcessControlType(ctypes.Structure):  # VERIFIED
+#
+#     _fields_ = [("m_AnalogLow", ctypes.c_float * 2),
+#                 ("m_AnalogHigh", ctypes.c_float * 2),
+#                 ("m_DigitalLow", ctypes.c_float * 10),
+#                 ("m_DigitalHigh", ctypes.c_float * 10)]
+#
+#
+# # SensorType
+#
+# class c_SmoothingType(ctypes.Structure):  # VERIFIED
+#
+#     _fields_ = [("m_SmoothPix", ctypes.c_ushort),
+#                 ("m_SmoothModel", ctypes.c_ubyte)]
+#
+#
+# class c_SpectrumCalibrationType(ctypes.Structure):  # VERIFIED
+#
+#     _fields_ = [("m_Smoothing", c_SmoothingType),
+#                 ("m_CalInttime", ctypes.c_float),  # NOT SURE
+#                 ("m_aCalibConvers", ctypes.c_float * 4096)]
+#
+#
+# class c_SpectrumCorrectionType(ctypes.Structure):  # VERIFIED
+#
+#     _fields_ = [("m_aSpectrumCorrect", ctypes.c_float * 4096)]
+#
+#
+# class c_IrradianceType(ctypes.Structure):  # VERIFIED
+#
+#     _fields_ = [("m_IntensityCalib", c_SpectrumCalibrationType),
+#                 ("m_CalibrationType", ctypes.c_ubyte),
+#                 ("m_FiberDiameter", ctypes.c_uint)]
+#
+#
+# class c_TecControlType(ctypes.Structure):  # VERIFIED
+#
+#     _fields_ = [("m_Enable", ctypes.c_bool),
+#                 ("m_Setpoint", ctypes.c_float),
+#                 ("m_aFit", ctypes.c_float * 2)]
+#
+#
+# class c_TempSensorType(ctypes.Structure):  # VERIFIED
+#
+#     _fields_ = [("m_aFit", ctypes.c_float * 5)]
+#
+#
+# class c_TimeStampType(ctypes.Structure):  # VERIFIED
+#
+#     _fields_ = [("m_Date", ctypes.c_ushort),
+#                 ("m_Time", ctypes.c_ushort)]
+#
+#
+# class c_TriggerType(ctypes.Structure):  # VERIFIED
+#
+#     _fields_ = [("m_Mode", ctypes.c_ubyte),
+#                 ("m_Source", ctypes.c_ubyte),
+#                 ("m_SourceType", ctypes.c_ubyte)]
+#
+#
+# class c_MeasConfigType(ctypes.Structure):  # VERIFIED
+#
+#     _fields_ = [("m_StartPixel", ctypes.c_ushort),
+#                 ("m_StopPixel", ctypes.c_ushort),
+#                 ("m_IntegrationTime", ctypes.c_float),
+#                 ("m_IntegrationDelay", ctypes.c_uint),
+#                 ("m_NrAverages", ctypes.c_uint),
+#                 ("m_CorDynDark", c_DarkCorrectionType),
+#                 ("m_Smoothing", c_SmoothingType),
+#                 ("m_SaturationDetection", ctypes.c_ubyte),
+#                 ("m_Trigger", c_TriggerType),
+#                 ("m_Control", c_ControlSettingsType)]
+#
+#
+# class c_StandaloneType(ctypes.Structure):  # VERIFIED
+#
+#     _fields_ = [("m_Enable", ctypes.c_bool),
+#                 ("m_Meas", c_MeasConfigType),
+#                 ("m_Nmsr", ctypes.c_short)]
+#
+#
+# class c_DeviceConfigType(ctypes.Structure):  # VERIFIED
+#
+#     _fields_ = [("m_Len", ctypes.c_ushort),
+#                 ("m_ConfigVersion", ctypes.c_ushort),
+#                 ("m_aUserFriendlyId", ctypes.c_char * 64),
+#                 ("m_Detector", c_DetectorType),
+#                 ("m_Irradiance", c_IrradianceType),
+#                 ("m_Reflectance", c_SpectrumCalibrationType),
+#                 ("m_SpectrumCorrect", c_SpectrumCorrectionType),
+#                 ("m_StandAlone", c_StandaloneType),
+#                 ("m_DynamicStorage", c_DynamicStorageType),
+#                 ("m_Temperature", c_TempSensorType * 3),
+#                 ("m_TecControl", c_TecControlType),
+#                 ("m_ProcessControl", c_ProcessControlType),
+#                 ("m_EthernetSettings", c_EthernetSettingsType),
+#                 ("m_aReserved", ctypes.c_ubyte * 13816)]
 
 # %% CallBack Function Object for a better handling of measurments
 
@@ -391,12 +392,12 @@ class Callback_Measurment(Event, Queue):
 
             # Get the number of pixels.
             numPix = ctypes.c_short()
-            AVS_DLL.AVS_GetNumPixels(Avh_val, ctypes.byref(numPix))
+            avaspec.AVS_GetNumPixels(Avh_val, numPix)
 
             # Prepare data structures and get pixel values.
             spect = (ctypes.c_double * numPix.value)()
             timeStamp = ctypes.c_uint()
-            AVS_DLL.AVS_GetScopeData(
+            avaspec.AVS_GetScopeData(
                 Avh_val,
                 ctypes.byref(timeStamp),
                 ctypes.byref(spect)
@@ -404,7 +405,7 @@ class Callback_Measurment(Event, Queue):
 
             # Get lambdas for all pixels.
             lambdaList = (ctypes.c_double * numPix.value)()
-            AVS_DLL.AVS_GetLambda(Avh_val, ctypes.byref(lambdaList))
+            avaspec.AVS_GetLambda(Avh_val, ctypes.byref(lambdaList))
 
             tp_spectrum = Spectrum(list(lambdaList), list(spect))
             self.put(tp_spectrum)
@@ -467,34 +468,34 @@ class AvaSpec_Handler:
 
     def _init(self, mode):
         """
-        Inits AVS_DLL and defines argtypes used by AVS_DLL.AVS_Init as advised
+        Inits avaspec and defines argtypes used by avaspec.AVS_Init as advised
         by ctypes manual.
         """
 
-        if AVS_DLL.AVS_Init.argtypes is None:
-            logger_ASH.debug("Defining AVS_Init function information...")
-
-            AVS_DLL.AVS_Init.argtypes = [ctypes.c_short]
-            AVS_DLL.AVS_Init.restype = ctypes.c_int
-            AVS_DLL.AVS_Init.errcheck = self._check_error
+        # if avaspec.AVS_Init.argtypes is None:
+        #     logger_ASH.debug("Defining AVS_Init function information...")
+        #
+        #     avaspec.AVS_Init.argtypes = [ctypes.c_short]
+        #     avaspec.AVS_Init.restype = ctypes.c_int
+        #     avaspec.AVS_Init.errcheck = self._check_error
 
         logger_ASH.debug("Calling AVS_Init.")
-        return AVS_DLL.AVS_Init(mode)
+        return avaspec.AVS_Init(mode)
 
     def _done(self):
         """
         Same as self._init.
         """
 
-        if AVS_DLL.AVS_Done.argtypes is None:
-            logger_ASH.debug("Defining AVS_Done function information...")
-
-            AVS_DLL.AVS_Done.argtypes = []
-            AVS_DLL.AVS_Done.restype = ctypes.c_int
-            AVS_DLL.AVS_Done.errcheck = self._check_error
+        # if avaspec.AVS_Done.argtypes is None:
+        #     logger_ASH.debug("Defining AVS_Done function information...")
+        #
+        #     avaspec.AVS_Done.argtypes = []
+        #     avaspec.AVS_Done.restype = ctypes.c_int
+        #     avaspec.AVS_Done.errcheck = self._check_error
 
         logger_ASH.debug("Calling AVS_Done.")
-        return AVS_DLL.AVS_Done()
+        return avaspec.AVS_Done()
 
     def _getDeviceList(self):
         """
@@ -508,8 +509,8 @@ class AvaSpec_Handler:
         - dict -- key are AVS_Handles ands values are tuples as follows :
             ((str)m_aUserFriendlyId, a Callback_Measurment object)
         """
-        nrDev = AVS_DLL.AVS_GetNrOfDevices()  # Deprecated
-        # nrDev = AVS_DLL.AVS_UpdateUSBDevices()  # Newer
+        # nrDev = avaspec.AVS_GetNrOfDevices()  # Deprecated
+        nrDev = avaspec.AVS_UpdateUSBDevices()  # Newer
 
         if nrDev != self._nr_spec_connected:
             raise RuntimeError(
@@ -517,19 +518,19 @@ class AvaSpec_Handler:
             )
 
         #
-        ReqSize = ctypes.c_uint(nrDev * ctypes.sizeof(c_AvsIdentityType))
-        AvsDevList = (c_AvsIdentityType * nrDev)()
+        ReqSize = ctypes.c_uint(nrDev * ctypes.sizeof(avaspec.AvsIdentityType))
+        AvsDevList = (avaspec.AvsIdentityType * nrDev)()
 
-        AVS_DLL.AVS_GetList.errcheck = self._check_error  # Init errcheck
+        avaspec.AVS_GetList.errcheck = self._check_error  # Init errcheck
 
         # Get the list, further information in AvaSpec DLL manual.
-        nrDev = AVS_DLL.AVS_GetList(ReqSize,
+        nrDev = avaspec.AVS_GetList(ReqSize,
                                     ctypes.byref(ReqSize),
                                     ctypes.byref(AvsDevList))
 
         # Init data types about AVS_Activate.
-        AVS_DLL.AVS_Activate.errcheck = self._check_error
-        AVS_DLL.AVS_Activate.restype = ctypes.c_uint
+        avaspec.AVS_Activate.errcheck = self._check_error
+        avaspec.AVS_Activate.restype = ctypes.c_uint
 
         devDict = dict([])
 
@@ -561,9 +562,9 @@ class AvaSpec_Handler:
                     "Attempted to fix it : {}".format(dev.m_aSerialId)
                 )
 
-                avs_handle = AVS_DLL.AVS_Activate(ctypes.byref(dev))
+                avs_handle = avaspec.AVS_Activate(ctypes.byref(dev))
             else:
-                avs_handle = AVS_DLL.AVS_Activate(ctypes.byref(dev))
+                avs_handle = avaspec.AVS_Activate(ctypes.byref(dev))
 
             logger_ASH.debug(
                 "Connected with {} with handle {}".format(
@@ -572,7 +573,7 @@ class AvaSpec_Handler:
             )
             devDict[avs_handle] = \
                 (bytes.decode(dev.m_aUserFriendlyId), Callback_Measurment())
-            AVS_DLL.AVS_SetSyncMode(avs_handle, 0)
+            avaspec.AVS_SetSyncMode(avs_handle, 0)
         return devDict
 
     def acquire(self):
@@ -620,10 +621,10 @@ class AvaSpec_Handler:
             )
         # Get the number of pixels.
         numPix = ctypes.c_short()
-        AVS_DLL.AVS_GetNumPixels(device, ctypes.byref(numPix))
+        avaspec.AVS_GetNumPixels(device, ctypes.byref(numPix))
 
         # Init c_MeasConfigType to pass it to AVS_PrepareMeasure.
-        Meas = c_MeasConfigType()
+        Meas = avaspec.MeasConfigType()
         Meas.m_StartPixel = ctypes.c_ushort(0)
         Meas.m_StopPixel = ctypes.c_ushort(numPix.value - 1)  # Last pixel.
         Meas.m_IntegrationTime = ctypes.c_float(intTime)
@@ -631,12 +632,12 @@ class AvaSpec_Handler:
         Meas.m_NrAverages = ctypes.c_uint(1)
 
         # dynamic dark correction
-        Meas.m_CorDynDark.m_Enable = 0
-        Meas.m_CorDynDark.m_ForgetPercentage = 100
+        Meas.m_CorDynDark_m_Enable = 0
+        Meas.m_CorDynDark_m_ForgetPercentage = 100
 
         # Smoothig configuration
-        Meas.m_Smoothing.m_SmoothPix = 1
-        Meas.m_Smoothing.m_SmoothModel = 0
+        Meas.m_Smoothing_m_SmoothPix = 1
+        Meas.m_Smoothing_m_SmoothModel = 0
 
         # It seems that this parameter controls wether the spec is
         # hardware-triggered or not.
@@ -645,20 +646,20 @@ class AvaSpec_Handler:
         Meas.m_SaturationDetection = int(triggerred)
 
         # Trigger configuration.
-        Meas.m_Trigger.m_Mode = ctypes.c_ubyte(0)
-        Meas.m_Trigger.m_Source = ctypes.c_ubyte(0)
-        Meas.m_Trigger.m_SourceType = ctypes.c_ubyte(0)
+        Meas.m_Trigger_m_Mode = ctypes.c_ubyte(0)
+        Meas.m_Trigger_m_Source = ctypes.c_ubyte(0)
+        Meas.m_Trigger_m_SourceType = ctypes.c_ubyte(0)
 
         # Control configuration
-        Meas.m_Control.m_StrobeControl = 0
-        Meas.m_Control.m_LaserDelay = 0
-        Meas.m_Control.m_LaserWidth = 0
-        Meas.m_Control.m_LaserWaveLength = 0.0
-        Meas.m_Control.m_StoreToRam = 0
+        Meas.m_Control_m_StrobeControl = 0
+        Meas.m_Control_m_LaserDelay = 0
+        Meas.m_Control_m_LaserWidth = 0
+        Meas.m_Control_m_LaserWaveLength = 0.0
+        Meas.m_Control_m_StoreToRam = 0
 
-        AVS_DLL.AVS_PrepareMeasure.errcheck = self._check_error
+        # avaspec_AVS_PrepareMeasure.errcheck = self._check_error
 
-        AVS_DLL.AVS_PrepareMeasure(device, ctypes.byref(Meas))
+        avaspec.AVS_PrepareMeasure(device, Meas)
 
     def startMeasure(self, device, nmsr):
         """
@@ -681,8 +682,8 @@ class AvaSpec_Handler:
                 calback_event.wait(0)
             )
         )
-        AVS_DLL.AVS_MeasureCallback.errcheck = self._check_error
-        AVS_DLL.AVS_MeasureCallback(device, calback_event.c_callback, nmsr)
+        # avaspec.AVS_MeasureCallback.errcheck = self._check_error
+        avaspec.AVS_MeasureCallback(device, calback_event.c_callback, nmsr)
 
     def waitMeasurmentReady(self, device):
         """
@@ -728,7 +729,7 @@ class AvaSpec_Handler:
         Parameters:
         - device -- AVS_Handle as given by AVS_Activate
         """
-        AVS_DLL.AVS_StopMeasure(device)
+        avaspec.AVS_StopMeasure(device)
 
     def prepareAll(self, intTime=10, triggerred=False, nrAverages=1):
         """
@@ -806,15 +807,18 @@ class AvaSpec_Handler:
         """
 
         # Prepare data structures
-        Device_Config = c_DeviceConfigType()
+        Device_Config = avaspec.DeviceConfigType()
         ReqSize = ctypes.c_uint(ctypes.sizeof(Device_Config))
 
         # Prepare function errcheck
-        AVS_DLL.AVS_GetParameter.errcheck = self._check_error
+        avaspec.AVS_GetParameter.errcheck = self._check_error
 
         # Get config
-        AVS_DLL.AVS_GetParameter(device, ReqSize, ctypes.byref(ReqSize),
-                                 ctypes.byref(Device_Config))
+        avaspec.AVS_GetParameter(
+            device,
+            ReqSize,
+            ReqSize,
+            Device_Config)
 
         return Device_Config
 
