@@ -525,8 +525,8 @@ class AvaSpec_Handler:
 
         # Get the list, further information in AvaSpec DLL manual.
         nrDev = avaspec.AVS_GetList(ReqSize,
-                                    ctypes.byref(ReqSize),
-                                    ctypes.byref(AvsDevList))
+                                    ReqSize,
+                                    AvsDevList)
 
         # Init data types about AVS_Activate.
         avaspec.AVS_Activate.errcheck = self._check_error
