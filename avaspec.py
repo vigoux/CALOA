@@ -222,12 +222,9 @@ class callbackclass(QObject):
 # please use AVS_Measure instead using Windows messaging or polling
 
 def AVS_MeasureCallback(handle, func, nummeas):
-    CBTYPE = ctypes.WINFUNCTYPE(None, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int))
     lib = ctypes.WinDLL("avaspecx64.dll")
-    prototype = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_int, CBTYPE, ctypes.c_uint16)
-    paramflags = (1, "handle",), (1, "adres",), (1, "nummeas"),
-    AVS_MeasureCallback = prototype(("AVS_MeasureCallback", lib), paramflags)
-    ret = AVS_MeasureCallback(handle, func, nummeas)  # CRASHES python
+    ret = lib.AVS_MeasureCallback(handle, func, nummeas)  # CRASHES python
+    return ret
 
 def AVS_StopMeasure(handle):
     lib = ctypes.WinDLL("avaspecx64.dll")
