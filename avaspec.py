@@ -132,7 +132,9 @@ def AVS_GetList(listsize, requiredsize, IDlist):
     # looks like you only pass the '1' parameters here
     # the '2' parameters are returned in 'ret' !!!
 
-    return lib.AVS_GetList(listsize, requiredsize, ctypes.byref(IDlist))
+    return lib.AVS_GetList(
+        listsize, ctypes.byref(requiredsize), ctypes.byref(IDlist)
+    )
 
 def AVS_Activate(deviceID):
     lib = ctypes.WinDLL("avaspecx64.dll")
