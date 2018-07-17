@@ -1605,7 +1605,7 @@ def report_callback_exception(self, exc, val, tb):
             data=json.dumps(payload),
             auth=(
                 "caloareportsender@gmail.com",
-                "02cb23464375ec79470409a4eddb48702fe9a936"
+                "!T&XfDOLONZ3W@5lbC*k"
             )
         )
         logger.info("Bug report sent, received {}".format(r.headers["Status"]))
