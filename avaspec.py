@@ -251,6 +251,14 @@ def AVS_GetScopeData(handle, timelabel, spectrum):
         ctypes.byref(spectrum)
     )
 
+def AVS_GetLambda(handle, lambdas):
+    lib = ctypes.WinDLL("avaspecx64.dll")
+
+    return lib.AVS_GetScopeData(
+        handle,
+        ctypes.byref(lambdas)
+    )
+
 def AVS_GetParameter(handle, size, reqsize, deviceconfig):
     lib = ctypes.WinDLL("avaspecx64.dll")
     prototype = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_int, ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(DeviceConfigType))
