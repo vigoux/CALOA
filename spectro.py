@@ -399,8 +399,8 @@ class Callback_Measurment(Event, Queue):
             timeStamp = ctypes.c_uint()
             avaspec.AVS_GetScopeData(
                 Avh_val,
-                ctypes.byref(timeStamp),
-                ctypes.byref(spect)
+                timeStamp,
+                spect
             )
 
             # Get lambdas for all pixels.

@@ -247,11 +247,12 @@ def AVS_PollScan(handle):
 
 def AVS_GetScopeData(handle, timelabel, spectrum):
     lib = ctypes.WinDLL("avaspecx64.dll")
-    prototype = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_int, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_double * 4096))
-    paramflags = (1, "handle",), (2, "timelabel",), (2, "spectrum",),
-    AVS_GetScopeData = prototype(("AVS_GetScopeData", lib), paramflags)
-    ret = AVS_GetScopeData(handle)
-    return ret
+
+    return lib.AVS_GetScopeData(
+        handle,
+        ctypes.byref(timelabel),
+        ctypes.byref(spectrum)
+    )
 
 def AVS_GetParameter(handle, size, reqsize, deviceconfig):
     lib = ctypes.WinDLL("avaspecx64.dll")
