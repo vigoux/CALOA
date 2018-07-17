@@ -621,7 +621,7 @@ class AvaSpec_Handler:
             )
         # Get the number of pixels.
         numPix = ctypes.c_short()
-        avaspec.AVS_GetNumPixels(device, ctypes.byref(numPix))
+        avaspec.AVS_GetNumPixels(device, numPix)
 
         # Init c_MeasConfigType to pass it to AVS_PrepareMeasure.
         Meas = avaspec.MeasConfigType()
