@@ -405,7 +405,7 @@ class Callback_Measurment(Event, Queue):
 
             # Get lambdas for all pixels.
             lambdaList = (ctypes.c_double * numPix.value)()
-            avaspec.AVS_GetLambda(Avh_val, ctypes.byref(lambdaList))
+            avaspec.AVS_GetLambda(Avh_val, lambdaList)
 
             tp_spectrum = Spectrum(list(lambdaList), list(spect))
             self.put(tp_spectrum)
