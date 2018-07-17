@@ -341,7 +341,7 @@ class Application(tk.Frame):
                 self._version = " ".join(
                     (
                         file.read().strip("\n"),
-                        "(DEV)" if config.DEVELOPER_MODE_ENABLED else None
+                        "(DEV)" if config.DEVELOPER_MODE_ENABLED else ""
                     )
                 )
 
