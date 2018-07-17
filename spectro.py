@@ -573,7 +573,7 @@ class AvaSpec_Handler:
             )
             devDict[avs_handle] = \
                 (bytes.decode(dev.m_aUserFriendlyId), Callback_Measurment())
-            avaspec.AVS_SetSyncMode(avs_handle, 0)
+            #avaspec.AVS_SetSyncMode(avs_handle, 0)
         return devDict
 
     def acquire(self):
