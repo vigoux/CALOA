@@ -124,14 +124,15 @@ def AVS_UpdateUSBDevices():
 
 def AVS_GetList(listsize, requiredsize, IDlist):
     lib = ctypes.WinDLL("avaspecx64.dll")
-    prototype = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_int, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(AvsIdentityType))
-    paramflags = (1, "listsize",), (2, "requiredsize",), (2, "IDlist",),
-    AVS_GetList = prototype(("AVS_GetList", lib), paramflags)
-    print(listsize)
-    ret = AVS_GetList(listsize)
+    # prototype = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_int, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(AvsIdentityType))
+    # paramflags = (1, "listsize",), (2, "requiredsize",), (2, "IDlist",),
+    # AVS_GetList = prototype(("AVS_GetList", lib), paramflags)
+    # print(listsize)
+    # ret = AVS_GetList(listsize)
     # looks like you only pass the '1' parameters here
     # the '2' parameters are returned in 'ret' !!!
-    return ret
+
+    return lib.AVS_GetList(listsize, requiredsize, ctypes.byref(IDlist))
 
 def AVS_Activate(deviceID):
     lib = ctypes.WinDLL("avaspecx64.dll")
