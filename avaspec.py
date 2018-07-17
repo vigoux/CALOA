@@ -136,6 +136,20 @@ def AVS_GetList(listsize, requiredsize, IDlist):
         listsize, ctypes.byref(requiredsize), ctypes.byref(IDlist)
     )
 
+def AVS_GetNumPixels(handle, pixelsarray):
+    lib = ctypes.WinDLL("avaspecx64.dll")
+    # prototype = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_int, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(AvsIdentityType))
+    # paramflags = (1, "listsize",), (2, "requiredsize",), (2, "IDlist",),
+    # AVS_GetList = prototype(("AVS_GetList", lib), paramflags)
+    # print(listsize)
+    # ret = AVS_GetList(listsize)
+    # looks like you only pass the '1' parameters here
+    # the '2' parameters are returned in 'ret' !!!
+
+    return lib.AVS_GetNumPixels(
+        handle, ctypes.byref(pixelsarray)
+    )
+
 def AVS_Activate(deviceID):
     lib = ctypes.WinDLL("avaspecx64.dll")
     prototype = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.POINTER(AvsIdentityType))
