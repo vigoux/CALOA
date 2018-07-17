@@ -391,10 +391,12 @@ class Callback_Measurment(Event, Queue):
             self.set()  # Set the flag to True.
 
             # Get the number of pixels.
+            logger_ASH.debug("{} : getting nr of pixels.".format(Avh_val))
             numPix = ctypes.c_short()
             avaspec.AVS_GetNumPixels(Avh_val, numPix)
 
             # Prepare data structures and get pixel values.
+            logger_ASH.debug("{} : getting values.".format(Avh_val))
             spect = (ctypes.c_double * numPix.value)()
             timeStamp = ctypes.c_uint()
             avaspec.AVS_GetScopeData(
@@ -404,9 +406,13 @@ class Callback_Measurment(Event, Queue):
             )
 
             # Get lambdas for all pixels.
+            logger_ASH.debug("{} : getting lambdas.".format(Avh_val))
             lambdaList = (ctypes.c_double * numPix.value)()
             avaspec.AVS_GetLambda(Avh_val, lambdaList)
 
+            logger_ASH.debug("{} : initializing spectrum instance.".format(
+                Avh_val
+            ))
             tp_spectrum = Spectrum(list(lambdaList), list(spect))
             self.put(tp_spectrum)
 
