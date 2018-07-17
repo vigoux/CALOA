@@ -14,9 +14,9 @@ spectraldata = [0.0] * 4096
 
 class AvsIdentityType(ctypes.Structure):
   _pack_ = 1
-  _fields_ = [("SerialNumber", ctypes.c_char * AVS_SERIAL_LEN),
-              ("UserFriendlyName", ctypes.c_char * USER_ID_LEN),
-              ("Status", ctypes.c_char)]
+  _fields_ = [("m_aSerialId", ctypes.c_char * AVS_SERIAL_LEN),
+              ("m_aUserFriendlyId", ctypes.c_char * USER_ID_LEN),
+              ("m_Status", ctypes.c_char)]
 
 class MeasConfigType(ctypes.Structure):
   _pack_ = 1
