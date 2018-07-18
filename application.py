@@ -1419,9 +1419,7 @@ class Application(tk.Frame):
                 for tup in zip(*datas):
                     file.write(format_str.format(*tup)+"\n")
                 file.close()
-        timeStamp = \
-            "{time.tm_mday}_{time.tm_mon}_{time.tm_hour}_{time.tm_min}".\
-            format(time=time.localtime())
+        timeStamp = folder_id[:-3]
 
         dir_path = tkFileDialog.\
             askdirectory(title="Where do you want to save spectra ?")
