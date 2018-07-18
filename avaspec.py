@@ -7,6 +7,7 @@ from PyQt5.QtCore import *
 AVS_SERIAL_LEN = 10
 USER_ID_LEN = 64
 WM_MEAS_READY = 0x8001
+AVS_SATURATION_VALUE = 16383
 
 dev_handle = 0
 pixels = 4096

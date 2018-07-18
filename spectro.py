@@ -33,25 +33,6 @@ from queue import Queue
 import time
 import avaspec
 
-# abp = os.path.abspath("as5216x64.dll")
-# AVS_DLL = ctypes.WinDLL(abp)
-#
-#
-# # %% DLL Wrapper part
-# # This part is only the python transcription of AvaSpec Manual structure
-# # definition.
-#
-#####
-# Constants
-#####
-
-AVS_SERIAL_LEN = 10
-AVS_SATURATION_VALUE = 16383
-#
-#####
-# Exception
-#####
-
 # %% CallBack Function Object for a better handling of measurments
 
 
@@ -61,6 +42,12 @@ class Callback_Measurment(Event, Queue):
     Class used as a callback by AVS_MeasureCallback to notify when a
     measurment is ready.
     """
+
+    _lock = Lock()
+
+    @property
+    def lock(self):
+        return type(self)._lock
 
     def __init__(self):
         """
@@ -86,6 +73,8 @@ class Callback_Measurment(Event, Queue):
             - Avh_Pointer -- A pointer on a AVS_Handle (integer)
             - int_pointer -- A pointer on an int
         """
+        self.lock.acquire()
+
         # Get values pointed by pointers
         int_val = int_pointer.contents.value
         Avh_val = Avh_Pointer.contents.value
@@ -96,13 +85,9 @@ class Callback_Measurment(Event, Queue):
 
             # Get the number of pixels.
             numPix = ctypes.c_short()
-            try:
-                logger_ASH.debug("{} : getting nr of pixels.".format(Avh_val))
+            logger_ASH.debug("{} : getting nr of pixels.".format(Avh_val))
 
-                avaspec.AVS_GetNumPixels(Avh_val, numPix)
-            except Exception as e:
-                print(e)
-                raise e
+            avaspec.AVS_GetNumPixels(Avh_val, numPix)
 
             # Prepare data structures and get pixel values.
             logger_ASH.debug("{} : getting values.".format(Avh_val))
@@ -125,7 +110,10 @@ class Callback_Measurment(Event, Queue):
             tp_spectrum = Spectrum(list(lambdaList), list(spect))
             self.put(tp_spectrum)
 
+            self.lock.release()
+
         else:
+            self.lock.release()
             raise c_AVA_Exceptions(int_val)
 
 # %% Avantes Spectrometer Handler
