@@ -392,7 +392,7 @@ def AVS_GetScopeData(handle, timelabel, spectrum):
 def AVS_GetLambda(handle, lambdas):
     lib = ctypes.WinDLL("avaspecx64.dll")
 
-    return lib.AVS_GetScopeData(
+    return lib.AVS_GetLambda(
         handle,
         ctypes.byref(lambdas)
     )
