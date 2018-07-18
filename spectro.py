@@ -321,7 +321,7 @@ class AvaSpec_Handler:
         Meas.m_SaturationDetection = 0
 
         # Trigger configuration.
-        Meas.m_Trigger_m_Mode = int(triggered)
+        Meas.m_Trigger_m_Mode = int(triggerred)
         Meas.m_Trigger_m_Source = ctypes.c_ubyte(0)
         Meas.m_Trigger_m_SourceType = ctypes.c_ubyte(0)
 
