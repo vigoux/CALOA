@@ -95,9 +95,10 @@ class Callback_Measurment(Event, Queue):
             self.set()  # Set the flag to True.
 
             # Get the number of pixels.
-            logger_ASH.debug("{} : getting nr of pixels.".format(Avh_val))
             numPix = ctypes.c_short()
             try:
+                logger_ASH.debug("{} : getting nr of pixels.".format(Avh_val))
+
                 avaspec.AVS_GetNumPixels(Avh_val, numPix)
             except Exception as e:
                 print(e)
