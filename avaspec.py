@@ -279,6 +279,8 @@ def AVS_GetNumPixels(handle, pixelsarray):
     # looks like you only pass the '1' parameters here
     # the '2' parameters are returned in 'ret' !!!
 
+    lib.AVS_GetNumPixels.errcheck = _check_error
+
     return lib.AVS_GetNumPixels(
         handle, ctypes.byref(pixelsarray)
     )
