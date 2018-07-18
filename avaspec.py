@@ -496,3 +496,7 @@ def AVS_SetParameter(handle, deviceconfig):
     AVS_SetParameter = prototype(("AVS_SetParameter", lib), paramflags)
     ret = AVS_SetParameter(handle, data)
     return ret
+
+def AVS_Done():
+    lib = ctypes.WinDLL("avaspecx64.dll")
+    return lib.AVS_Done()
