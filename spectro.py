@@ -318,10 +318,10 @@ class AvaSpec_Handler:
         # hardware-triggered or not.
         # I actually don't know the reason of such an error, but it might
         # be that the dll version is not optimal.
-        Meas.m_SaturationDetection = int(triggerred)
+        Meas.m_SaturationDetection = 0
 
         # Trigger configuration.
-        Meas.m_Trigger_m_Mode = ctypes.c_ubyte(0)
+        Meas.m_Trigger_m_Mode = int(triggered)
         Meas.m_Trigger_m_Source = ctypes.c_ubyte(0)
         Meas.m_Trigger_m_SourceType = ctypes.c_ubyte(0)
 
