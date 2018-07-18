@@ -12,6 +12,135 @@ dev_handle = 0
 pixels = 4096
 spectraldata = [0.0] * 4096
 
+
+#####
+# EXCEPTION CLASS
+#####
+
+class c_AVA_Exceptions(Exception):
+
+    AVA_EXCEPTION_CODES = {
+            -1: ("ERR_INVALID_PARAMETER",
+                 "Function called with invalid parameter value"),
+            -2: ("ERR_OPERATION_NOT_SUPPORTED",
+                 ""),
+            -3: ("ERR_DEVICE_NOT_FOUND",
+                 "Opening communication failed or time-out occurs."),
+            -4: ("ERR_INVALID_DEVICE_ID",
+                 "AvsHandle is unknown in the DLL."),
+            -5: ("ERR_OPERATION_PENDING",
+                 "Function is called while result of previous call to"
+                 " AVS_Measure is not received yet."),
+            -6: ("ERR_TIMEOUT",
+                 "No anwer received from device."),
+            -7: ("Reserved", ""),
+            -8: ("ERR_INVALID_MEAS_DATA",
+                 "Not measure data is received at the point AVS_GetScopeData"
+                 " is called."),
+            -9: ("ERR_INVALID_SIZE",
+                 "Allocated buffer size is too small."),
+            -10: ("ERR_INVALID_PIXEL_RANGE",
+                  "Measurement preparation failed because pixel range"
+                  " is invalid."),
+            -11: ("ERR_INVALID_INT_TIME",
+                  "Measurement preparation failed because integration time"
+                  " is invalid."),
+            -12: ("ERR_INVALID_COMBINATION",
+                  "Measurement preparation failed because of an invalid"
+                  " combination of parameters."),
+            -13: ("Reserved", ""),
+            -14: ("ERR_NO_MEAS_BUFFER_AVAIL",
+                  "Measurement preparation failed because no measurement"
+                  " buffers available."),
+            -15: ("ERR_UNKNOWN",
+                  "Unknown error reason received from spectrometer."),
+            -16: ("ERR_COMMUNICATION",
+                  "Error in communication occurred."),
+            -17: ("ERR_NO_SPECTRA_IN_RAM",
+                  "No more spectra available in RAM, all read or measurement"
+                  " not started yet."),
+            -18: ("ERR_INVALID_DLL_VERSION",
+                  "DLL version information could mot be retrieved."),
+            -19: ("ERR_NO_MEMORY",
+                  "Memory allocation error in the DLL."),
+            -20: ("ERR_DLL_INITIALISATION",
+                  "Function called before AVS_Init is called."),
+            -21: ("ERR_INVALID_STATE",
+                  "Function failed because AvaSpec is in wrong state."),
+            -22: ("ERR_INVALID_REPLY",
+                  "Reply is not a recognized protocol message."),
+            -100: ("ERR_INVALID_PARAMETER_NR_PIXEL",
+                   "NrOfPixel in Device data incorrect."),
+            -101: ("ERR_INVALID_PARAMETER_ADC_GAIN",
+                   "Gain Setting Out of Range."),
+            -102: ("ERR_INVALID_PARAMETER_ADC_OFFSET",
+                   "OffSet Setting Out of Range."),
+            -110: ("ERR_INVALID_MEASPARAM_AVG_SAT2",
+                   "Use of saturation detection level 2 is not compatible"
+                   " with the averaging function."),
+            -111: ("ERR_INVALID_MEASPARAM_AVD_RAM",
+                   "Use of Averaging is not compatible with StoreToRAM"
+                   " function."),
+            -112: ("ERR_INVALID_MEASPARAM_SYNC_RAM",
+                   "Use of Synchronize setting is not compatible with"
+                   " StoreToRAM function"),
+            -113: ("ERR_INVALID_MEASPARAM_LEVEL_RAM",
+                   "Use of Level Triggering is not compatible with"
+                   " StoreToRAM function."),
+            -114: ("ERR_INVALID_MASPARAM_SAT2_RAM",
+                   "Use of Saturation Detection Level 2 is not compatible"
+                   " with the StoreToRAM function."),
+            -115: ("ERR_INVALID_MEASPARAM_FWVER_RAM",
+                   "The StoreToRAM function is only supported with firmware"
+                   " version 0.20.0.0 or later."),
+            -116: ("ERR_INVALID_MEASPARAM_DYNDARK",
+                   "Dynamic Dark Correction not supported."),
+            -120: ("ERR_NOT_SUPPORTED_BY_SENSOR_TYPE",
+                   "Use of AVS_SetSensitivityMode not supported by"
+                   " detector type."),
+            -121: ("ERR_NOT_SUPPORTED_BY_FW_VER",
+                   "Use of AVS_SetSensitivityMode not supported by"
+                   " firmware version."),
+            -122: ("ERR_NOT_SUPPORTED_BY_FPGA_VER",
+                   "use of AVS_SetSensitivityMode not supported by"
+                   " FPGA version."),
+            -140: ("ERR_SL_CALIBRATION_NOT_IN_RANGE",
+                   "Spectrometer was not calibrated for stray light"
+                   " correction."),
+            -141: ("ERR_SL_STARTPIXEL_NOT_IN_RANGE",
+                   "Incorrect start pixel found in EEProm."),
+            -142: ("ERR_SL_ENDPIXEL_OUT_OF_RANGE",
+                   "Incorrect end pixel found in EEProm."),
+            -143: ("ERR_SL_STARTPIX_GT_ENDPIX",
+                   "Incorrect start or end pixel found in EEProm."),
+            -144: ("ERR_SL_MFACTOR_OUT_OF_RANGE",
+                   "Factor should be in range 0.0 - 4.0.")
+            }
+
+    def __init__(self, P_codeNbr):
+
+        self.code_nbr = P_codeNbr
+
+    def __str__(self):
+
+        return "\n".join(self.AVA_EXCEPTION_CODES[self.code_nbr])
+
+def _check_error(result, func, arguments):
+    """
+    Method used to check errors.
+    See ctypes manual class ctypes._FuncPtr.errcheck for further
+    information.
+    """
+
+    if result < 0:
+        raise c_AVA_Exceptions(result)
+    return arguments
+
+
+#####
+# Usefull classes
+#####
+
 class AvsIdentityType(ctypes.Structure):
   _pack_ = 1
   _fields_ = [("m_aSerialId", ctypes.c_char * AVS_SERIAL_LEN),
@@ -107,6 +236,9 @@ class DeviceConfigType(ctypes.Structure):
               ("m_Reserved", ctypes.c_uint8 * 9720),
               ("m_OemData", ctypes.c_uint8 * 4096)]
 
+#####
+# Functions
+#####
 def AVS_Init(x):
     lib = ctypes.WinDLL("avaspecx64.dll")
     prototype = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_int)
@@ -119,6 +251,7 @@ def AVS_UpdateUSBDevices():
     lib = ctypes.WinDLL("avaspecx64.dll")
     prototype = ctypes.WINFUNCTYPE(ctypes.c_int)
     AVS_UpdateUSBDevices = prototype(("AVS_UpdateUSBDevices", lib),)
+    AVS_UpdateUSBDevices.errcheck = _check_error
     ret = AVS_UpdateUSBDevices()
     return ret
 
@@ -199,6 +332,7 @@ def AVS_PrepareMeasure(handle, measconf):
     prototype = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_int, ctypes.c_byte * 41)
     paramflags = (1, "handle",), (1, "measconf",),
     AVS_PrepareMeasure = prototype(("AVS_PrepareMeasure", lib), paramflags)
+    AVS_PrepareMeasure.errcheck = _check_error
     ret = AVS_PrepareMeasure(handle, data)
     return ret
 
@@ -223,7 +357,8 @@ class callbackclass(QObject):
 
 def AVS_MeasureCallback(handle, func, nummeas):
     lib = ctypes.WinDLL("avaspecx64.dll")
-    ret = lib.AVS_MeasureCallback(handle, func, nummeas)  # CRASHES python
+    # FIXED : CRASHES python
+    ret = lib.AVS_MeasureCallback(handle, func, nummeas)
     return ret
 
 def AVS_StopMeasure(handle):
