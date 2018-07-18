@@ -168,19 +168,12 @@ class AvaSpec_Handler:
         logger_ASH.debug("Closing communications...")
 
         self._done()
-        
+
     def _init(self, mode):
         """
         Inits avaspec and defines argtypes used by avaspec.AVS_Init as advised
         by ctypes manual.
         """
-
-        # if avaspec.AVS_Init.argtypes is None:
-        #     logger_ASH.debug("Defining AVS_Init function information...")
-        #
-        #     avaspec.AVS_Init.argtypes = [ctypes.c_short]
-        #     avaspec.AVS_Init.restype = ctypes.c_int
-        #     avaspec.AVS_Init.errcheck = self._check_error
 
         logger_ASH.debug("Calling AVS_Init.")
         return avaspec.AVS_Init(mode)
@@ -189,13 +182,6 @@ class AvaSpec_Handler:
         """
         Same as self._init.
         """
-
-        # if avaspec.AVS_Done.argtypes is None:
-        #     logger_ASH.debug("Defining AVS_Done function information...")
-        #
-        #     avaspec.AVS_Done.argtypes = []
-        #     avaspec.AVS_Done.restype = ctypes.c_int
-        #     avaspec.AVS_Done.errcheck = self._check_error
 
         logger_ASH.debug("Calling AVS_Done.")
         return avaspec.AVS_Done()
@@ -224,15 +210,12 @@ class AvaSpec_Handler:
         print(ReqSize)
         AvsDevList = (avaspec.AvsIdentityType * nrDev)()
 
-        avaspec.AVS_GetList.errcheck = self._check_error  # Init errcheck
-
         # Get the list, further information in AvaSpec DLL manual.
         nrDev = avaspec.AVS_GetList(ReqSize,
                                     ReqSize,
                                     AvsDevList)
 
         # Init data types about AVS_Activate.
-        avaspec.AVS_Activate.errcheck = self._check_error
         avaspec.AVS_Activate.restype = ctypes.c_uint
 
         devDict = dict([])
@@ -360,8 +343,6 @@ class AvaSpec_Handler:
         Meas.m_Control_m_LaserWaveLength = 0.0
         Meas.m_Control_m_StoreToRam = 0
 
-        # avaspec_AVS_PrepareMeasure.errcheck = self._check_error
-
         avaspec.AVS_PrepareMeasure(device, Meas)
 
     def startMeasure(self, device, nmsr):
@@ -385,7 +366,6 @@ class AvaSpec_Handler:
                 calback_event.wait(0)
             )
         )
-        # avaspec.AVS_MeasureCallback.errcheck = self._check_error
         avaspec.AVS_MeasureCallback(device, calback_event.c_callback, nmsr)
 
     def waitMeasurmentReady(self, device):
@@ -512,9 +492,6 @@ class AvaSpec_Handler:
         # Prepare data structures
         Device_Config = avaspec.DeviceConfigType()
         ReqSize = ctypes.c_uint(ctypes.sizeof(Device_Config))
-
-        # Prepare function errcheck
-        avaspec.AVS_GetParameter.errcheck = self._check_error
 
         # Get config
         avaspec.AVS_GetParameter(
