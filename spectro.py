@@ -677,7 +677,7 @@ class Spectrum:
         """
         Check if some pixels are saturated.
         """
-        return max(self.values) >= AVS_SATURATION_VALUE - 1
+        return max(self.values) >= avaspec.AVS_SATURATION_VALUE - 1
 
     def absorbanceSpectrum(reference, spectrum):
         """
