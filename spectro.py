@@ -858,8 +858,7 @@ class Spectrum_Storage:
             S = a second number digit
         """
         tp_time_stamp = \
-            "{time.tm_mday}-{time.tm_mon}-{time.tm_year}_\
-            {time.tm_hour}-{time.tm_min}-{time.tm_sec}".\
+            "{time.tm_mday}-{time.tm_mon}-{time.tm_year}_{time.tm_hour}-{time.tm_min}-{time.tm_sec}".\
             format(time=time.localtime())
 
         if end != "":
