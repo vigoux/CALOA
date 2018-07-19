@@ -1408,7 +1408,7 @@ class Application(tk.Frame):
                 + "    ".join(["{:=+012.5F}" for spect in datas])
             with open(filepath, "w") as file:
                 file.write(begin+"\n")
-                for tup in zip(*tup(datas.values())):
+                for tup in zip(*tuple(datas.values())):
                     file.write(format_str.format(*tup)+"\n")
                 file.close()
 
