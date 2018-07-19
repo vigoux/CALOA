@@ -1541,8 +1541,8 @@ class Application(tk.Frame):
 
         for name in correction_spectrum:
             to_save = [
-                ((1, "LAMBDAS"), correction_spectrum.lambdas),
-                ((2, "MACH.ABS."), correction_spectrum.values)
+                ((1, "LAMBDAS"), correction_spectrum[name].lambdas),
+                ((2, "MACH.ABS."), correction_spectrum[name].values)
             ]
 
             spectras = self.spectra_storage[abs_folder_id, :, name]
