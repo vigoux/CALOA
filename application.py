@@ -1413,7 +1413,7 @@ class Application(tk.Frame):
                 file.close()
 
         # This is the timestamp as returned at the begining of the experiment
-        timeStamp = folder_id[:-3]
+        timeStamp = folder_id[:-4]
 
         dir_path = tkFileDialog.\
             askdirectory(title="Where do you want to save spectra ?")
