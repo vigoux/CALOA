@@ -48,7 +48,7 @@ AUTO_UPDATE_ENABLED = True
 # Furthermore, enabling this mode will give you an access to a new pane
 # in scope display calle "Debug", enabling you to see all spectra sent to
 # scope display.
-DEVELOPER_MODE_ENABLED = True
+DEVELOPER_MODE_ENABLED = False
 
 # Enter here the name (between quotes) of the colormap you want to use
 # To find some other colormap ideas :
