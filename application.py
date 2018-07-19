@@ -1459,20 +1459,26 @@ class Application(tk.Frame):
             to_save = dict(
             [
                 ((1, "LAMBDAS"),
-                 self.spectra_storage.latest_black[id].lambdas),
+                 self.spectra_storage.latest_black[id]),
                 ((2, "BLACK"),
-                 self.spectra_storage.latest_black[id].values),
+                 self.spectra_storage.latest_black[id]),
                 ((3, "WHITE"),
-                 self.spectra_storage.latest_white[id].values)
+                 self.spectra_storage.latest_white[id])
             ] + [
                 ((i+4, "SP{}".format(i+1)),
-                 spectrum.values) for i, spectrum in enumerate(
+                 spectrum) for i, spectrum in enumerate(
                     to_save.values()
                  )
             ])
+            to_save_raw = dict([])
+            for id, spectrum in to_save_raw.items():
+                if id[0] == 1:
+                    to_save_raw[id] = spectrum.lambdas
+                else:
+                    to_save_raw[id] = spectrum.values
             format_data(
                 raw_path + os.sep + "raw-{}-{}.txt".format(id, timeStamp),
-                to_save
+                to_save_raw
             )
 
             # Saving Interpolated datas
@@ -1542,7 +1548,7 @@ class Application(tk.Frame):
             spectras = self.spectra_storage[abs_folder_id, :, name]
             for i, spectrum in spectras.items():
                 to_save.append(
-                    ((i+3, "ABS.SP{}".format(i+1)), spectrum)
+                    ((i+3, "ABS.SP{}".format(i+1)), spectrum.values)
                 )
 
             format_data(
