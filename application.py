@@ -542,7 +542,7 @@ class Application(tk.Frame):
             # referenceChannel, thus we don't do it.
 
             if key != chosen:
-                abs_spectras["ABSORBANCE-{}".format(key)] = \
+                abs_spectras["abs-{}".format(key)] = \
                     spectro.Spectrum.absorbanceSpectrum(
                         ref_spectrum, scopes[key])
 
@@ -1379,12 +1379,12 @@ class Application(tk.Frame):
         else:
             experiment_logger.info("Experiment finished.")
 
-        self.treatSpectras(raw_timestamp)
+        self.treatSpectras(raw_timestamp, abs_timestamp)
         self.avh.release()
         self.pause_live_display.clear()
         self.processing_text["text"] = "No running experiment..."
 
-    def treatSpectras(self, folder_id):
+    def treatSpectras(self, folder_id, abs_folder_id):
         """
         This method is used to export spectra contained in folder_id.
         This will proceed by getting all spectra corresponding to each channel
@@ -1398,27 +1398,21 @@ class Application(tk.Frame):
             """
             Parameters :
                 - filepath -- filepath to file where datas need to be saved
-                - datas -- data list organized as follows :
-                    [lambdas, black, white, spectrum1, spectrum2, ...]
+                - datas -- dict as follows :
+                    {(spect-position-in-file, spec-name):spec, ...}
             """
             begin = " "
-            for i, spect_tup in enumerate(datas):
-                if i == 0:
-                    begin_format_str = "LAMBDA"
-                elif i == 1:
-                    begin_format_str = "BLACK"
-                elif i == 2:
-                    begin_format_str = "REF"
-                else:
-                    begin_format_str = "SP{}"
-                begin += "{: ^16s}".format(begin_format_str.format(i-2))
+            for i, name in datas.keys():
+                begin += "{: ^16s}".format(name)
             format_str = "    "\
                 + "    ".join(["{:=+012.5F}" for spect in datas])
             with open(filepath, "w") as file:
                 file.write(begin+"\n")
-                for tup in zip(*datas):
+                for tup in zip(*tup(datas.values())):
                     file.write(format_str.format(*tup)+"\n")
                 file.close()
+
+        # This is the timestamp as returned at the begining of the experiment
         timeStamp = folder_id[:-3]
 
         dir_path = tkFileDialog.\
@@ -1428,6 +1422,8 @@ class Application(tk.Frame):
             experiment_logger.\
                 critical("No Dir Path gave, impossible to save spectra.")
             return None
+
+        # CREATE FOLDERS
 
         save_dir = dir_path + os.sep + "saves{}".format(timeStamp)
         os.mkdir(save_dir)
@@ -1440,6 +1436,11 @@ class Application(tk.Frame):
 
         cosmetic_path = save_dir + os.sep + "cosmetic"
         os.mkdir(cosmetic_path)
+
+        abs_path = save_dir + os.sep + "abs"
+        os.mkdir(abs_path)
+
+        # SAVE RAW SPECTRA
 
         channel_ids = [tup[0] for tup in self.avh.devList.values()]
 
@@ -1455,42 +1456,104 @@ class Application(tk.Frame):
                 float(self.config_dict[self.ENDLAM_ID].get()),
                 int(self.config_dict[self.NRPTS_ID].get())))
 
+            to_save = dict(
+            [
+                ((1, "LAMBDAS"),
+                 self.spectra_storage.latest_black[id].lambdas),
+                ((2, "BLACK"),
+                 self.spectra_storage.latest_black[id].values),
+                ((3, "WHITE"),
+                 self.spectra_storage.latest_white[id].values)
+            ] + [
+                ((i+4, "SP{}".format(i+1)),
+                 spectrum.values) for i, spectrum in enumerate(
+                    to_save.values()
+                 )
+            ])
             format_data(
-                raw_path + os.sep + "raw{}_chan{}.txt".format(timeStamp, id),
-                [
-                    self.spectra_storage.latest_black[id].lambdas,  # LAMBDAS
-                    self.spectra_storage.latest_black[id].values,  # BLACK
-                    self.spectra_storage.latest_white[id].values  # WHITE
-                ] + [spectrum.values for spectrum in to_save.values()]
+                raw_path + os.sep + "raw-{}-{}.txt".format(id, timeStamp),
+                to_save
             )
 
             # Saving Interpolated datas
 
-            interpolated = [interp_lam_range]
-            for spectrum in to_save.values():
-                interpolated.append(spectrum.getInterpolated(
-                                    startingLamb=interp_lam_range[0],
-                                    endingLamb=interp_lam_range[-1],
-                                    nrPoints=len(interp_lam_range)).values)
+            interpolated = [((1, "LAMBDAS"), interp_lam_range)]
+            for name, spectrum in list(to_save.items())[1:]:  # All except 0
+                interpolated.append(
+                    (
+                        name,
+                        spectrum.getInterpolated(
+                            startingLamb=interp_lam_range[0],
+                            endingLamb=interp_lam_range[-1],
+                            nrPoints=len(interp_lam_range)
+                        ).values
+                    )
+                )
             format_data(interp_path + os.sep
-                        + "interp{}_chan{}.txt".format(timeStamp, id),
-                        interpolated)
+                        + "interp-{}-{}.txt".format(id, timeStamp),
+                        dict(interpolated))
 
             # Saving Cosmetic datas
 
-            cosmetic = [interp_lam_range]
-            for spectrum in to_save.values():
-                cosmetic.append(spectrum.getInterpolated(
-                                startingLamb=interp_lam_range[0],
-                                endingLamb=interp_lam_range[-1],
-                                nrPoints=len(interp_lam_range),
-                                smoothing=True).values)
+            cosmetic = [((1, "LAMBDAS"), interp_lam_range)]
+            for name, spectrum in list(to_save.items())[1:]:  # All except 0
+                cosmetic.append(
+                    (
+                        name,
+                        spectrum.getInterpolated(
+                            startingLamb=interp_lam_range[0],
+                            endingLamb=interp_lam_range[-1],
+                            nrPoints=len(interp_lam_range),
+                            smoothing=True
+                        ).values
+                    )
+                )
             format_data(cosmetic_path + os.sep
-                        + "cosm{}_chan{}.txt".format(timeStamp, id), cosmetic)
+                        + "cosm-{}-{}.txt".format(id, timeStamp),
+                        dict(cosmetic))
 
-        config_dict = self.get_saving_dict()
+        # SAVE ABSORBANCE SPECTRA
+
+        # Here we correct black from reference spectra.
+        tp_reference = dict([])
+        for key in self.spectra_storage.latest_white:
+            tp_reference[key] = \
+                self.spectra_storage.latest_white[key]\
+                - self.spectra_storage.latest_black[key]
+
+        # Check is a reference channel is set, if not, raise a Warning
+        # else, compute the machine absorbance for further spectrum correction
+        if self.referenceChannel.get() != "":
+            correction_spectrum = self.get_selected_absorbance(
+                tp_reference
+            )
+        else:
+
+            raise UserWarning(
+                "No reference channel selected, aborting."
+            )
+
+        for name in correction_spectrum:
+            to_save = [
+                ((1, "LAMBDAS"), correction_spectrum.lambdas),
+                ((2, "MACH.ABS."), correction_spectrum.values)
+            ]
+
+            spectras = self.spectra_storage[abs_folder_id, :, name]
+            for i, spectrum in spectras.items():
+                to_save.append(
+                    ((i+3, "ABS.SP{}".format(i+1)), spectrum)
+                )
+
+            format_data(
+                abs_path + os.sep + "{}-{}.txt".format(name, timeStamp),
+                to_save
+            )
+
 
         # Here we write all informations about current configuration
+
+        config_dict = self.get_saving_dict()
 
         with open(save_dir + os.sep + "config.txt", "w") as file:
             file.write("BNC parameters :\n")
