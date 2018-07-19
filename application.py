@@ -1553,7 +1553,7 @@ class Application(tk.Frame):
 
             format_data(
                 abs_path + os.sep + "{}-{}.txt".format(name, timeStamp),
-                to_save
+                dict(to_save)
             )
 
 
