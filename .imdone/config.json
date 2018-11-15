@@ -18,10 +18,15 @@
       "IDEA",
       "NOTE",
       "REVIEW",
-      "MARK"
+      "MARK",
+      "HELP"
     ]
   },
   "lists": [
+    {
+      "name": "HELP",
+      "hidden": false
+    },
     {
       "name": "FIXME",
       "hidden": false
@@ -54,5 +59,6 @@
       "titleTemplate": "View github issue %s",
       "icon": "icon-octoface"
     }
-  }
+  },
+  "noHelp": true
 }
