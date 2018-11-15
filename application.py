@@ -1189,7 +1189,7 @@ class Application(tk.Frame):
                 pulse[BNC.DELAY] = pulse.experimentTuple[BNC.DELAY].get()
                 pulse[BNC.WIDTH] = pulse.experimentTuple[BNC.WIDTH].get()
                 total_time_used = p_N_d*float(
-                    pulse.experimentTuple[BNC.dPHASE].get())
+                    pulse.experimentTuple[BNC.dPHASE].get()) * 1E3
 
                 if total_time_used >= p_T:
                     raise UserWarning(
